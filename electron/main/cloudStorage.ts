@@ -128,15 +128,9 @@ export async function resetSystemDataInDb(userId: string): Promise<GameSave> {
   const { error } = await supabase.rpc('reset_all_game_data')
   if (error) throw error
 
-  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id')
-  if (profilesError) throw profilesError
-
-  let currentUserSave = createDefaultSave()
-  for (const profile of profiles ?? []) {
-    const saved = await bootstrapGameSaveInDb(profile.id, createDefaultSave())
-    if (profile.id === userId) currentUserSave = saved
-  }
-  return currentUserSave
+  const cloudSave = await loadGameSaveFromDb(userId)
+  if (cloudSave) return cloudSave
+  return bootstrapGameSaveInDb(userId, createDefaultSave())
 }
 
 function applyOfflineDecay(save: GameSave): GameSave {
