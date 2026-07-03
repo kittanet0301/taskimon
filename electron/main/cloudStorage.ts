@@ -58,13 +58,11 @@ export async function saveGameSaveToDb(userId: string, save: GameSave): Promise<
     if (error) throw error
   }
 
+  const { error: invDeleteError } = await supabase.from('inventory').delete().eq('user_id', userId)
+  if (invDeleteError) throw invDeleteError
   if (payload.inventory.length > 0) {
-    const { error } = await supabase.from('inventory').upsert(payload.inventory, {
-      onConflict: 'user_id,item_type'
-    })
+    const { error } = await supabase.from('inventory').insert(payload.inventory)
     if (error) throw error
-  } else {
-    await supabase.from('inventory').delete().eq('user_id', userId)
   }
 
   for (const mission of payload.missions) {
@@ -91,10 +89,20 @@ export async function resetGameDataInDb(userId: string): Promise<GameSave> {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
 
-  await supabase.from('pets').update({ is_active: false }).eq('owner_id', userId)
-  await supabase.from('inventory').delete().eq('user_id', userId)
-  await supabase.from('mission_progress').delete().eq('user_id', userId)
-  await supabase.from('player_activity').delete().eq('user_id', userId)
+  const { error: petError } = await supabase
+    .from('pets')
+    .update({ is_active: false })
+    .eq('owner_id', userId)
+  if (petError) throw petError
+
+  const { error: invError } = await supabase.from('inventory').delete().eq('user_id', userId)
+  if (invError) throw invError
+
+  const { error: missionError } = await supabase.from('mission_progress').delete().eq('user_id', userId)
+  if (missionError) throw missionError
+
+  const { error: activityError } = await supabase.from('player_activity').delete().eq('user_id', userId)
+  if (activityError) throw activityError
 
   const fresh = createDefaultSave()
   await saveGameSaveToDb(userId, fresh)
