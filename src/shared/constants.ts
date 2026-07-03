@@ -46,7 +46,7 @@ export const ADULT_MIN_HOURS = 48
 export const CLICKS_PER_DEV = 100
 export const KEYS_PER_DEV = 500
 export const MAX_DEV_PER_HOUR = 10
-export const RESET_DATA_PIN = '1234'
+export const RESET_SYSTEM_PIN = '1234'
 
 export const ITEM_LABELS: Record<string, string> = {
   food_basic: 'ผัก',

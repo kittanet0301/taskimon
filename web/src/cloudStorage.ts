@@ -79,7 +79,7 @@ export async function bootstrapGameSaveInDb(userId: string, save?: GameSave): Pr
   return initial
 }
 
-/** Wipe all game + social progress, then write a fresh default save (keeps profile/login). */
+/** Wipe game progress for one user (keeps profile, friends, chat). */
 export async function resetGameDataInDb(userId: string): Promise<GameSave> {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
@@ -113,6 +113,25 @@ export async function resetGameDataInDb(userId: string): Promise<GameSave> {
   const fresh = createDefaultSave()
   await saveGameSaveToDb(userId, fresh)
   return fresh
+}
+
+/** Wipe game progress for all users (keeps profiles, friendships, messages). */
+export async function resetSystemDataInDb(userId: string): Promise<GameSave> {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { error } = await supabase.rpc('reset_all_game_data')
+  if (error) throw error
+
+  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id')
+  if (profilesError) throw profilesError
+
+  let currentUserSave = createDefaultSave()
+  for (const profile of profiles ?? []) {
+    const saved = await bootstrapGameSaveInDb(profile.id, createDefaultSave())
+    if (profile.id === userId) currentUserSave = saved
+  }
+  return currentUserSave
 }
 
 function applyOfflineDecay(save: GameSave): GameSave {

@@ -13,6 +13,7 @@ import {
   bootstrapGameSaveInDb,
   loadGameSaveFromDb,
   resetGameDataInDb,
+  resetSystemDataInDb,
   saveGameSaveToDb,
   canUseCloudStorage
 } from './cloudStorage'
@@ -22,6 +23,8 @@ let hookStarted = false
 let saveRef: GameSave = loadSave()
 let currentUserId: string | null = null
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null
+let cloudSavePromise: Promise<void> | null = null
+let cloudSaveGeneration = 0
 let cloudSyncing = false
 
 type ActivityListener = (save: GameSave) => void
@@ -75,31 +78,44 @@ export function getGameSave(): GameSave {
   if (next !== saveRef) {
     saveRef = next
     writeSave(saveRef)
-    scheduleCloudPersist(saveRef)
+    scheduleCloudPersist()
     broadcast()
     refreshTray(getGameSave)
   }
   return saveRef
 }
 
-function scheduleCloudPersist(save: GameSave): void {
-  if (!currentUserId || !canUseCloudStorage() || cloudSyncing) return
+async function persistCloudIfCurrent(generation: number): Promise<void> {
+  if (!currentUserId || generation !== cloudSaveGeneration) return
+  await saveGameSaveToDb(currentUserId, saveRef)
+}
+
+function scheduleCloudPersist(): void {
+  if (!currentUserId || !canUseCloudStorage()) return
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer)
   cloudSaveTimer = setTimeout(() => {
+    cloudSaveTimer = null
+    const generation = cloudSaveGeneration
     cloudSyncing = true
-    saveGameSaveToDb(currentUserId!, save)
-      .then(() => console.log('[cloud] saved'))
-      .catch((err) => console.error('[cloud] save failed:', err))
-      .finally(() => {
-        cloudSyncing = false
+    const promise = persistCloudIfCurrent(generation)
+      .then(() => {
+        if (generation === cloudSaveGeneration) console.log('[cloud] saved')
       })
+      .catch((err) => {
+        if (generation === cloudSaveGeneration) console.error('[cloud] save failed:', err)
+      })
+      .finally(() => {
+        if (cloudSavePromise === promise) cloudSavePromise = null
+        if (generation === cloudSaveGeneration) cloudSyncing = false
+      })
+    cloudSavePromise = promise
   }, 1500)
 }
 
 export function setGameSave(save: GameSave, options?: { skipCloud?: boolean }): GameSave {
   saveRef = save
   writeSave(saveRef)
-  if (!options?.skipCloud) scheduleCloudPersist(saveRef)
+  if (!options?.skipCloud) scheduleCloudPersist()
   broadcast()
   refreshTray(getGameSave)
   return saveRef
@@ -239,9 +255,13 @@ export function broadcastToWindows(windows: BrowserWindow[]): void {
 
 export async function forceCloudSave(): Promise<void> {
   if (!currentUserId) throw new Error('Not logged in')
+  cloudSaveGeneration++
   if (cloudSaveTimer) {
     clearTimeout(cloudSaveTimer)
     cloudSaveTimer = null
+  }
+  if (cloudSavePromise) {
+    await cloudSavePromise.catch(() => {})
   }
   cloudSyncing = true
   try {
@@ -251,15 +271,41 @@ export async function forceCloudSave(): Promise<void> {
   }
 }
 
-export async function resetAllGameData(): Promise<GameSave> {
+export async function clearMyGameData(): Promise<GameSave> {
   if (!currentUserId) throw new Error('Not logged in')
+  cloudSaveGeneration++
   if (cloudSaveTimer) {
     clearTimeout(cloudSaveTimer)
     cloudSaveTimer = null
   }
+  if (cloudSavePromise) {
+    await cloudSavePromise.catch(() => {})
+  }
   cloudSyncing = true
   try {
     saveRef = await resetGameDataInDb(currentUserId)
+    writeSave(saveRef)
+    broadcast()
+    refreshTray(getGameSave)
+    return saveRef
+  } finally {
+    cloudSyncing = false
+  }
+}
+
+export async function resetSystemGameData(): Promise<GameSave> {
+  if (!currentUserId) throw new Error('Not logged in')
+  cloudSaveGeneration++
+  if (cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer)
+    cloudSaveTimer = null
+  }
+  if (cloudSavePromise) {
+    await cloudSavePromise.catch(() => {})
+  }
+  cloudSyncing = true
+  try {
+    saveRef = await resetSystemDataInDb(currentUserId)
     writeSave(saveRef)
     broadcast()
     refreshTray(getGameSave)
