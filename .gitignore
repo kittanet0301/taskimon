@@ -6,3 +6,4 @@ out
 *.log
 ws.tgz
 _ws_extract
+.tools
