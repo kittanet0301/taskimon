@@ -99,6 +99,14 @@ export default function App({ variant = 'desktop' }: Props) {
     return window.electronAPI.onGameUpdated(setSave)
   }, [refresh, checkSession])
 
+  useEffect(() => {
+    if (!session?.user?.id || showCover || !window.electronAPI) return
+    const id = setInterval(() => {
+      refresh()
+    }, 60_000)
+    return () => clearInterval(id)
+  }, [session, showCover, refresh])
+
   const handleGetStarted = () => {
     localStorage.setItem(ONBOARDING_KEY, '1')
     setShowCover(false)
@@ -106,6 +114,13 @@ export default function App({ variant = 'desktop' }: Props) {
 
   const handleLogout = () => {
     setSession(null)
+    refresh()
+  }
+
+  const handleDataReset = () => {
+    localStorage.removeItem(ONBOARDING_KEY)
+    setShowCover(true)
+    setTab('home')
     refresh()
   }
 
@@ -194,6 +209,7 @@ export default function App({ variant = 'desktop' }: Props) {
             onSynced={refresh}
             cloudReady={cloudReady}
             onLogout={handleLogout}
+            onDataReset={handleDataReset}
           />
         )}
       </main>

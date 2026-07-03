@@ -6,12 +6,13 @@ import {
   MAX_DEV_PER_HOUR
 } from '../../src/shared/constants'
 import { addDevPoints } from '../../src/shared/stats'
-import { updateMissionProgress } from '../../src/shared/missions'
+import { updateMissionProgress, applyDailyResets } from '../../src/shared/missions'
 import { loadSave, writeSave } from './storage'
 import { refreshTray } from './tray'
 import {
   bootstrapGameSaveInDb,
   loadGameSaveFromDb,
+  resetGameDataInDb,
   saveGameSaveToDb,
   canUseCloudStorage
 } from './cloudStorage'
@@ -70,6 +71,14 @@ export async function setCurrentUser(userId: string | null): Promise<GameSave> {
 }
 
 export function getGameSave(): GameSave {
+  const next = applyDailyResets(saveRef)
+  if (next !== saveRef) {
+    saveRef = next
+    writeSave(saveRef)
+    scheduleCloudPersist(saveRef)
+    broadcast()
+    refreshTray(getGameSave)
+  }
   return saveRef
 }
 
@@ -97,6 +106,8 @@ export function setGameSave(save: GameSave, options?: { skipCloud?: boolean }): 
 }
 
 export function updateSave(mutator: (save: GameSave) => GameSave): GameSave {
+  const reset = applyDailyResets(saveRef)
+  if (reset !== saveRef) saveRef = reset
   return setGameSave(mutator(saveRef))
 }
 
@@ -235,6 +246,24 @@ export async function forceCloudSave(): Promise<void> {
   cloudSyncing = true
   try {
     await saveGameSaveToDb(currentUserId, saveRef)
+  } finally {
+    cloudSyncing = false
+  }
+}
+
+export async function resetAllGameData(): Promise<GameSave> {
+  if (!currentUserId) throw new Error('Not logged in')
+  if (cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer)
+    cloudSaveTimer = null
+  }
+  cloudSyncing = true
+  try {
+    saveRef = await resetGameDataInDb(currentUserId)
+    writeSave(saveRef)
+    broadcast()
+    refreshTray(getGameSave)
+    return saveRef
   } finally {
     cloudSyncing = false
   }

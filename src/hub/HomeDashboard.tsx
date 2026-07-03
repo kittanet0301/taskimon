@@ -1,23 +1,16 @@
+import { useEffect, useState } from 'react'
 import type { GameSave, ItemType, PetData } from '../shared/types'
 import { ELEMENT_COLORS, ELEMENT_NAMES, SPECIES_NAMES } from '../shared/constants'
 import { getActivityScore, getPetLevel, getStageLabel } from '../shared/activityScore'
 import { canEvolveToAdult } from '../shared/stats'
-import { getMissionDefinition } from '../shared/missions'
-import { ITEMS } from '../shared/items'
+import { formatDailyResetCountdown, getMissionDefinition } from '../shared/missions'
+import { ITEMS, QUICK_CARE_ITEMS } from '../shared/items'
 import { EggHatch } from './EggHatch'
 
 interface Props {
   save: GameSave
   onUpdated: () => void
 }
-
-const QUICK_CARE: { type: ItemType; emoji: string; label: string }[] = [
-  { type: 'food_basic', emoji: '🥬', label: 'ผัก' },
-  { type: 'food_premium', emoji: '🥫', label: 'อาหารกระป๋อง' },
-  { type: 'medicine', emoji: '💊', label: 'ยา' },
-  { type: 'food_basic', emoji: '💧', label: 'น้ำ' },
-  { type: 'toy', emoji: '🎾', label: 'ของเล่น' }
-]
 
 function StatBar({
   label,
@@ -128,6 +121,14 @@ function ActivityCard({ save }: { save: GameSave }) {
 }
 
 function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: () => void }) {
+  const [resetLabel, setResetLabel] = useState(() => formatDailyResetCountdown())
+
+  useEffect(() => {
+    setResetLabel(formatDailyResetCountdown())
+    const id = setInterval(() => setResetLabel(formatDailyResetCountdown()), 60_000)
+    return () => clearInterval(id)
+  }, [save.missions])
+
   const claim = async (missionId: string) => {
     await window.electronAPI.patchGame('claimMission', [missionId])
     onUpdated()
@@ -138,6 +139,7 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
   return (
     <div className="card">
       <h3 className="dash-section-title">Daily Missions</h3>
+      <p className="dash-reset-hint">{resetLabel}</p>
       {daily.length === 0 && <p>ไม่มีภารกิจ</p>}
       {daily.map((mission) => {
         const def = getMissionDefinition(mission.missionId)
@@ -187,18 +189,19 @@ function QuickCare({ save, onUpdated }: { save: GameSave; onUpdated: () => void 
     <div className="card">
       <h3 className="dash-section-title">Quick Care</h3>
       <div className="quick-care-grid">
-        {QUICK_CARE.map((item, idx) => {
+        {QUICK_CARE_ITEMS.map((item) => {
+          const def = ITEMS[item.type]
           const qty = save.inventory.find((i) => i.type === item.type)?.quantity ?? 0
           return (
             <button
-              key={`${item.type}-${idx}`}
+              key={item.type}
               className="quick-care-btn"
               disabled={qty <= 0}
-              title={`${ITEMS[item.type].label} x${qty}`}
+              title={`${def.label} — ${def.description} · x${qty}`}
               onClick={() => use(item.type)}
             >
               <span className="quick-care-emoji">{item.emoji}</span>
-              <span className="quick-care-label">{item.label}</span>
+              <span className="quick-care-label">{def.label}</span>
               <span className="quick-care-qty">x{qty}</span>
             </button>
           )

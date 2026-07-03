@@ -6,6 +6,7 @@ import {
   isDbMode,
   onSaveChange,
   patchSave,
+  resetAllGameData,
   setCurrentUser,
   setGameSave,
 } from './gameStore'
@@ -42,6 +43,7 @@ export function createWebApi(): GameAPI {
     patchGame: async (mutator, args = []) => patchSave(mutator, args),
     updateGame: async (save) => setGameSave(save),
     forceCloudSave: async () => forceCloudSave(),
+    resetAllGameData: async () => resetAllGameData(),
     isDbMode: async () => isDbMode(),
     reloadFromCloud: async () => hydrateFromSession(),
     onGameUpdated: (callback) => onSaveChange(callback),

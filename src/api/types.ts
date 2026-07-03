@@ -5,6 +5,7 @@ export interface GameAPI {
   patchGame: (mutator: string, args?: unknown[]) => Promise<GameSave>
   updateGame: (save: GameSave) => Promise<GameSave>
   forceCloudSave: () => Promise<void>
+  resetAllGameData: () => Promise<GameSave>
   isDbMode: () => Promise<boolean>
   reloadFromCloud: () => Promise<GameSave>
   onGameUpdated: (callback: (save: GameSave) => void) => () => void

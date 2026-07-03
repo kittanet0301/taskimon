@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import type { GameSave } from '../../src/shared/types'
 import { createDefaultSave } from '../../src/shared/growth'
 import { applyMoodDecay } from '../../src/shared/stats'
-import { resetExpiredMissions } from '../../src/shared/missions'
+import { applyDailyResets } from '../../src/shared/missions'
 
 const SAVE_FILE = 'pet-save.json'
 
@@ -40,8 +40,7 @@ export function writeSave(save: GameSave): void {
 function applyOfflineDecay(save: GameSave): GameSave {
   const lastSaved = new Date(save.lastSaved).getTime()
   const hoursAway = (Date.now() - lastSaved) / 3_600_000
-  let next = { ...save }
-  next.missions = resetExpiredMissions(next.missions)
+  let next = applyDailyResets(save)
   if (next.pet && hoursAway > 0.1) {
     next.pet = {
       ...next.pet,

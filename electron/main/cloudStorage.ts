@@ -2,7 +2,7 @@ import type { GameSave } from '../../src/shared/types'
 import { createDefaultSave } from '../../src/shared/growth'
 import { gameSaveFromDbParts, gameSaveToDbPayload } from '../../src/shared/dbMapper'
 import { applyMoodDecay } from '../../src/shared/stats'
-import { resetExpiredMissions } from '../../src/shared/missions'
+import { applyDailyResets } from '../../src/shared/missions'
 import { getSupabase, isSupabaseConfigured } from './supabase'
 
 export async function loadGameSaveFromDb(userId: string): Promise<GameSave | null> {
@@ -86,11 +86,25 @@ export async function bootstrapGameSaveInDb(userId: string, save?: GameSave): Pr
   return initial
 }
 
+/** Wipe game progress and write a fresh default save (keeps account, friends, chat). */
+export async function resetGameDataInDb(userId: string): Promise<GameSave> {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+
+  await supabase.from('pets').update({ is_active: false }).eq('owner_id', userId)
+  await supabase.from('inventory').delete().eq('user_id', userId)
+  await supabase.from('mission_progress').delete().eq('user_id', userId)
+  await supabase.from('player_activity').delete().eq('user_id', userId)
+
+  const fresh = createDefaultSave()
+  await saveGameSaveToDb(userId, fresh)
+  return fresh
+}
+
 function applyOfflineDecay(save: GameSave): GameSave {
   const lastSaved = new Date(save.lastSaved).getTime()
   const hoursAway = (Date.now() - lastSaved) / 3_600_000
-  let next = { ...save }
-  next.missions = resetExpiredMissions(next.missions)
+  let next = applyDailyResets(save)
   if (next.pet && hoursAway > 0.1) {
     next.pet = {
       ...next.pet,

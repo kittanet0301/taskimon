@@ -11,6 +11,7 @@ import {
   isDbMode,
   onSaveChange,
   registerPlaytimeTick,
+  resetAllGameData,
   setCurrentUser,
   setGameSave,
   startActivityTracker,
@@ -76,6 +77,7 @@ function setupIpc(): void {
   ipcMain.handle('supabase:configured', () => isSupabaseConfigured())
   ipcMain.handle('cloud:isDbMode', () => isDbMode())
   ipcMain.handle('cloud:forceSave', async () => forceCloudSave())
+  ipcMain.handle('cloud:resetAll', async () => resetAllGameData())
   ipcMain.handle('cloud:reload', async () => hydrateFromSession())
 
   ipcMain.handle('auth:signup', async (_e, email: string, password: string, username: string) => {

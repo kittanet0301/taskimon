@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import type { GameSave } from '../shared/types'
-import { getMissionDefinition } from '../shared/missions'
+import { formatDailyResetCountdown, getMissionDefinition } from '../shared/missions'
 
 interface Props {
   save: GameSave
@@ -7,6 +8,14 @@ interface Props {
 }
 
 export function Missions({ save, onUpdated }: Props) {
+  const [resetLabel, setResetLabel] = useState(() => formatDailyResetCountdown())
+
+  useEffect(() => {
+    setResetLabel(formatDailyResetCountdown())
+    const id = setInterval(() => setResetLabel(formatDailyResetCountdown()), 60_000)
+    return () => clearInterval(id)
+  }, [save.missions])
+
   const claim = async (missionId: string) => {
     await window.electronAPI.patchGame('claimMission', [missionId])
     onUpdated()
@@ -15,6 +24,7 @@ export function Missions({ save, onUpdated }: Props) {
   return (
     <div className="card">
       <h2>ภารกิจรายวัน / รายสัปดาห์</h2>
+      <p className="dash-reset-hint">{resetLabel}</p>
       {save.missions.map((mission) => {
         const def = getMissionDefinition(mission.missionId)
         if (!def) return null

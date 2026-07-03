@@ -1,4 +1,4 @@
-import type { MissionProgress } from './types'
+import type { MissionProgress, GameSave } from './types'
 import type { ItemType } from './types'
 
 export type MissionKind = 'daily' | 'weekly'
@@ -111,6 +111,53 @@ export function resetExpiredMissions(missions: MissionProgress[], now = new Date
     }
     return mission
   })
+}
+
+/** Reset daily missions at local midnight and clear today's activity counters. */
+export function applyDailyResets(save: GameSave, now = new Date()): GameSave {
+  const missions = resetExpiredMissions(save.missions, now)
+  const nowMs = now.getTime()
+
+  const dailyWasReset = save.missions.some((before) => {
+    const def = MISSIONS.find((m) => m.id === before.missionId)
+    if (def?.kind !== 'daily' || nowMs < new Date(before.resetAt).getTime()) return false
+    const after = missions.find((m) => m.missionId === before.missionId)
+    return Boolean(after && after.progress === 0 && !after.completed)
+  })
+
+  const missionsChanged = missions.some((after, index) => {
+    const before = save.missions[index]
+    return (
+      before?.progress !== after.progress ||
+      before?.completed !== after.completed ||
+      before?.resetAt !== after.resetAt
+    )
+  })
+
+  if (!missionsChanged && !dailyWasReset) return save
+
+  return {
+    ...save,
+    missions,
+    activity: dailyWasReset
+      ? { ...save.activity, clicks: 0, keystrokes: 0 }
+      : save.activity
+  }
+}
+
+export function getNextDailyResetAt(now = new Date()): Date {
+  const next = startOfDay(now)
+  next.setDate(next.getDate() + 1)
+  return next
+}
+
+export function formatDailyResetCountdown(now = new Date()): string {
+  const ms = Math.max(0, getNextDailyResetAt(now).getTime() - now.getTime())
+  const hours = Math.floor(ms / 3_600_000)
+  const minutes = Math.floor((ms % 3_600_000) / 60_000)
+  if (hours > 0) return `รีเซ็ตภารกิจรายวันใน ${hours} ชม. ${minutes} นาที`
+  if (minutes > 0) return `รีเซ็ตภารกิจรายวันใน ${minutes} นาที`
+  return 'กำลังรีเซ็ตภารกิจรายวัน...'
 }
 
 export function updateMissionProgress(

@@ -1,15 +1,14 @@
 import type { GameSave } from '@shared/types'
 import { createDefaultSave } from '@shared/growth'
 import { applyMoodDecay } from '@shared/stats'
-import { resetExpiredMissions } from '@shared/missions'
+import { applyDailyResets } from '@shared/missions'
 
 const STORAGE_KEY = 'taskimon-save'
 
 function applyOfflineDecay(save: GameSave): GameSave {
   const lastSaved = new Date(save.lastSaved).getTime()
   const hoursAway = (Date.now() - lastSaved) / 3_600_000
-  let next = { ...save }
-  next.missions = resetExpiredMissions(next.missions)
+  let next = applyDailyResets(save)
   if (next.pet && hoursAway > 0.1) {
     next.pet = {
       ...next.pet,

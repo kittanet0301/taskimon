@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { GameSave } from '../shared/types'
+import { RESET_DATA_PIN } from '../shared/constants'
 import { formatAuthError } from '../shared/formatError'
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
   onSynced: () => void
   cloudReady: boolean
   onLogout?: () => void
+  onDataReset?: () => void
 }
 
-export function AuthPanel({ save, onSynced, cloudReady, onLogout }: Props) {
+export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -17,6 +19,9 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout }: Props) {
   const [profile, setProfile] = useState<{ username: string; friend_code: string } | null>(null)
   const [message, setMessage] = useState('')
   const [dbMode, setDbMode] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [resetPin, setResetPin] = useState('')
+  const [resetLoading, setResetLoading] = useState(false)
 
   const loadSession = async () => {
     const s = (await window.electronAPI.getSession()) as { user: { id: string; email?: string } } | null
@@ -81,6 +86,27 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout }: Props) {
     }
   }
 
+  const confirmReset = async () => {
+    if (resetPin !== RESET_DATA_PIN) {
+      setMessage('รหัสยืนยันไม่ถูกต้อง')
+      return
+    }
+    setResetLoading(true)
+    setMessage('')
+    try {
+      await window.electronAPI.resetAllGameData()
+      setShowResetConfirm(false)
+      setResetPin('')
+      setMessage('ล้างข้อมูลแล้ว — เริ่มต้นใหม่เหมือนผู้เล่นใหม่')
+      onSynced()
+      onDataReset?.()
+    } catch (e) {
+      setMessage(String(e))
+    } finally {
+      setResetLoading(false)
+    }
+  }
+
   if (!cloudReady) {
     return (
       <div className="card">
@@ -117,6 +143,47 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout }: Props) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="primary" onClick={forceSave}>บันทึก DB ทันที</button>
             <button className="secondary" onClick={signOut}>ออกจากระบบ</button>
+          </div>
+
+          <div className="danger-zone">
+            <h3>โซนอันตราย</h3>
+            <p className="danger-zone-desc">
+              ล้างข้อมูลเกมทั้งหมด (สัตว์, ไอเทม, ภารกิจ, activity) แล้วเริ่มใหม่เหมือนผู้เล่นใหม่ — บัญชีและเพื่อนยังอยู่
+            </p>
+            {!showResetConfirm ? (
+              <button className="danger-btn" onClick={() => setShowResetConfirm(true)}>
+                ล้างข้อมูลทั้งหมด
+              </button>
+            ) : (
+              <div className="reset-confirm">
+                <label htmlFor="reset-pin">ใส่รหัสยืนยัน</label>
+                <input
+                  id="reset-pin"
+                  type="password"
+                  inputMode="numeric"
+                  value={resetPin}
+                  onChange={(e) => setResetPin(e.target.value)}
+                  placeholder="รหัส 4 หลัก"
+                  disabled={resetLoading}
+                  autoComplete="off"
+                />
+                <div className="reset-confirm-actions">
+                  <button className="danger-btn" onClick={confirmReset} disabled={resetLoading}>
+                    {resetLoading ? 'กำลังล้าง...' : 'ตกลง'}
+                  </button>
+                  <button
+                    className="secondary"
+                    onClick={() => {
+                      setShowResetConfirm(false)
+                      setResetPin('')
+                    }}
+                    disabled={resetLoading}
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </>
       ) : (

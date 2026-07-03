@@ -21,6 +21,7 @@ export type ItemType =
   | 'food_basic'
   | 'food_premium'
   | 'medicine'
+  | 'water'
   | 'toy'
   | 'dev_vitamin'
   | 'element_shield'

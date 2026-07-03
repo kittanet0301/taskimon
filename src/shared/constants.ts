@@ -46,11 +46,13 @@ export const ADULT_MIN_HOURS = 48
 export const CLICKS_PER_DEV = 100
 export const KEYS_PER_DEV = 500
 export const MAX_DEV_PER_HOUR = 10
+export const RESET_DATA_PIN = '1234'
 
 export const ITEM_LABELS: Record<string, string> = {
-  food_basic: 'อาหารธรรมดา',
-  food_premium: 'อาหารพรีเมียม',
-  medicine: 'ยารักษา',
+  food_basic: 'ผัก',
+  food_premium: 'อาหารกระป๋อง',
+  medicine: 'ยา',
+  water: 'น้ำ',
   toy: 'ของเล่น',
   dev_vitamin: 'วิตามินพัฒนาร่าง',
   element_shield: 'โล่ธาตุ'

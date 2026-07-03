@@ -42,6 +42,7 @@ const api: GameAPI = {
   syncMissions: (userId, missions) => ipcRenderer.invoke('cloud:syncMissions', userId, missions),
   isDbMode: () => ipcRenderer.invoke('cloud:isDbMode'),
   forceCloudSave: () => ipcRenderer.invoke('cloud:forceSave'),
+  resetAllGameData: () => ipcRenderer.invoke('cloud:resetAll'),
   reloadFromCloud: () => ipcRenderer.invoke('cloud:reload')
 }
 

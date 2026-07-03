@@ -2,13 +2,13 @@ import type { GameSave, ItemType } from './types'
 import { hatchPet, evolvePet, createEggPet } from './growth'
 import { canEvolveToAdult } from './stats'
 import { useItem } from './items'
-import { getMissionDefinition, resetExpiredMissions } from './missions'
+import { getMissionDefinition, applyDailyResets } from './missions'
 
 export function applyGamePatch(save: GameSave, mutatorName: string, args: unknown[] = []): GameSave {
   if (mutatorName === 'hatch') {
     if (!save.pet) return save
     let next = { ...save, pet: hatchPet(save.pet) }
-    next.missions = resetExpiredMissions(next.missions)
+    next = applyDailyResets(next)
     next.missions = next.missions.map((m) =>
       m.missionId === 'weekly_hatch_1' ? { ...m, progress: m.progress + 1, completed: m.progress + 1 >= 1 } : m
     )
@@ -52,8 +52,11 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       pet: {
         ...save.pet,
         stats,
-        feedCount: save.pet.feedCount + (itemType.startsWith('food') ? 1 : 0),
-        animationState: itemType.startsWith('food') ? 'eat' : save.pet.animationState
+        feedCount: save.pet.feedCount + (itemType === 'food_basic' || itemType === 'food_premium' ? 1 : 0),
+        animationState:
+          itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water'
+            ? 'eat'
+            : save.pet.animationState
       }
     }
   }
