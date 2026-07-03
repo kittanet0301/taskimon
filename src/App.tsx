@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { GameSave } from './shared/types'
 import { ONBOARDING_KEY } from './shared/activityScore'
 import { GetStarted } from './hub/GetStarted'
+import { LoginGate } from './hub/LoginGate'
 import { HomeDashboard } from './hub/HomeDashboard'
 import { Inventory } from './hub/Inventory'
 import { Missions } from './hub/Missions'
@@ -13,6 +14,8 @@ import { UserProfile } from './hub/UserProfile'
 
 type Tab = 'home' | 'inventory' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
 
+type Session = { user: { id: string; email?: string } } | null
+
 interface Props {
   variant?: 'desktop' | 'web'
 }
@@ -23,6 +26,8 @@ export default function App({ variant = 'desktop' }: Props) {
   const [cloudReady, setCloudReady] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
   const [showCover, setShowCover] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
+  const [session, setSession] = useState<Session>(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
   const refresh = useCallback(async () => {
     if (!window.electronAPI) return
@@ -30,37 +35,64 @@ export default function App({ variant = 'desktop' }: Props) {
     setSave(data)
   }, [])
 
+  const checkSession = useCallback(async () => {
+    if (!window.electronAPI) return
+    const s = (await window.electronAPI.getSession()) as Session
+    setSession(s)
+    setAuthLoading(false)
+    if (s?.user?.id) {
+      await window.electronAPI.reloadFromCloud()
+      await refresh()
+    }
+  }, [refresh])
+
   useEffect(() => {
     if (!window.electronAPI) return
     refresh()
     window.electronAPI.supabaseConfigured().then(setCloudReady)
+    checkSession()
     return window.electronAPI.onGameUpdated(setSave)
-  }, [refresh])
+  }, [refresh, checkSession])
 
   const handleGetStarted = () => {
     localStorage.setItem(ONBOARDING_KEY, '1')
     setShowCover(false)
   }
 
+  const handleLogout = () => {
+    setSession(null)
+    refresh()
+  }
+
   if (!window.electronAPI) {
     return <div className="content">กำลังเชื่อมต่อแอป...</div>
   }
 
-  if (!save) {
+  if (!save || authLoading) {
     return <div className="content">กำลังโหลด...</div>
   }
 
-  if (showCover) {
+  if (!cloudReady) {
     return (
-      <GetStarted
-        onStart={handleGetStarted}
-        cloudReady={cloudReady}
-        onLogin={() => {
-          handleGetStarted()
-          setTab('settings')
-        }}
-      />
+      <div className="cover-screen">
+        <div className="cover-card">
+          <h1 className="cover-title">TASKIMON</h1>
+          <p className="cover-tagline">ต้องตั้งค่า Supabase ก่อนใช้งาน</p>
+          <p className="notice" style={{ textAlign: 'left', margin: 0 }}>
+            สร้างไฟล์ <code>.env</code> หรือ <code>.env.production</code> แล้วรัน SQL ใน{' '}
+            <code>supabase/migrations/</code>
+          </p>
+        </div>
+      </div>
     )
+  }
+
+  if (!session?.user?.id) {
+    return <LoginGate onLoggedIn={checkSession} />
+  }
+
+  if (showCover) {
+    return <GetStarted onStart={handleGetStarted} />
   }
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
@@ -76,19 +108,13 @@ export default function App({ variant = 'desktop' }: Props) {
   return (
     <div className="app">
       <header className="header">
-        <h1>Taskimon{variant === 'web' ? ' — Web' : ''}</h1>
-        <span className="header-sub">
-          {variant === 'web'
-            ? 'คลิก & พิมพ์ในหน้านี้ → Activity Score'
-            : 'Home Dashboard'}
-        </span>
-      </header>
-
-      {cloudReady && tab === 'home' && (
-        <div className="notice notice-info">
-          เข้าสู่ระบบที่ <strong>ตั้งค่า</strong> เพื่อ sync ข้อมูลบน Cloud
+        <div>
+          <h1>Taskimon{variant === 'web' ? ' — Web' : ''}</h1>
+          <span className="header-sub">
+            {session.user.email} · sync อัตโนมัติ
+          </span>
         </div>
-      )}
+      </header>
 
       <nav className="tabs">
         {tabs.map((t) => (
@@ -119,7 +145,12 @@ export default function App({ variant = 'desktop' }: Props) {
         {tab === 'chat' && <Chat />}
         {tab === 'profile' && <UserProfile userId={viewUserId} />}
         {tab === 'settings' && (
-          <AuthPanel save={save} onSynced={refresh} cloudReady={cloudReady} />
+          <AuthPanel
+            save={save}
+            onSynced={refresh}
+            cloudReady={cloudReady}
+            onLogout={handleLogout}
+          />
         )}
       </main>
     </div>

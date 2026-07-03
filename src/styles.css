@@ -27,6 +27,19 @@ body {
   align-items: center;
 }
 
+.login-card {
+  text-align: left;
+}
+
+.login-message {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin: 0 0 16px;
+}
+
 .header h1 {
   margin: 0;
   font-size: 1.4rem;

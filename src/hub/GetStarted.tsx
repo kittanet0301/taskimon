@@ -1,10 +1,8 @@
 interface Props {
   onStart: () => void
-  cloudReady: boolean
-  onLogin: () => void
 }
 
-export function GetStarted({ onStart, cloudReady, onLogin }: Props) {
+export function GetStarted({ onStart }: Props) {
   return (
     <div className="cover-screen">
       <div className="cover-card">
@@ -21,13 +19,8 @@ export function GetStarted({ onStart, cloudReady, onLogin }: Props) {
           <li>ภารกิจรายวัน → รับรางวัล</li>
         </ul>
         <button className="primary cover-btn" onClick={onStart}>
-          Get Started
+          เริ่มเล่น
         </button>
-        {cloudReady && (
-          <button className="secondary cover-btn-secondary" onClick={onLogin}>
-            เข้าสู่ระบบ / สมัครสมาชิก
-          </button>
-        )}
       </div>
     </div>
   )

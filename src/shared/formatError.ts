@@ -7,3 +7,17 @@ export function formatApiError(error: unknown): string {
   }
   return String(error)
 }
+
+export function formatAuthError(error: unknown): string {
+  const text = formatApiError(error)
+  if (text.includes('Email not confirmed')) {
+    return 'ยังไม่ได้ยืนยันอีเมล — เปิดอีเมลแล้วคลิกลิงก์ยืนยัน หรือปิด Confirm email ใน Supabase'
+  }
+  if (text.includes('Invalid login credentials')) {
+    return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+  }
+  if (text.includes('User already registered')) {
+    return 'อีเมลนี้สมัครแล้ว — ลองเข้าสู่ระบบแทน'
+  }
+  return text.replace(/^Error:\s*Error invoking remote method '[^']+':\s*(AuthApiError:\s*)?/i, '')
+}

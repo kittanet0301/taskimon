@@ -1,27 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { GameSave } from '../shared/types'
+import { formatAuthError } from '../shared/formatError'
 
 interface Props {
   save: GameSave
   onSynced: () => void
   cloudReady: boolean
+  onLogout?: () => void
 }
 
-function formatAuthError(error: unknown): string {
-  const text = String(error)
-  if (text.includes('Email not confirmed')) {
-    return 'ยังไม่ได้ยืนยันอีเมล — เปิดอีเมลแล้วคลิกลิงก์ยืนยัน หรือปิด Confirm email ใน Supabase (Authentication → Sign In / Providers → User Signups)'
-  }
-  if (text.includes('Invalid login credentials')) {
-    return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
-  }
-  if (text.includes('User already registered')) {
-    return 'อีเมลนี้สมัครแล้ว — ลองเข้าสู่ระบบแทน'
-  }
-  return text.replace(/^Error:\s*Error invoking remote method '[^']+':\s*(AuthApiError:\s*)?/i, '')
-}
-
-export function AuthPanel({ save, onSynced, cloudReady }: Props) {
+export function AuthPanel({ save, onSynced, cloudReady, onLogout }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -81,8 +69,7 @@ export function AuthPanel({ save, onSynced, cloudReady }: Props) {
     setSession(null)
     setProfile(null)
     setDbMode(false)
-    setMessage('ออกจากระบบแล้ว — ใช้ข้อมูลในเครื่อง (offline cache)')
-    onSynced()
+    onLogout?.()
   }
 
   const forceSave = async () => {
@@ -112,7 +99,7 @@ export function AuthPanel({ save, onSynced, cloudReady }: Props) {
       <p>
         สถานะ:{' '}
         <strong style={{ color: dbMode ? '#16a34a' : '#ca8a04' }}>
-          {dbMode ? 'เชื่อมต่อ DB แล้ว (บันทึกอัตโนมัติ)' : 'ยังไม่ login — ใช้ไฟล์ local ชั่วคราว'}
+          {dbMode ? 'เชื่อมต่อ DB แล้ว (บันทึกอัตโนมัติ)' : 'กำลังเชื่อมต่อ...'}
         </strong>
       </p>
       {message && <p>{message}</p>}
