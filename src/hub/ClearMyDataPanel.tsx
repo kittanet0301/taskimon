@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatApiError } from '../shared/formatError'
 
 interface Props {
   username?: string
@@ -19,7 +20,7 @@ export function ClearMyDataPanel({ username, onCleared }: Props) {
       setMessage('ล้างข้อมูลของคุณแล้ว — เริ่มต้นใหม่')
       onCleared()
     } catch (e) {
-      setMessage(String(e))
+      setMessage(formatApiError(e))
     } finally {
       setLoading(false)
     }

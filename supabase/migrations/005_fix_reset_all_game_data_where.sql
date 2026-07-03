@@ -1,4 +1,4 @@
--- Global game-data wipe for "ล้างระบบ" (keeps profiles, friendships, messages)
+-- Fix: Supabase blocks DELETE without WHERE clause
 
 create or replace function public.reset_all_game_data()
 returns void

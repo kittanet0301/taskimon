@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { RESET_SYSTEM_PIN } from '../shared/constants'
+import { formatApiError } from '../shared/formatError'
 
 interface Props {
   onReset: () => void
@@ -25,7 +26,7 @@ export function SystemResetPanel({ onReset }: Props) {
       setMessage('ล้างระบบแล้ว — ข้อมูลเกมของทุกคนถูกรีเซ็ต')
       onReset()
     } catch (e) {
-      setMessage(String(e))
+      setMessage(formatApiError(e))
     } finally {
       setLoading(false)
     }
