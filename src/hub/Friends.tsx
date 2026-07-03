@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatApiError } from '../shared/formatError'
 
 interface FriendRow {
   id: string
@@ -46,10 +47,21 @@ export function Friends({ onViewProfile }: Props) {
         setMessage('ไม่พบรหัสเพื่อน')
         return
       }
+      if (profile.id === userId) {
+        setMessage('ไม่สามารถเพิ่มตัวเองเป็นเพื่อนได้')
+        return
+      }
       await window.electronAPI.sendFriendRequest(userId, profile.id)
       setMessage(`ส่งคำขอเป็นเพื่อนไปยัง ${profile.username} แล้ว`)
     } catch (e) {
-      setMessage(String(e))
+      const text = formatApiError(e)
+      if (text.includes('duplicate') || text.includes('unique')) {
+        setMessage('ส่งคำขอไปแล้ว หรือเป็นเพื่อนกันอยู่แล้ว')
+      } else if (text.includes('violates') || text.includes('foreign key')) {
+        setMessage('ไม่สามารถส่งคำขอได้ — ตรวจสอบรหัสเพื่อน')
+      } else {
+        setMessage(text)
+      }
     }
   }
 
