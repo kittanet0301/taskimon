@@ -228,5 +228,14 @@ export function broadcastToWindows(windows: BrowserWindow[]): void {
 
 export async function forceCloudSave(): Promise<void> {
   if (!currentUserId) throw new Error('Not logged in')
-  await saveGameSaveToDb(currentUserId, saveRef)
+  if (cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer)
+    cloudSaveTimer = null
+  }
+  cloudSyncing = true
+  try {
+    await saveGameSaveToDb(currentUserId, saveRef)
+  } finally {
+    cloudSyncing = false
+  }
 }

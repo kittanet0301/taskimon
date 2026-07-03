@@ -69,7 +69,16 @@ export function patchSave(mutatorName: string, args: unknown[] = []): GameSave {
 
 export async function forceCloudSave(): Promise<void> {
   if (!currentUserId) throw new Error('Not logged in')
-  await saveGameSaveToDb(currentUserId, saveRef)
+  if (cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer)
+    cloudSaveTimer = null
+  }
+  cloudSyncing = true
+  try {
+    await saveGameSaveToDb(currentUserId, saveRef)
+  } finally {
+    cloudSyncing = false
+  }
 }
 
 export async function setCurrentUser(userId: string | null): Promise<GameSave> {

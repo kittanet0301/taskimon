@@ -35,6 +35,51 @@ export default function App({ variant = 'desktop' }: Props) {
     setSave(data)
   }, [])
 
+  const syncOnTabChange = useCallback(async () => {
+    if (!window.electronAPI) return
+    await window.electronAPI.forceCloudSave()
+    await window.electronAPI.reloadFromCloud()
+    await refresh()
+  }, [refresh])
+
+  const [tabSyncing, setTabSyncing] = useState(false)
+
+  const handleTabChange = useCallback(
+    async (nextTab: Tab) => {
+      if (nextTab === tab || tabSyncing) return
+      setTabSyncing(true)
+      try {
+        await syncOnTabChange()
+        setTab(nextTab)
+      } catch (e) {
+        console.error('[tab] sync failed:', e)
+        setTab(nextTab)
+      } finally {
+        setTabSyncing(false)
+      }
+    },
+    [tab, tabSyncing, syncOnTabChange]
+  )
+
+  const handleViewProfile = useCallback(
+    async (userId: string) => {
+      if (tabSyncing) return
+      setTabSyncing(true)
+      try {
+        await syncOnTabChange()
+        setViewUserId(userId)
+        setTab('profile')
+      } catch (e) {
+        console.error('[tab] sync failed:', e)
+        setViewUserId(userId)
+        setTab('profile')
+      } finally {
+        setTabSyncing(false)
+      }
+    },
+    [tabSyncing, syncOnTabChange]
+  )
+
   const checkSession = useCallback(async () => {
     if (!window.electronAPI) return
     const s = (await window.electronAPI.getSession()) as Session
@@ -111,7 +156,7 @@ export default function App({ variant = 'desktop' }: Props) {
         <div>
           <h1>Taskimon{variant === 'web' ? ' — Web' : ''}</h1>
           <span className="header-sub">
-            {session.user.email} · sync อัตโนมัติ
+            {session.user.email} · {tabSyncing ? 'กำลัง sync...' : 'sync อัตโนมัติ'}
           </span>
         </div>
       </header>
@@ -121,7 +166,8 @@ export default function App({ variant = 'desktop' }: Props) {
           <button
             key={t.id}
             className={`tab ${tab === t.id ? 'active' : ''}`}
-            onClick={() => setTab(t.id)}
+            onClick={() => handleTabChange(t.id)}
+            disabled={tabSyncing}
           >
             <span className="tab-icon">{t.icon}</span>
             {t.label}
@@ -135,15 +181,13 @@ export default function App({ variant = 'desktop' }: Props) {
         {tab === 'missions' && <Missions save={save} onUpdated={refresh} />}
         {tab === 'friends' && (
           <Friends
-            onViewProfile={(userId) => {
-              setViewUserId(userId)
-              setTab('profile')
-            }}
+            key="friends"
+            onViewProfile={handleViewProfile}
           />
         )}
         {tab === 'battle' && <Battle save={save} />}
-        {tab === 'chat' && <Chat />}
-        {tab === 'profile' && <UserProfile userId={viewUserId} />}
+        {tab === 'chat' && <Chat key="chat" />}
+        {tab === 'profile' && <UserProfile key={`profile-${viewUserId ?? 'self'}`} userId={viewUserId} />}
         {tab === 'settings' && (
           <AuthPanel
             save={save}

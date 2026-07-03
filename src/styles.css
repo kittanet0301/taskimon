@@ -95,6 +95,11 @@ body {
   color: white;
 }
 
+.tab:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .content {
   padding: 20px 24px 32px;
   flex: 1;
