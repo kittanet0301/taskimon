@@ -40,6 +40,32 @@ body {
   margin: 0 0 16px;
 }
 
+.auth-switch {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-link:hover:not(:disabled) {
+  color: #4338ca;
+}
+
+.auth-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .header h1 {
   margin: 0;
   font-size: 1.4rem;
