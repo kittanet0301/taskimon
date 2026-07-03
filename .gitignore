@@ -3,6 +3,8 @@ dist
 dist-web
 out
 .env
+.env.local
+.env.*.local
 *.log
 ws.tgz
 _ws_extract
