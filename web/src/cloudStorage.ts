@@ -79,16 +79,27 @@ export async function bootstrapGameSaveInDb(userId: string, save?: GameSave): Pr
   return initial
 }
 
-/** Wipe game progress and write a fresh default save (keeps account, friends, chat). */
+/** Wipe all game + social progress, then write a fresh default save (keeps profile/login). */
 export async function resetGameDataInDb(userId: string): Promise<GameSave> {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
 
-  const { error: petError } = await supabase
+  const { data: pets, error: petsQueryError } = await supabase
     .from('pets')
-    .update({ is_active: false })
+    .select('id')
     .eq('owner_id', userId)
-  if (petError) throw petError
+  if (petsQueryError) throw petsQueryError
+
+  for (const pet of pets ?? []) {
+    const { error } = await supabase
+      .from('battles')
+      .delete()
+      .or(`challenger_pet_id.eq.${pet.id},defender_pet_id.eq.${pet.id},winner_pet_id.eq.${pet.id}`)
+    if (error) throw error
+  }
+
+  const { error: deletePetsError } = await supabase.from('pets').delete().eq('owner_id', userId)
+  if (deletePetsError) throw deletePetsError
 
   const { error: invError } = await supabase.from('inventory').delete().eq('user_id', userId)
   if (invError) throw invError

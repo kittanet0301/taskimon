@@ -148,7 +148,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
           <div className="danger-zone">
             <h3>โซนอันตราย</h3>
             <p className="danger-zone-desc">
-              ล้างข้อมูลเกมทั้งหมด (สัตว์, ไอเทม, ภารกิจ, activity) แล้วเริ่มใหม่เหมือนผู้เล่นใหม่ — บัญชีและเพื่อนยังอยู่
+              ล้างข้อมูลเกมทั้งหมด — สัตว์, ไอเทม, ภารกิจ, activity, ประวัติต่อสู้ — แล้วเริ่มใหม่ (บัญชี, เพื่อน และแชทยังอยู่)
             </p>
             {!showResetConfirm ? (
               <button className="danger-btn" onClick={() => setShowResetConfirm(true)}>
