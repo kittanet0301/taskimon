@@ -29,7 +29,23 @@ Dashboard → **Authentication** → **Providers** → เปิด **Email**
 
 (ถ้าต้องการทดสอบเร็ว: ปิด "Confirm email" ใน Auth settings)
 
-## 5. รันแอป
+## 6. ตั้ง Auth URL สำหรับ Web (Vercel)
+
+หลัง deploy ที่ `https://taskimon.vercel.app` ไปที่:
+
+[Authentication → URL Configuration](https://supabase.com/dashboard/project/novdkkhgztlskcnjzott/auth/url-configuration)
+
+| ช่อง | ค่า |
+|------|-----|
+| **Site URL** | `https://taskimon.vercel.app` |
+| **Redirect URLs** | `https://taskimon.vercel.app/**` |
+| (dev) | `http://localhost:5174/**` |
+
+Preview deploy บน Vercel (ถ้าใช้): `https://*-kittanet.vercel.app/**`
+
+จำเป็นสำหรับยืนยันอีเมล / OAuth — login ด้วยรหัสผ่าน (`signInWithPassword`) มักใช้ได้แม้ยังไม่ตั้ง แต่ควรตั้งให้ครบ
+
+## 7. รันแอป
 
 ```bash
 npm run dev
