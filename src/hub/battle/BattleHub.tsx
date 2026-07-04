@@ -31,13 +31,45 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
   const [hubTab, setHubTab] = useState<HubTab>('room')
   const [endedBattle, setEndedBattle] = useState<EndedBattle | null>(null)
   const handledEndRef = useRef<string | null>(null)
+  const dismissedEndRef = useRef<Set<string>>(new Set())
   const userId = ctx?.userId ?? null
   const sessionId = ctx?.activeSessionId ?? null
   const { session, turns, reload } = useBattleSession(userId, sessionId)
 
-  const goToActiveBattle = useCallback(() => {
+  const goToActiveBattle = useCallback(async () => {
+    if (!ctx?.roomId) {
+      setHubTab('active')
+      return
+    }
+    const battles = (await window.electronAPI.listBattles()) as Record<string, unknown>[]
+    const active = battles.find(
+      (b) => String(b.room_id) === ctx.roomId && b.status === 'active'
+    )
+    if (active) {
+      ctx.setActiveSessionId(String(active.id))
+      ctx.setMemberStatus('in_battle')
+      setHubTab('active')
+      return
+    }
+    ctx.setMemberStatus('waiting')
     setHubTab('active')
-  }, [])
+  }, [ctx])
+
+  const refreshMemberStatus = useCallback(async () => {
+    if (!ctx?.roomId || !userId) return
+    try {
+      const memberRows = (await window.electronAPI.getRoomMembers(ctx.roomId)) as Record<
+        string,
+        unknown
+      >[]
+      const me = memberRows.find((m) => String(m.user_id) === userId)
+      if (me) {
+        ctx.setMemberStatus(me.status as 'waiting' | 'in_battle' | 'left')
+      }
+    } catch {
+      /* optional */
+    }
+  }, [ctx, userId])
 
   const discoverRoomSession = useCallback(async () => {
     if (!ctx?.roomId || ctx.activeSessionId) return
@@ -53,12 +85,18 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
 
   const handleBattleEnd = useCallback(
     async (endedSession: BattleSession) => {
-      if (handledEndRef.current === endedSession.id) return
+      if (
+        handledEndRef.current === endedSession.id ||
+        dismissedEndRef.current.has(endedSession.id)
+      ) {
+        return
+      }
       handledEndRef.current = endedSession.id
 
       ctx?.setActiveSessionId(null)
       ctx?.setMemberStatus('waiting')
       setHubTab('room')
+      void refreshMemberStatus()
 
       try {
         const turnRows = (await window.electronAPI.getBattleTurns(endedSession.id)) as Record<
@@ -73,7 +111,7 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
         setEndedBattle({ session: endedSession, turns: [] })
       }
     },
-    [ctx]
+    [ctx, refreshMemberStatus]
   )
 
   useEffect(() => {
@@ -93,7 +131,10 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
         setHubTab('active')
       }
       if (['completed', 'fled'].includes(mapped.status)) {
-        if (ctx?.activeSessionId === mapped.id || sessionId === mapped.id) {
+        if (
+          !dismissedEndRef.current.has(mapped.id) &&
+          (ctx?.activeSessionId === mapped.id || sessionId === mapped.id)
+        ) {
           void handleBattleEnd(mapped)
         }
       } else {
@@ -103,10 +144,10 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
   }, [userId, ctx, reload, sessionId, handleBattleEnd])
 
   useEffect(() => {
-    if (!session || !userId) return
+    if (!session || !userId || !sessionId) return
     if (!['completed', 'fled'].includes(session.status)) return
     void handleBattleEnd(session)
-  }, [session, userId, handleBattleEnd])
+  }, [session, sessionId, userId, handleBattleEnd])
 
   useEffect(() => {
     if (ctx?.memberStatus === 'in_battle' && sessionId) {
@@ -209,8 +250,11 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
           turns={endedBattle.turns}
           userId={userId}
           onClose={() => {
+            if (endedBattle) dismissedEndRef.current.add(endedBattle.session.id)
             setEndedBattle(null)
-            handledEndRef.current = null
+            ctx?.setMemberStatus('waiting')
+            setHubTab('room')
+            void refreshMemberStatus()
           }}
         />
       )}

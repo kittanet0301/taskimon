@@ -22,27 +22,36 @@ export function BattleRoom({ onDuelStarted }: Props) {
 
   const syncActiveSession = useCallback(
     async (sessionId?: string | null) => {
-      if (!ctx) return
+      if (!ctx || !roomId) return
+
+      const battles = (await window.electronAPI.listBattles()) as Record<string, unknown>[]
+
+      const resolveActive = (id: string) => {
+        const row = battles.find((b) => String(b.id) === id)
+        return row && row.status === 'active' ? row : null
+      }
+
       if (sessionId) {
-        ctx.setActiveSessionId(sessionId)
+        const row = resolveActive(sessionId)
+        if (row) {
+          ctx.setActiveSessionId(sessionId)
+          ctx.setMemberStatus('in_battle')
+          onDuelStarted?.()
+          return
+        }
+      }
+
+      const active = battles.find(
+        (b) => String(b.room_id) === roomId && b.status === 'active'
+      )
+      if (active) {
+        ctx.setActiveSessionId(String(active.id))
         ctx.setMemberStatus('in_battle')
         onDuelStarted?.()
         return
       }
-      if (!roomId || ctx.activeSessionId) return
-      try {
-        const battles = (await window.electronAPI.listBattles()) as Record<string, unknown>[]
-        const active = battles.find(
-          (b) => String(b.room_id) === roomId && b.status === 'active'
-        )
-        if (active) {
-          ctx.setActiveSessionId(String(active.id))
-          ctx.setMemberStatus('in_battle')
-          onDuelStarted?.()
-        }
-      } catch {
-        /* optional fallback */
-      }
+
+      ctx.setMemberStatus('waiting')
     },
     [ctx, roomId, onDuelStarted]
   )
@@ -59,10 +68,11 @@ export function BattleRoom({ onDuelStarted }: Props) {
 
       const me = mapped.find((m) => m.userId === userId)
       if (me) {
-        ctx?.setMemberStatus(me.status)
         ctx?.setMyRole(me.role)
         if (me.status === 'in_battle') {
           await syncActiveSession(room?.activeSessionId)
+        } else {
+          ctx?.setMemberStatus(me.status)
         }
       }
     } catch (e) {
@@ -95,6 +105,11 @@ export function BattleRoom({ onDuelStarted }: Props) {
         const session = mapBattleSession(row)
         if (session.roomId === roomId && session.status === 'active') {
           void syncActiveSession(session.id)
+        }
+        if (session.roomId === roomId && ['completed', 'fled'].includes(session.status)) {
+          ctx?.setActiveSessionId(null)
+          ctx?.setMemberStatus('waiting')
+          void loadRoom()
         }
       }
     })
@@ -164,7 +179,8 @@ export function BattleRoom({ onDuelStarted }: Props) {
 
   const myMember = members.find((m) => m.userId === userId)
   const inBattle =
-    ctx?.memberStatus === 'in_battle' || myMember?.status === 'in_battle'
+    (ctx?.memberStatus === 'in_battle' || myMember?.status === 'in_battle') &&
+    Boolean(ctx?.activeSessionId)
 
   const waitingOpponents = members.filter(
     (m) => m.status === 'waiting' && m.userId !== userId
