@@ -7,7 +7,11 @@ interface FriendRow {
   profiles?: { username: string }
 }
 
-export function BattleChallenge() {
+interface Props {
+  onBattleActive?: (sessionId: string) => void
+}
+
+export function BattleChallenge({ onBattleActive }: Props) {
   const [friends, setFriends] = useState<FriendRow[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [selectedFriend, setSelectedFriend] = useState('')
@@ -63,8 +67,14 @@ export function BattleChallenge() {
   const respond = async (sessionId: string, accept: boolean) => {
     setLoading(true)
     try {
-      await window.electronAPI.respondBattle(sessionId, accept)
+      const result = (await window.electronAPI.respondBattle(sessionId, accept)) as Record<
+        string,
+        unknown
+      > | null
       if (userId) await loadBattles(userId)
+      if (accept && result?.status === 'active') {
+        onBattleActive?.(String(result.id))
+      }
       setMessage(accept ? 'ยอมรับคำท้าแล้ว' : 'ปฏิเสธคำท้าแล้ว')
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'ตอบคำท้าไม่สำเร็จ')

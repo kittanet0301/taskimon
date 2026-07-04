@@ -122,7 +122,7 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
       const row = (payload as { new?: Record<string, unknown> })?.new
       if (!row) return
       const mapped = mapBattleSession(row)
-      if (mapped.status === 'active' || mapped.status === 'pending') {
+      if (mapped.status === 'active') {
         ctx?.setActiveSessionId(mapped.id)
         if (mapped.roomId) {
           ctx?.setRoomId(mapped.roomId)
@@ -222,7 +222,14 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
           )}
         </>
       )}
-      {hubTab === 'challenge' && <BattleChallenge />}
+      {hubTab === 'challenge' && (
+        <BattleChallenge
+          onBattleActive={(id) => {
+            ctx?.setActiveSessionId(id)
+            setHubTab('active')
+          }}
+        />
+      )}
       {hubTab === 'active' && (
         session && session.status === 'active' && userId ? (
           <BattleArena
