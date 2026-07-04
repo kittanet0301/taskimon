@@ -2,7 +2,7 @@ import type { GameSave, ItemType } from './types'
 import { hatchPet, evolvePet, createEggPet } from './growth'
 import { canEvolveToAdult } from './stats'
 import { useItem } from './items'
-import { getMissionDefinition, applyDailyResets } from './missions'
+import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
 
 export function applyGamePatch(save: GameSave, mutatorName: string, args: unknown[] = []): GameSave {
   if (mutatorName === 'hatch') {
@@ -34,7 +34,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     inv[idx] = { ...inv[idx], quantity: inv[idx].quantity - 1 }
     const stats = useItem(itemType, save.pet.stats)
     let missions = save.missions
-    if (itemType === 'food_basic' || itemType === 'food_premium') {
+    if (itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water') {
       missions = missions.map((m) =>
         m.missionId === 'daily_feed_3'
           ? {
@@ -52,7 +52,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       pet: {
         ...save.pet,
         stats,
-        feedCount: save.pet.feedCount + (itemType === 'food_basic' || itemType === 'food_premium' ? 1 : 0),
+        feedCount: save.pet.feedCount + (itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water' ? 1 : 0),
         animationState:
           itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water'
             ? 'eat'
@@ -80,7 +80,9 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     const missions = save.missions.map((m) =>
       m.missionId === missionId ? { ...m, completed: false, progress: 0 } : m
     )
-    return { ...save, inventory, pet, missions }
+    let next: GameSave = { ...save, inventory, pet, missions }
+    if (def.kind === 'daily') next = recordDailyMissionClaim(next)
+    return next
   }
   return save
 }

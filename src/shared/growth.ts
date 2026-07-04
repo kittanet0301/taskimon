@@ -62,6 +62,7 @@ export function createDefaultSave(): GameSave {
     sessionStartedAt: now,
     lastSaved: now,
     totalPlaySeconds: 0,
-    dailyMissionsCompletedDays: 0
+    dailyMissionsCompletedDays: 0,
+    lastDailyMissionDay: null
   }
 }

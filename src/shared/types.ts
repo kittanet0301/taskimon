@@ -75,6 +75,8 @@ export interface GameSave {
   lastSaved: string
   totalPlaySeconds: number
   dailyMissionsCompletedDays: number
+  /** Local calendar day (YYYY-MM-DD) when a daily mission was last claimed. */
+  lastDailyMissionDay: string | null
 }
 
 export interface Profile {

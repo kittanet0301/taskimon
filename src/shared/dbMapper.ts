@@ -50,6 +50,7 @@ type DbActivity = {
   hour_started_at: string
   total_play_seconds: number
   daily_missions_completed_days: number
+  last_daily_mission_day: string | null
   session_started_at: string
   last_saved: string
   save_version: number
@@ -118,6 +119,7 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       hour_started_at: save.activity.hourStartedAt,
       total_play_seconds: save.totalPlaySeconds,
       daily_missions_completed_days: save.dailyMissionsCompletedDays,
+      last_daily_mission_day: save.lastDailyMissionDay,
       session_started_at: save.sessionStartedAt,
       last_saved: save.lastSaved,
       save_version: save.version
@@ -160,6 +162,7 @@ export function gameSaveFromDbParts(
     sessionStartedAt: activity?.session_started_at ?? base.sessionStartedAt,
     lastSaved: activity?.last_saved ?? new Date().toISOString(),
     totalPlaySeconds: activity?.total_play_seconds ?? 0,
-    dailyMissionsCompletedDays: activity?.daily_missions_completed_days ?? 0
+    dailyMissionsCompletedDays: activity?.daily_missions_completed_days ?? 0,
+    lastDailyMissionDay: activity?.last_daily_mission_day ?? null
   }
 }

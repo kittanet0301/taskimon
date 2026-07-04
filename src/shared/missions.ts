@@ -181,3 +181,22 @@ export function updateMissionProgress(
 export function getMissionDefinition(missionId: string): MissionDefinition | undefined {
   return MISSIONS.find((m) => m.id === missionId)
 }
+
+export function localDayKey(now = new Date()): string {
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/** Count one day toward weekly_daily_5 on first daily mission claim per calendar day. */
+export function recordDailyMissionClaim(save: GameSave, now = new Date()): GameSave {
+  const today = localDayKey(now)
+  if (save.lastDailyMissionDay === today) return save
+  return {
+    ...save,
+    lastDailyMissionDay: today,
+    dailyMissionsCompletedDays: save.dailyMissionsCompletedDays + 1,
+    missions: updateMissionProgress(save.missions, 'weekly_daily_5', 1)
+  }
+}

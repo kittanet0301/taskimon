@@ -38,6 +38,7 @@ export default function App({ variant = 'desktop' }: Props) {
   const syncOnTabChange = useCallback(async () => {
     if (!window.electronAPI) return
     await window.electronAPI.forceCloudSave()
+    await window.electronAPI.reloadFromCloud()
     await refresh()
   }, [refresh])
 
