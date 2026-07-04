@@ -21,5 +21,14 @@ export function formatAuthError(error: unknown): string {
   if (text.includes('User already registered')) {
     return 'อีเมลนี้สมัครแล้ว — ลองเข้าสู่ระบบแทน'
   }
+  if (text.includes('Password should be at least')) {
+    return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว'
+  }
+  if (text.includes('New password should be different')) {
+    return 'รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม'
+  }
+  if (text.includes('For security purposes, you can only request this after')) {
+    return 'ส่งลิงก์บ่อยเกินไป — รอสักครู่แล้วลองใหม่'
+  }
   return text.replace(/^Error:\s*Error invoking remote method '[^']+':\s*(AuthApiError:\s*)?/i, '')
 }

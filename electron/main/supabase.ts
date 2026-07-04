@@ -67,6 +67,30 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
+function passwordResetRedirectUrl(): string {
+  return (
+    process.env.PASSWORD_RESET_REDIRECT_URL ??
+    process.env.VITE_PASSWORD_RESET_REDIRECT_URL ??
+    'https://taskimon.vercel.app/'
+  )
+}
+
+export async function requestPasswordReset(email: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: passwordResetRedirectUrl()
+  })
+  if (error) throw error
+}
+
+export async function updatePassword(password: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) throw error
+}
+
 export async function getSession() {
   const supabase = getSupabase()
   if (!supabase) return null

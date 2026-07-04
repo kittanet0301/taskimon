@@ -16,6 +16,9 @@ import {
   signIn,
   signOut,
   signUp,
+  requestPasswordReset,
+  updatePassword,
+  subscribePasswordRecovery,
   getProfile,
   syncPetToCloud,
   getActivePet,
@@ -82,6 +85,9 @@ export function createWebApi(): GameAPI {
       await signOut()
       await setCurrentUser(null)
     },
+    requestPasswordReset: async (email) => requestPasswordReset(email),
+    updatePassword: async (password) => updatePassword(password),
+    onPasswordRecovery: (callback) => subscribePasswordRecovery(callback),
     getSession: async () => getSession(),
     getProfile: async (userId) => getProfile(userId),
     syncPet: async (userId, pet) => {

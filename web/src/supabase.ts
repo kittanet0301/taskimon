@@ -54,6 +54,46 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
+function passwordResetRedirectUrl(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/`
+  }
+  return 'https://taskimon.vercel.app/'
+}
+
+export async function requestPasswordReset(email: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: passwordResetRedirectUrl()
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function updatePassword(password: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) throw new Error(error.message)
+}
+
+export function subscribePasswordRecovery(callback: () => void): () => void {
+  const supabase = getSupabase()
+  if (!supabase) return () => {}
+
+  const hashParams = new URLSearchParams(window.location.hash.slice(1))
+  if (hashParams.get('type') === 'recovery') {
+    queueMicrotask(() => callback())
+  }
+
+  const {
+    data: { subscription }
+  } = supabase.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') callback()
+  })
+  return () => subscription.unsubscribe()
+}
+
 export async function getSession() {
   const supabase = getSupabase()
   if (!supabase) return null

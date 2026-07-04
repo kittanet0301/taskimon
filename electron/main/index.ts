@@ -31,6 +31,8 @@ import {
   signIn,
   signOut,
   signUp,
+  requestPasswordReset,
+  updatePassword,
   getProfile,
   syncPetToCloud,
   getActivePet,
@@ -126,6 +128,12 @@ function setupIpc(): void {
   ipcMain.handle('auth:signout', async () => {
     await signOut()
     await setCurrentUser(null)
+  })
+  ipcMain.handle('auth:requestPasswordReset', async (_e, email: string) => {
+    await requestPasswordReset(email)
+  })
+  ipcMain.handle('auth:updatePassword', async (_e, password: string) => {
+    await updatePassword(password)
   })
   ipcMain.handle('auth:session', async () => getSession())
   ipcMain.handle('auth:profile', async (_e, userId: string) => getProfile(userId))

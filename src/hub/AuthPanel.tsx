@@ -3,6 +3,7 @@ import type { GameSave } from '../shared/types'
 import { formatAuthError } from '../shared/formatError'
 import { ClearMyDataPanel } from './ClearMyDataPanel'
 import { SystemResetPanel } from './SystemResetPanel'
+import { ChangePasswordForm } from './ChangePasswordForm'
 
 interface Props {
   save: GameSave
@@ -20,6 +21,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
   const [profile, setProfile] = useState<{ username: string; friend_code: string } | null>(null)
   const [message, setMessage] = useState('')
   const [dbMode, setDbMode] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
 
   const loadSession = async () => {
     const s = (await window.electronAPI.getSession()) as { user: { id: string; email?: string } } | null
@@ -125,6 +127,21 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="primary" onClick={forceSave}>บันทึก DB ทันที</button>
             <button className="secondary" onClick={signOut}>ออกจากระบบ</button>
+          </div>
+
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>เปลี่ยนรหัสผ่าน</h3>
+            {passwordSuccess ? (
+              <p style={{ color: '#16a34a', margin: 0 }}>เปลี่ยนรหัสผ่านสำเร็จแล้ว</p>
+            ) : (
+              <ChangePasswordForm
+                submitLabel="เปลี่ยนรหัสผ่าน"
+                onSubmit={async (password) => {
+                  await window.electronAPI.updatePassword(password)
+                  setPasswordSuccess(true)
+                }}
+              />
+            )}
           </div>
 
           <ClearMyDataPanel username={profile?.username} onCleared={handleMyDataCleared} />

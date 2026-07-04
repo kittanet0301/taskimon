@@ -3,6 +3,7 @@ import type { GameSave } from './shared/types'
 import { ONBOARDING_KEY } from './shared/activityScore'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
+import { ChangePasswordPage } from './hub/ChangePasswordPage'
 import { HomeDashboard } from './hub/HomeDashboard'
 import { Inventory } from './hub/Inventory'
 import { Missions } from './hub/Missions'
@@ -40,6 +41,10 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [showCover, setShowCover] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
   const [session, setSession] = useState<Session>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [passwordRecovery, setPasswordRecovery] = useState(() => {
+    const hash = window.location.hash.slice(1)
+    return new URLSearchParams(hash).get('type') === 'recovery'
+  })
 
   const refresh = useCallback(async () => {
     if (!window.electronAPI) return
@@ -113,12 +118,14 @@ function AppContent({ variant = 'desktop' }: Props) {
     window.electronAPI.supabaseConfigured().then(setCloudReady)
     checkSession()
     const unsubscribe = window.electronAPI.onGameUpdated(setSave)
+    const unsubRecovery = window.electronAPI.onPasswordRecovery(() => setPasswordRecovery(true))
     const onFocus = () => {
       void refresh()
     }
     window.addEventListener('focus', onFocus)
     return () => {
       unsubscribe()
+      unsubRecovery()
       window.removeEventListener('focus', onFocus)
     }
   }, [refresh, checkSession])
@@ -152,6 +159,14 @@ function AppContent({ variant = 'desktop' }: Props) {
     refresh()
   }
 
+  const handlePasswordRecoveryComplete = () => {
+    setPasswordRecovery(false)
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    void window.electronAPI?.signOut()
+    setSession(null)
+    setAuthLoading(false)
+  }
+
   if (!window.electronAPI) {
     return <div className="content">กำลังเชื่อมต่อแอป...</div>
   }
@@ -173,6 +188,10 @@ function AppContent({ variant = 'desktop' }: Props) {
         </div>
       </div>
     )
+  }
+
+  if (passwordRecovery) {
+    return <ChangePasswordPage onComplete={handlePasswordRecoveryComplete} />
   }
 
   if (!session?.user?.id) {

@@ -5,9 +5,7 @@ interface Props {
   onLoggedIn: () => void
 }
 
-type AuthView = 'login' | 'signup'
-
-function AuthShell({
+export function AuthShell({
   tagline,
   message,
   children,
@@ -35,12 +33,73 @@ function AuthShell({
   )
 }
 
+type AuthView = 'login' | 'signup' | 'forgot'
+
+function ForgotPasswordPage({ onGoLogin }: { onGoLogin: () => void }) {
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  const sendReset = async () => {
+    if (!email.trim()) {
+      setMessage('กรุณากรอกอีเมล')
+      return
+    }
+    setLoading(true)
+    setMessage('')
+    try {
+      await window.electronAPI.requestPasswordReset(email.trim())
+      setSent(true)
+      setMessage('ส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมลแล้ว — เปิดลิงก์แล้วตั้งรหัสใหม่')
+    } catch (e) {
+      setMessage(formatAuthError(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AuthShell
+      tagline={sent ? 'เช็คอีเมลของคุณ' : 'ลืมรหัสผ่าน'}
+      message={message}
+      footer={
+        <>
+          <button type="button" className="auth-link" onClick={onGoLogin} disabled={loading}>
+            กลับไปเข้าสู่ระบบ
+          </button>
+        </>
+      }
+    >
+      {!sent && (
+        <>
+          <div className="form-row">
+            <label>อีเมลที่ใช้สมัคร</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@email.com"
+              disabled={loading}
+              autoComplete="email"
+            />
+          </div>
+          <button type="button" className="primary cover-btn" onClick={() => void sendReset()} disabled={loading}>
+            {loading ? 'กำลังส่ง...' : 'ส่งลิงก์รีเซ็ตรหัสผ่าน'}
+          </button>
+        </>
+      )}
+    </AuthShell>
+  )
+}
+
 function LoginPage({
   onLoggedIn,
-  onGoSignUp
+  onGoSignUp,
+  onGoForgot
 }: {
   onLoggedIn: () => void
   onGoSignUp: () => void
+  onGoForgot: () => void
 }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -95,6 +154,12 @@ function LoginPage({
           autoComplete="current-password"
         />
       </div>
+
+      <p style={{ margin: '0 0 12px', textAlign: 'right' }}>
+        <button type="button" className="auth-link" onClick={onGoForgot} disabled={loading}>
+          ลืมรหัสผ่าน?
+        </button>
+      </p>
 
       <button className="primary cover-btn" onClick={signIn} disabled={loading}>
         {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
@@ -199,5 +264,15 @@ export function LoginGate({ onLoggedIn }: Props) {
     return <SignUpPage onLoggedIn={onLoggedIn} onGoLogin={() => setView('login')} />
   }
 
-  return <LoginPage onLoggedIn={onLoggedIn} onGoSignUp={() => setView('signup')} />
+  if (view === 'forgot') {
+    return <ForgotPasswordPage onGoLogin={() => setView('login')} />
+  }
+
+  return (
+    <LoginPage
+      onLoggedIn={onLoggedIn}
+      onGoSignUp={() => setView('signup')}
+      onGoForgot={() => setView('forgot')}
+    />
+  )
 }

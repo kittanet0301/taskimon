@@ -15,6 +15,9 @@ export interface GameAPI {
   signUp: (email: string, password: string, username: string) => Promise<unknown>
   signIn: (email: string, password: string) => Promise<unknown>
   signOut: () => Promise<void>
+  requestPasswordReset: (email: string) => Promise<void>
+  updatePassword: (password: string) => Promise<void>
+  onPasswordRecovery: (callback: () => void) => () => void
   getSession: () => Promise<unknown>
   getProfile: (userId: string) => Promise<unknown>
   syncPet: (userId: string, pet: PetData) => Promise<unknown>
