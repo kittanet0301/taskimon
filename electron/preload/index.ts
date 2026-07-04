@@ -44,7 +44,15 @@ const api: GameAPI = {
   forceCloudSave: () => ipcRenderer.invoke('cloud:forceSave'),
   clearMyGameData: () => ipcRenderer.invoke('cloud:clearMyData'),
   resetSystemGameData: () => ipcRenderer.invoke('cloud:resetSystem'),
-  reloadFromCloud: () => ipcRenderer.invoke('cloud:reload')
+  reloadFromCloud: () => ipcRenderer.invoke('cloud:reload'),
+  getActivityStatus: () =>
+    ipcRenderer.invoke('activity:status') as Promise<{
+      global: boolean
+      fallback: boolean
+      ready: boolean
+    }>,
+  reportActivityClick: () => ipcRenderer.invoke('activity:click'),
+  reportActivityKey: () => ipcRenderer.invoke('activity:key')
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

@@ -89,27 +89,27 @@ function ActivityCard({ save }: { save: GameSave }) {
   const score = getActivityScore(save.activity)
   return (
     <div className="card dash-activity-card">
-      <h3 className="dash-section-title">Today&apos;s Activity</h3>
+      <h3 className="dash-section-title">กิจกรรมวันนี้</h3>
       <div className="dash-activity-grid">
         <div className="dash-activity-stat">
           <span className="dash-activity-icon">🖱️</span>
           <div>
             <div className="dash-activity-value">{save.activity.clicks}</div>
-            <div className="dash-activity-label">Mouse Clicks</div>
+            <div className="dash-activity-label">คลิก</div>
           </div>
         </div>
         <div className="dash-activity-stat">
           <span className="dash-activity-icon">⌨️</span>
           <div>
             <div className="dash-activity-value">{save.activity.keystrokes}</div>
-            <div className="dash-activity-label">Words Typed</div>
+            <div className="dash-activity-label">พิมพ์</div>
           </div>
         </div>
         <div className="dash-activity-stat dash-activity-score">
           <span className="dash-activity-icon">⚡</span>
           <div>
             <div className="dash-activity-value">{score}</div>
-            <div className="dash-activity-label">Activity Score</div>
+            <div className="dash-activity-label">คะแนนกิจกรรม</div>
           </div>
         </div>
       </div>

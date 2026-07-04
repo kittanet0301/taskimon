@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface FriendRow {
   friend_id: string
@@ -13,12 +13,34 @@ interface ChatRow {
   created_at: string
 }
 
+function isInThread(msg: ChatRow, userId: string, friendId: string): boolean {
+  return (
+    (msg.sender_id === userId && msg.receiver_id === friendId) ||
+    (msg.sender_id === friendId && msg.receiver_id === userId)
+  )
+}
+
 export function Chat() {
   const [friends, setFriends] = useState<FriendRow[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [friendId, setFriendId] = useState('')
   const [messages, setMessages] = useState<ChatRow[]>([])
   const [text, setText] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const loadHistory = useCallback(async () => {
+    if (!userId || !friendId) {
+      setMessages([])
+      return
+    }
+    setLoading(true)
+    try {
+      const history = (await window.electronAPI.chatHistory(userId, friendId)) as ChatRow[]
+      setMessages(history)
+    } finally {
+      setLoading(false)
+    }
+  }, [userId, friendId])
 
   useEffect(() => {
     ;(async () => {
@@ -27,25 +49,32 @@ export function Chat() {
       setUserId(session.user.id)
       setFriends((await window.electronAPI.listFriends(session.user.id)) as FriendRow[])
       await window.electronAPI.subscribeChat(session.user.id)
-      window.electronAPI.onChatMessage((payload) => {
-        const row = payload as { new: ChatRow }
-        if (row?.new) setMessages((prev) => [...prev, row.new])
-      })
     })()
   }, [])
 
-  const loadHistory = async () => {
+  useEffect(() => {
+    void loadHistory()
+  }, [loadHistory])
+
+  useEffect(() => {
     if (!userId || !friendId) return
-    const history = (await window.electronAPI.chatHistory(userId, friendId)) as ChatRow[]
-    setMessages(history)
-  }
+
+    return window.electronAPI.onChatMessage((payload) => {
+      const row = (payload as { new: ChatRow })?.new
+      if (!row || !isInThread(row, userId, friendId)) return
+      setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]))
+    })
+  }, [userId, friendId])
 
   const send = async () => {
     if (!userId || !friendId || !text.trim()) return
-    await window.electronAPI.sendChat(userId, friendId, text.trim())
+    const content = text.trim()
     setText('')
-    loadHistory()
+    await window.electronAPI.sendChat(userId, friendId, content)
+    await loadHistory()
   }
+
+  const selectedFriend = friends.find((f) => f.friend_id === friendId)
 
   return (
     <div className="card">
@@ -61,7 +90,15 @@ export function Chat() {
           ))}
         </select>
       </div>
-      <button className="secondary" onClick={loadHistory}>โหลดข้อความ</button>
+
+      {!friendId ? (
+        <p className="dash-activity-hint">เลือกเพื่อนเพื่อเริ่มแชท</p>
+      ) : loading ? (
+        <p className="dash-activity-hint">กำลังโหลดข้อความ...</p>
+      ) : messages.length === 0 ? (
+        <p className="dash-activity-hint">ยังไม่มีข้อความกับ {selectedFriend?.profiles?.username ?? 'เพื่อน'}</p>
+      ) : null}
+
       <div className="chat-box" style={{ marginTop: 12 }}>
         {messages.map((m) => (
           <div key={m.id} className={`chat-line ${m.sender_id === userId ? 'me' : ''}`}>
@@ -69,9 +106,22 @@ export function Chat() {
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="พิมพ์ข้อความ..." />
-        <button className="primary" onClick={send}>ส่ง</button>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={friendId ? 'พิมพ์ข้อความ...' : 'เลือกเพื่อนก่อน'}
+          disabled={!friendId}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              void send()
+            }
+          }}
+        />
+        <button className="primary" onClick={send} disabled={!friendId || !text.trim()}>
+          ส่ง
+        </button>
       </div>
     </div>
   )

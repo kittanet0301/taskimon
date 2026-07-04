@@ -131,6 +131,9 @@ export function createWebApi(): GameAPI {
           completed: m.completed,
           reset_at: m.resetAt
         }))
-      )
+      ),
+    getActivityStatus: async () => ({ global: false, fallback: false, ready: true }),
+    reportActivityClick: async () => {},
+    reportActivityKey: async () => {}
   }
 }

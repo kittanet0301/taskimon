@@ -96,7 +96,15 @@ export default function App({ variant = 'desktop' }: Props) {
     refresh()
     window.electronAPI.supabaseConfigured().then(setCloudReady)
     checkSession()
-    return window.electronAPI.onGameUpdated(setSave)
+    const unsubscribe = window.electronAPI.onGameUpdated(setSave)
+    const onFocus = () => {
+      void refresh()
+    }
+    window.addEventListener('focus', onFocus)
+    return () => {
+      unsubscribe()
+      window.removeEventListener('focus', onFocus)
+    }
   }, [refresh, checkSession])
 
   useEffect(() => {

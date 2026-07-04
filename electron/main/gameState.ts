@@ -20,6 +20,8 @@ import {
 import { getSession } from './supabase'
 
 let hookStarted = false
+let rendererFallback = false
+let trackerReady = false
 let saveRef: GameSave = loadSave()
 let currentUserId: string | null = null
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -206,8 +208,28 @@ function onKey(): void {
   })
 }
 
+export function isGlobalActivityTracking(): boolean {
+  return hookStarted
+}
+
+export function needsRendererActivityFallback(): boolean {
+  return rendererFallback
+}
+
+export function isActivityTrackerReady(): boolean {
+  return trackerReady
+}
+
+export function recordActivityClick(): void {
+  onClick()
+}
+
+export function recordActivityKey(): void {
+  onKey()
+}
+
 export async function startActivityTracker(): Promise<void> {
-  if (hookStarted) return
+  if (hookStarted || rendererFallback) return
   try {
     const { uIOhook, UiohookKey } = await import('uiohook-napi')
     uIOhook.on('mousedown', onClick)
@@ -219,7 +241,10 @@ export async function startActivityTracker(): Promise<void> {
     hookStarted = true
     console.log('[activity] Global input tracker started')
   } catch (error) {
+    rendererFallback = true
     console.warn('[activity] uiohook unavailable, using in-app fallback only:', error)
+  } finally {
+    trackerReady = true
   }
 }
 

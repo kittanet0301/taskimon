@@ -1,9 +1,8 @@
+import { app } from 'electron'
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 
-/** Load .env into process.env for Electron main process */
-export function loadEnvFile(): void {
-  const envPath = join(process.cwd(), '.env')
+function applyEnvFile(envPath: string): void {
   if (!existsSync(envPath)) return
   const lines = readFileSync(envPath, 'utf-8').split(/\r?\n/)
   for (const line of lines) {
@@ -20,5 +19,18 @@ export function loadEnvFile(): void {
       value = value.slice(1, -1)
     }
     if (!process.env[key]) process.env[key] = value
+  }
+}
+
+/** Load .env into process.env for Electron main process */
+export function loadEnvFile(): void {
+  const candidates = [join(process.cwd(), '.env'), join(process.cwd(), '.env.production')]
+
+  if (app.isPackaged) {
+    candidates.push(join(process.resourcesPath, '.env'), join(process.resourcesPath, '.env.production'))
+  }
+
+  for (const envPath of candidates) {
+    applyEnvFile(envPath)
   }
 }

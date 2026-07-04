@@ -32,6 +32,9 @@ export interface GameAPI {
   onChatMessage: (callback: (payload: unknown) => void) => () => void
   syncInventory: (userId: string, inventory: GameSave['inventory']) => Promise<unknown>
   syncMissions: (userId: string, missions: GameSave['missions']) => Promise<unknown>
+  getActivityStatus: () => Promise<{ global: boolean; fallback: boolean; ready: boolean }>
+  reportActivityClick: () => Promise<void>
+  reportActivityKey: () => Promise<void>
 }
 
 /** @deprecated use GameAPI — kept for Electron preload compatibility */

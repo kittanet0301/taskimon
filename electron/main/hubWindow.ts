@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import { join } from 'path'
-import { getRendererPageUrl, isDevMode } from './rendererUrl'
+import { getGameSave } from './gameState'
+import { getRendererPageUrl, getRendererIndexPath, isDevMode } from './rendererUrl'
 
 let hubWindow: BrowserWindow | null = null
 
@@ -29,11 +30,12 @@ export function createHubWindow(): BrowserWindow {
   if (isDevMode() && process.env.ELECTRON_RENDERER_URL) {
     hubWindow.loadURL(getRendererPageUrl())
   } else {
-    hubWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    hubWindow.loadFile(getRendererIndexPath())
   }
 
   hubWindow.once('ready-to-show', () => {
     hubWindow?.show()
+    hubWindow?.webContents.send('game:updated', JSON.stringify(getGameSave()))
   })
 
   hubWindow.on('closed', () => {

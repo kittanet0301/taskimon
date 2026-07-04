@@ -17,6 +17,11 @@ import {
   setGameSave,
   startActivityTracker,
   stopActivityTracker,
+  isGlobalActivityTracking,
+  needsRendererActivityFallback,
+  isActivityTrackerReady,
+  recordActivityClick,
+  recordActivityKey,
   updateSave
 } from './gameState'
 import type { GameSave, PetData } from '../../src/shared/types'
@@ -67,6 +72,18 @@ function setupIpc(): void {
 
   ipcMain.handle('game:patch', (_event, mutatorName: string, args: unknown[]) => {
     return updateSave((save) => applyGamePatch(save, mutatorName, args))
+  })
+
+  ipcMain.handle('activity:status', () => ({
+    global: isGlobalActivityTracking(),
+    fallback: needsRendererActivityFallback(),
+    ready: isActivityTrackerReady()
+  }))
+  ipcMain.handle('activity:click', () => {
+    recordActivityClick()
+  })
+  ipcMain.handle('activity:key', () => {
+    recordActivityKey()
   })
 
   ipcMain.handle('pet:setIgnoreMouse', (_event, ignore: boolean) => {
