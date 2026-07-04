@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface FriendRow {
   friend_id: string
@@ -27,6 +27,13 @@ export function Chat() {
   const [messages, setMessages] = useState<ChatRow[]>([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
+  const chatBoxRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = useCallback(() => {
+    const el = chatBoxRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }, [])
 
   const loadHistory = useCallback(async () => {
     if (!userId || !friendId) {
@@ -66,6 +73,11 @@ export function Chat() {
     })
   }, [userId, friendId])
 
+  useEffect(() => {
+    if (loading || messages.length === 0) return
+    requestAnimationFrame(scrollToBottom)
+  }, [messages, loading, scrollToBottom])
+
   const send = async () => {
     if (!userId || !friendId || !text.trim()) return
     const content = text.trim()
@@ -99,7 +111,7 @@ export function Chat() {
         <p className="dash-activity-hint">ยังไม่มีข้อความกับ {selectedFriend?.profiles?.username ?? 'เพื่อน'}</p>
       ) : null}
 
-      <div className="chat-box" style={{ marginTop: 12 }}>
+      <div ref={chatBoxRef} className="chat-box" style={{ marginTop: 12 }}>
         {messages.map((m) => (
           <div key={m.id} className={`chat-line ${m.sender_id === userId ? 'me' : ''}`}>
             {m.content}
