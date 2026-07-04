@@ -25,7 +25,21 @@ export interface GameAPI {
   listFriends: (userId: string) => Promise<unknown>
   listPending: (userId: string) => Promise<unknown>
   getFriendPet: (ownerId: string) => Promise<unknown>
-  simulateBattle: (challenger: PetData, defender: PetData) => Promise<unknown>
+  createBattleRoom: (name?: string) => Promise<unknown>
+  joinBattleRoom: (roomCode: string) => Promise<unknown>
+  leaveBattleRoom: (roomId: string) => Promise<void>
+  forfeitBattleRoom: (roomId: string) => Promise<void>
+  listPublicRooms: () => Promise<unknown>
+  getRoomMembers: (roomId: string) => Promise<unknown>
+  startRoomDuel: (roomId: string, opponentUserId: string) => Promise<unknown>
+  createBattleChallenge: (defenderUserId: string) => Promise<unknown>
+  respondBattle: (sessionId: string, accept: boolean) => Promise<unknown>
+  submitBattleAction: (sessionId: string, action: string) => Promise<unknown>
+  listBattles: () => Promise<unknown>
+  getBattleTurns: (sessionId: string) => Promise<unknown>
+  subscribeBattles: (userId: string) => Promise<boolean>
+  subscribeBattleRoom: (roomId: string) => Promise<boolean>
+  onBattleUpdate: (callback: (payload: unknown) => void) => () => void
   sendChat: (senderId: string, receiverId: string, content: string) => Promise<unknown>
   chatHistory: (userId: string, friendId: string) => Promise<unknown>
   subscribeChat: (userId: string) => Promise<boolean>

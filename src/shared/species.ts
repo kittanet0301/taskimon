@@ -3,9 +3,9 @@ import type { Element, Gender, HatchResult, Species } from './types'
 const MYTHIC_CHANCE = 0.1
 
 const SPECIES_ELEMENTS: Record<Species, Element[]> = {
-  mamono: ['earth', 'nature'],
-  avian: ['wind', 'nature'],
-  aquatic: ['water', 'nature'],
+  mamono: ['earth', 'neutral'],
+  avian: ['wind', 'neutral'],
+  aquatic: ['water', 'neutral'],
   mythic: ['fire', 'wind']
 }
 

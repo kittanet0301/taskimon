@@ -39,7 +39,7 @@ export function SystemResetPanel({ onReset }: Props) {
         ล้างข้อมูลเกมของผู้เล่นทุกคนในระบบ — ไม่กระทบบัญชี login, เพื่อน, แชท
       </p>
       <ul className="clear-my-data-list">
-        <li>ลบ: สัตว์เลี้ยง, ไอเทม, ภารกิจ, activity, ประวัติต่อสู้ ของทุกคน</li>
+        <li>ลบ: สัตว์เลี้ยง, ไอเทม, ภารกิจ, activity, ประวัติต่อสู้, ห้องต่อสู้ ของทุกคน</li>
         <li>เก็บไว้: บัญชี login, เพื่อน, แชท ของทุกคน</li>
       </ul>
       {message && <p className="clear-my-data-message">{message}</p>}

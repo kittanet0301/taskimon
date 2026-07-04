@@ -26,17 +26,32 @@ import {
   listFriends,
   listPendingRequests,
   getFriendPet,
-  saveBattleLog,
+  createBattleRoom,
+  joinBattleRoom,
+  leaveBattleRoom,
+  forfeitBattleRoom,
+  listPublicRooms,
+  getRoomMembers,
+  startRoomDuel,
+  createBattleChallenge,
+  respondBattle,
+  submitBattleAction,
+  listBattles,
+  getBattleTurns,
+  subscribeToBattles,
+  subscribeToBattleRoom,
   sendChatMessage,
   getChatMessages,
   subscribeToChat,
   syncInventory,
   syncMissions
 } from './supabase'
-import { simulateBattle, randomBattleActions } from '@shared/battle'
 
 const chatListeners = new Set<(payload: unknown) => void>()
+const battleListeners = new Set<(payload: unknown) => void>()
 let chatUnsubscribe: (() => void) | null = null
+let battleUnsubscribe: (() => void) | null = null
+let roomUnsubscribe: (() => void) | null = null
 
 export function createWebApi(): GameAPI {
   return {
@@ -92,17 +107,35 @@ export function createWebApi(): GameAPI {
     listFriends: async (userId) => listFriends(userId),
     listPending: async (userId) => listPendingRequests(userId),
     getFriendPet: async (ownerId) => getFriendPet(ownerId),
-    simulateBattle: async (challenger, defender) => {
-      const result = simulateBattle(challenger, defender, randomBattleActions(), randomBattleActions())
-      if (isSupabaseConfigured()) {
-        await saveBattleLog({
-          challenger_pet_id: challenger.id,
-          defender_pet_id: defender.id,
-          winner_pet_id: result.winnerPetId,
-          battle_log: result.log
-        }).catch(() => undefined)
-      }
-      return result
+    createBattleRoom: async (name) => createBattleRoom(name),
+    joinBattleRoom: async (roomCode) => joinBattleRoom(roomCode),
+    leaveBattleRoom: async (roomId) => leaveBattleRoom(roomId),
+    forfeitBattleRoom: async (roomId) => forfeitBattleRoom(roomId),
+    listPublicRooms: async () => listPublicRooms(),
+    getRoomMembers: async (roomId) => getRoomMembers(roomId),
+    startRoomDuel: async (roomId, opponentUserId) => startRoomDuel(roomId, opponentUserId),
+    createBattleChallenge: async (defenderUserId) => createBattleChallenge(defenderUserId),
+    respondBattle: async (sessionId, accept) => respondBattle(sessionId, accept),
+    submitBattleAction: async (sessionId, action) => submitBattleAction(sessionId, action),
+    listBattles: async () => listBattles(),
+    getBattleTurns: async (sessionId) => getBattleTurns(sessionId),
+    subscribeBattles: async (userId) => {
+      if (battleUnsubscribe) battleUnsubscribe()
+      battleUnsubscribe = subscribeToBattles(userId, (payload) => {
+        for (const cb of battleListeners) cb(payload)
+      })
+      return true
+    },
+    subscribeBattleRoom: async (roomId) => {
+      if (roomUnsubscribe) roomUnsubscribe()
+      roomUnsubscribe = subscribeToBattleRoom(roomId, (payload) => {
+        for (const cb of battleListeners) cb(payload)
+      })
+      return true
+    },
+    onBattleUpdate: (callback) => {
+      battleListeners.add(callback)
+      return () => battleListeners.delete(callback)
     },
     sendChat: async (senderId, receiverId, content) => sendChatMessage(senderId, receiverId, content),
     chatHistory: async (userId, friendId) => getChatMessages(userId, friendId),

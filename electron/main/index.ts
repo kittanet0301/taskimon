@@ -26,7 +26,6 @@ import {
 } from './gameState'
 import type { GameSave, PetData } from '../../src/shared/types'
 import { applyGamePatch } from '../../src/shared/gameMutators'
-import { simulateBattle, randomBattleActions } from '../../src/shared/battle'
 import {
   getSession,
   signIn,
@@ -42,13 +41,28 @@ import {
   listFriends,
   listPendingRequests,
   getFriendPet,
-  saveBattleLog,
+  createBattleRoom,
+  joinBattleRoom,
+  leaveBattleRoom,
+  forfeitBattleRoom,
+  listPublicRooms,
+  getRoomMembers,
+  startRoomDuel,
+  createBattleChallenge,
+  respondBattle,
+  submitBattleAction,
+  listBattles,
+  getBattleTurns,
+  subscribeToBattles,
+  subscribeToBattleRoom,
   sendChatMessage,
   getChatMessages,
   subscribeToChat,
   syncInventory,
   syncMissions
 } from './supabase'
+
+let activeBattleRoomId: string | null = null
 
 loadEnvFile()
 
@@ -146,17 +160,61 @@ function setupIpc(): void {
   ipcMain.handle('friends:pending', async (_e, userId: string) => listPendingRequests(userId))
   ipcMain.handle('friends:pet', async (_e, ownerId: string) => getFriendPet(ownerId))
 
-  ipcMain.handle('battle:simulate', async (_e, challenger: PetData, defender: PetData) => {
-    const result = simulateBattle(challenger, defender, randomBattleActions(), randomBattleActions())
-    if (isSupabaseConfigured()) {
-      await saveBattleLog({
-        challenger_pet_id: challenger.id,
-        defender_pet_id: defender.id,
-        winner_pet_id: result.winnerPetId,
-        battle_log: result.log
-      }).catch(() => undefined)
+  ipcMain.handle('room:create', async (_e, name?: string) => {
+    const room = await createBattleRoom(name)
+    if (room && typeof room === 'object' && 'id' in room) {
+      activeBattleRoomId = String((room as { id: string }).id)
     }
-    return result
+    return room
+  })
+  ipcMain.handle('room:join', async (_e, roomCode: string) => {
+    const room = await joinBattleRoom(roomCode)
+    if (room && typeof room === 'object' && 'id' in room) {
+      activeBattleRoomId = String((room as { id: string }).id)
+    }
+    return room
+  })
+  ipcMain.handle('room:leave', async (_e, roomId: string) => {
+    await leaveBattleRoom(roomId)
+    if (activeBattleRoomId === roomId) activeBattleRoomId = null
+  })
+  ipcMain.handle('room:forfeit', async (_e, roomId: string) => {
+    await forfeitBattleRoom(roomId)
+    if (activeBattleRoomId === roomId) activeBattleRoomId = null
+  })
+  ipcMain.handle('room:listPublic', async () => listPublicRooms())
+  ipcMain.handle('room:getMembers', async (_e, roomId: string) => getRoomMembers(roomId))
+  ipcMain.handle('room:startDuel', async (_e, roomId: string, opponentUserId: string) =>
+    startRoomDuel(roomId, opponentUserId)
+  )
+  ipcMain.handle('room:subscribe', (event, roomId: string) => {
+    const wc = event.sender
+    subscribeToBattleRoom(roomId, (payload) => {
+      wc.send('battle:update', payload)
+    })
+    return true
+  })
+
+  ipcMain.handle('battle:createChallenge', async (_e, defenderUserId: string) =>
+    createBattleChallenge(defenderUserId)
+  )
+  ipcMain.handle('battle:respond', async (_e, sessionId: string, accept: boolean) =>
+    respondBattle(sessionId, accept)
+  )
+  ipcMain.handle('battle:submitAction', async (_e, sessionId: string, action: string) =>
+    submitBattleAction(sessionId, action)
+  )
+  ipcMain.handle('battle:list', async () => listBattles())
+  ipcMain.handle('battle:getTurns', async (_e, sessionId: string) => getBattleTurns(sessionId))
+  ipcMain.handle('battle:subscribe', (event, userId: string) => {
+    const wc = event.sender
+    const unsubscribe = subscribeToBattles(userId, (payload) => {
+      wc.send('battle:update', payload)
+    })
+    return true
+  })
+  ipcMain.handle('battle:setActiveRoom', (_e, roomId: string | null) => {
+    activeBattleRoomId = roomId
   })
 
   ipcMain.handle('chat:send', async (_e, senderId: string, receiverId: string, content: string) =>
@@ -195,6 +253,9 @@ function setupIpc(): void {
 
 app.whenReady().then(async () => {
   setupIpc()
+  await startActivityTracker()
+  await hydrateFromSession()
+
   createPetWindow()
   createTray({
     getSave: getGameSave,
@@ -207,9 +268,7 @@ app.whenReady().then(async () => {
     onQuit: () => app.quit()
   })
 
-  await startActivityTracker()
   registerPlaytimeTick()
-  await hydrateFromSession()
 
   onSaveChange(() => notifyAll())
 
@@ -227,6 +286,10 @@ app.whenReady().then(async () => {
 })
 
 app.on('before-quit', () => {
+  if (activeBattleRoomId) {
+    forfeitBattleRoom(activeBattleRoomId).catch(() => undefined)
+    activeBattleRoomId = null
+  }
   stopActivityTracker()
   destroyTray()
 })

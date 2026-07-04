@@ -36,6 +36,22 @@ export function getCurrentUserId(): string | null {
   return currentUserId
 }
 
+export function isUserLoggedIn(): boolean {
+  return currentUserId !== null
+}
+
+function toDisplaySave(save: GameSave): GameSave {
+  if (isUserLoggedIn() || !save.pet) return save
+  return {
+    ...save,
+    pet: {
+      ...save.pet,
+      stage: 'egg',
+      animationState: 'egg_idle'
+    }
+  }
+}
+
 export function isDbMode(): boolean {
   return currentUserId !== null && canUseCloudStorage()
 }
@@ -84,7 +100,7 @@ export function getGameSave(): GameSave {
     broadcast()
     refreshTray(getGameSave)
   }
-  return saveRef
+  return toDisplaySave(saveRef)
 }
 
 async function persistCloudIfCurrent(generation: number): Promise<void> {
@@ -130,7 +146,8 @@ export function updateSave(mutator: (save: GameSave) => GameSave): GameSave {
 }
 
 function broadcast(): void {
-  for (const listener of listeners) listener(saveRef)
+  const display = toDisplaySave(saveRef)
+  for (const listener of listeners) listener(display)
 }
 
 export function onSaveChange(listener: ActivityListener): () => void {
@@ -175,6 +192,7 @@ function grantDevPoint(save: GameSave): GameSave {
 }
 
 function onClick(): void {
+  if (!isUserLoggedIn()) return
   updateSave((save) => {
     let next = {
       ...save,
@@ -192,6 +210,7 @@ function onClick(): void {
 }
 
 function onKey(): void {
+  if (!isUserLoggedIn()) return
   updateSave((save) => {
     let next = {
       ...save,
@@ -221,10 +240,12 @@ export function isActivityTrackerReady(): boolean {
 }
 
 export function recordActivityClick(): void {
+  if (!isUserLoggedIn()) return
   onClick()
 }
 
 export function recordActivityKey(): void {
+  if (!isUserLoggedIn()) return
   onKey()
 }
 
@@ -258,6 +279,7 @@ export function stopActivityTracker(): void {
 
 export function registerPlaytimeTick(): void {
   setInterval(() => {
+    if (!isUserLoggedIn()) return
     updateSave((save) => {
       const next = {
         ...save,
@@ -270,7 +292,7 @@ export function registerPlaytimeTick(): void {
 }
 
 export function broadcastToWindows(windows: BrowserWindow[]): void {
-  const payload = JSON.stringify(saveRef)
+  const payload = JSON.stringify(toDisplaySave(saveRef))
   for (const win of windows) {
     if (!win.isDestroyed()) {
       win.webContents.send('game:updated', payload)

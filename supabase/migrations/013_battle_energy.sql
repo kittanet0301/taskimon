@@ -1,0 +1,229 @@
+-- Ultimate energy (0–100%) replaces one-shot ultimate flag
+
+alter table battle_sessions
+  add column if not exists challenger_energy int not null default 0,
+  add column if not exists defender_energy int not null default 0;
+
+alter table battle_sessions
+  add constraint battle_sessions_challenger_energy_chk check (challenger_energy between 0 and 100),
+  add constraint battle_sessions_defender_energy_chk check (defender_energy between 0 and 100);
+
+create or replace function public.battle_submit_action(p_session_id uuid, p_action text)
+returns battle_sessions
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  sess battle_sessions;
+  is_challenger boolean;
+  actor_elem text;
+  opp_elem text;
+  actor_name text;
+  opp_name text;
+  base_dmg int;
+  random_factor numeric;
+  elem_mult numeric;
+  dmg int;
+  effective_action text;
+  msg text;
+  winner uuid;
+  winner_name text;
+  opp_defending boolean;
+  actor_energy int;
+  new_energy int;
+  energy_gain int;
+begin
+  if uid is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_action not in ('attack', 'ultimate', 'defend', 'flee') then
+    raise exception 'Invalid action';
+  end if;
+
+  select * into sess from battle_sessions where id = p_session_id for update;
+
+  if sess.id is null then
+    raise exception 'Session not found';
+  end if;
+
+  if sess.status <> 'active' then
+    raise exception 'Session not active';
+  end if;
+
+  if sess.turn_user_id <> uid then
+    raise exception 'Not your turn';
+  end if;
+
+  is_challenger := uid = sess.challenger_user_id;
+
+  if is_challenger then
+    select element, name into actor_elem, actor_name from pets where id = sess.challenger_pet_id;
+    select element, name into opp_elem, opp_name from pets where id = sess.defender_pet_id;
+    opp_defending := sess.defender_defending;
+    actor_energy := sess.challenger_energy;
+  else
+    select element, name into actor_elem, actor_name from pets where id = sess.defender_pet_id;
+    select element, name into opp_elem, opp_name from pets where id = sess.challenger_pet_id;
+    opp_defending := sess.challenger_defending;
+    actor_energy := sess.defender_energy;
+  end if;
+
+  if p_action = 'flee' then
+    update battle_sessions
+    set
+      status = 'fled',
+      fled_user_id = uid,
+      winner_user_id = case when is_challenger then sess.defender_user_id else sess.challenger_user_id end
+    where id = p_session_id
+    returning * into sess;
+
+    msg := actor_name || ' หลบหนีจากการต่อสู้';
+
+    insert into battle_turns (
+      session_id, actor_user_id, action, damage,
+      challenger_hp_after, defender_hp_after, message
+    ) values (
+      p_session_id, uid, 'flee', 0,
+      sess.challenger_hp, sess.defender_hp, msg
+    );
+
+    if sess.winner_user_id = sess.challenger_user_id then
+      select name into winner_name from pets where id = sess.challenger_pet_id;
+    else
+      select name into winner_name from pets where id = sess.defender_pet_id;
+    end if;
+
+    insert into battle_turns (
+      session_id, actor_user_id, action, damage,
+      challenger_hp_after, defender_hp_after, message
+    ) values (
+      p_session_id, sess.winner_user_id, 'attack', 0,
+      sess.challenger_hp, sess.defender_hp, 'ผู้ชนะ: ' || winner_name
+    );
+
+    perform public.battle_finalize(p_session_id);
+    return sess;
+  end if;
+
+  if p_action = 'defend' then
+    energy_gain := 10 + floor(random() * 21)::int;
+    new_energy := least(100, actor_energy + energy_gain);
+
+    if is_challenger then
+      update battle_sessions
+      set challenger_defending = true, challenger_energy = new_energy, turn_user_id = sess.defender_user_id
+      where id = p_session_id returning * into sess;
+    else
+      update battle_sessions
+      set defender_defending = true, defender_energy = new_energy, turn_user_id = sess.challenger_user_id
+      where id = p_session_id returning * into sess;
+    end if;
+
+    msg := actor_name || ' ตั้งท่าป้องกัน (+' || energy_gain || '% พลัง)';
+
+    insert into battle_turns (
+      session_id, actor_user_id, action, damage,
+      challenger_hp_after, defender_hp_after, message
+    ) values (
+      p_session_id, uid, 'defend', 0,
+      sess.challenger_hp, sess.defender_hp, msg
+    );
+
+    return sess;
+  end if;
+
+  if p_action = 'ultimate' then
+    if actor_energy < 100 then
+      raise exception 'ท่าไม้ตายยังไม่พร้อม (ต้องการพลัง 100%%)';
+    end if;
+    effective_action := 'ultimate';
+    new_energy := 0;
+  else
+    effective_action := 'attack';
+    energy_gain := 15 + floor(random() * 21)::int;
+    new_energy := least(100, actor_energy + energy_gain);
+  end if;
+
+  base_dmg := case when effective_action = 'ultimate' then 30 else 15 end;
+  random_factor := 0.9 + random() * 0.2;
+  elem_mult := public.battle_element_mult(actor_elem, opp_elem);
+  dmg := round(base_dmg * elem_mult * random_factor)::int;
+
+  if opp_defending then
+    dmg := round(dmg * 0.5)::int;
+  end if;
+
+  if is_challenger then
+    update battle_sessions
+    set
+      defender_hp = greatest(0, sess.defender_hp - dmg),
+      challenger_energy = new_energy,
+      defender_defending = false,
+      turn_user_id = sess.defender_user_id
+    where id = p_session_id
+    returning * into sess;
+  else
+    update battle_sessions
+    set
+      challenger_hp = greatest(0, sess.challenger_hp - dmg),
+      defender_energy = new_energy,
+      challenger_defending = false,
+      turn_user_id = sess.challenger_user_id
+    where id = p_session_id
+    returning * into sess;
+  end if;
+
+  if effective_action = 'ultimate' then
+    msg := actor_name || ' ใช้ท่าไม้ตาย ' || opp_name || ' -' || dmg || ' HP';
+  else
+    msg := actor_name || ' โจมตี ' || opp_name || ' -' || dmg || ' HP (+' || energy_gain || '% พลัง)';
+  end if;
+
+  insert into battle_turns (
+    session_id, actor_user_id, action, damage,
+    challenger_hp_after, defender_hp_after, message
+  ) values (
+    p_session_id, uid, p_action, dmg,
+    sess.challenger_hp, sess.defender_hp, msg
+  );
+
+  if sess.challenger_hp <= 0 or sess.defender_hp <= 0 then
+    if sess.challenger_hp <= 0 and sess.defender_hp <= 0 then
+      winner := case when random() < 0.5 then sess.challenger_user_id else sess.defender_user_id end;
+    elsif sess.defender_hp <= 0 then
+      winner := sess.challenger_user_id;
+    else
+      winner := sess.defender_user_id;
+    end if;
+
+    update battle_sessions
+    set status = 'completed', winner_user_id = winner
+    where id = p_session_id
+    returning * into sess;
+
+    if winner = sess.challenger_user_id then
+      select name into winner_name from pets where id = sess.challenger_pet_id;
+    else
+      select name into winner_name from pets where id = sess.defender_pet_id;
+    end if;
+
+    insert into battle_turns (
+      session_id, actor_user_id, action, damage,
+      challenger_hp_after, defender_hp_after, message
+    ) values (
+      p_session_id, winner, 'attack', 0,
+      sess.challenger_hp, sess.defender_hp, 'ผู้ชนะ: ' || winner_name
+    );
+
+    perform public.battle_finalize(p_session_id);
+  end if;
+
+  return sess;
+end;
+$$;
+
+revoke all on function public.battle_submit_action(uuid, text) from public;
+grant execute on function public.battle_submit_action(uuid, text) to authenticated;

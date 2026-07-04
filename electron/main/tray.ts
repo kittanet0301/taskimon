@@ -1,6 +1,7 @@
 import { Menu, Tray, nativeImage } from 'electron'
 import { createHubWindow } from './hubWindow'
 import { getPetWindow } from './petWindow'
+import { isUserLoggedIn } from './gameState'
 import type { GameSave } from '../../src/shared/types'
 
 let tray: Tray | null = null
@@ -15,17 +16,34 @@ type TrayCallbacks = {
 function rebuildTrayMenu(getSave: () => GameSave): void {
   if (!tray) return
 
+  const loggedIn = isUserLoggedIn()
   const save = getSave()
   const pet = save.pet
   const activity = save.activity
-  const label = pet
-    ? `${pet.name} | HP ${pet.stats.hp} | อารมณ์ ${pet.stats.mood} | พัฒนา ${pet.stats.devPoints}`
-    : 'ยังไม่มีสัตว์เลี้ยง'
 
-  const menu = Menu.buildFromTemplate([
-    { label, enabled: false },
-    { label: `คลิก: ${activity.clicks} | พิมพ์: ${activity.keystrokes}`, enabled: false },
-    { type: 'separator' },
+  const menuItems: Electron.MenuItemConstructorOptions[] = []
+
+  if (loggedIn && pet) {
+    menuItems.push(
+      {
+        label: `${pet.name} | HP ${pet.stats.hp} | อารมณ์ ${pet.stats.mood} | พัฒนา ${pet.stats.devPoints}`,
+        enabled: false
+      },
+      {
+        label: `คลิก: ${activity.clicks} | พิมพ์: ${activity.keystrokes}`,
+        enabled: false
+      },
+      { type: 'separator' }
+    )
+  } else {
+    menuItems.push(
+      { label: 'Taskimon', enabled: false },
+      { label: 'เข้าสู่ระบบเพื่อดูสถานะสัตว์เลี้ยง', enabled: false },
+      { type: 'separator' }
+    )
+  }
+
+  menuItems.push(
     {
       label: 'เปิด Hub',
       click: () => createHubWindow()
@@ -39,13 +57,15 @@ function rebuildTrayMenu(getSave: () => GameSave): void {
       label: 'ออกจากโปรแกรม',
       click: () => trayCallbacks?.onQuit()
     }
-  ])
+  )
+
+  const menu = Menu.buildFromTemplate(menuItems)
   tray.setContextMenu(menu)
 
-  if (pet) {
+  if (loggedIn && pet) {
     tray.setToolTip(`${pet.name} — คลิก ${activity.clicks} · พิมพ์ ${activity.keystrokes}`)
   } else {
-    tray.setToolTip('Taskimon')
+    tray.setToolTip('Taskimon — เข้าสู่ระบบเพื่อเล่น')
   }
 }
 

@@ -1,4 +1,5 @@
-export type Element = 'fire' | 'water' | 'earth' | 'wind' | 'nature'
+export type Element = 'fire' | 'water' | 'earth' | 'wind' | 'neutral'
+export type CyclicalElement = 'fire' | 'water' | 'earth' | 'wind'
 export type Species = 'mamono' | 'avian' | 'aquatic' | 'mythic'
 export type Gender = 'male' | 'female'
 export type Stage = 'egg' | 'baby' | 'adult'
@@ -95,16 +96,27 @@ export interface FriendRequest {
   username: string
 }
 
-export interface BattleAction {
-  type: 'attack' | 'defend' | 'skill'
-}
+export type {
+  BattleActionType,
+  BattleSessionStatus,
+  BattleRoomStatus,
+  BattleRoomVisibility,
+  BattleRoomMemberStatus,
+  BattleRoomMemberRole,
+  BattleCombatant,
+  BattleSession,
+  BattleTurn,
+  BattleRoom,
+  BattleRoomMember,
+  BattleRoomSummary,
+  BattleSessionState,
+  ApplyActionResult,
+  LegacyBattleAction,
+  BattleResult
+} from './battle/types'
 
-export interface BattleResult {
-  winnerPetId: string
-  log: string[]
-  challengerHp: number
-  defenderHp: number
-}
+/** @deprecated Use BattleActionType */
+export type BattleAction = import('./battle/types').LegacyBattleAction
 
 export interface ChatMessage {
   id: string

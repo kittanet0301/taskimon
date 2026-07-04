@@ -1,11 +1,11 @@
-import type { Element, Species } from './types'
+import type { CyclicalElement, Element, Species } from './types'
 
 export const ELEMENT_NAMES: Record<Element, string> = {
   fire: 'ไฟ',
   water: 'น้ำ',
   earth: 'ดิน',
   wind: 'ลม',
-  nature: 'ธรรมชาติ'
+  neutral: 'กลาง'
 }
 
 export const ELEMENT_COLORS: Record<Element, string> = {
@@ -13,7 +13,7 @@ export const ELEMENT_COLORS: Record<Element, string> = {
   water: '#3498db',
   earth: '#a0714f',
   wind: '#95a5a6',
-  nature: '#27ae60'
+  neutral: '#7f8c8d'
 }
 
 export const SPECIES_NAMES: Record<Species, string> = {
@@ -23,21 +23,19 @@ export const SPECIES_NAMES: Record<Species, string> = {
   mythic: 'มิธิค'
 }
 
-/** Fire > Nature > Earth > Wind > Water > Fire */
-export const ELEMENT_STRONG_AGAINST: Record<Element, Element> = {
-  fire: 'nature',
-  nature: 'earth',
+/** Fire → Earth → Wind → Water → Fire (neutral excluded) */
+export const ELEMENT_STRONG_AGAINST: Record<CyclicalElement, CyclicalElement> = {
+  fire: 'earth',
   earth: 'wind',
   wind: 'water',
   water: 'fire'
 }
 
-export const ELEMENT_WEAK_AGAINST: Record<Element, Element> = {
+export const ELEMENT_WEAK_AGAINST: Record<CyclicalElement, CyclicalElement> = {
   fire: 'water',
-  water: 'nature',
-  earth: 'fire',
+  water: 'wind',
   wind: 'earth',
-  nature: 'wind'
+  earth: 'fire'
 }
 
 export const SAVE_VERSION = 1

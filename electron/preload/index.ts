@@ -28,7 +28,28 @@ const api: GameAPI = {
   listFriends: (userId) => ipcRenderer.invoke('friends:list', userId),
   listPending: (userId) => ipcRenderer.invoke('friends:pending', userId),
   getFriendPet: (ownerId) => ipcRenderer.invoke('friends:pet', ownerId),
-  simulateBattle: (challenger, defender) => ipcRenderer.invoke('battle:simulate', challenger, defender),
+  createBattleRoom: (name) => ipcRenderer.invoke('room:create', name),
+  joinBattleRoom: (roomCode) => ipcRenderer.invoke('room:join', roomCode),
+  leaveBattleRoom: (roomId) => ipcRenderer.invoke('room:leave', roomId),
+  forfeitBattleRoom: (roomId) => ipcRenderer.invoke('room:forfeit', roomId),
+  listPublicRooms: () => ipcRenderer.invoke('room:listPublic'),
+  getRoomMembers: (roomId) => ipcRenderer.invoke('room:getMembers', roomId),
+  startRoomDuel: (roomId, opponentUserId) =>
+    ipcRenderer.invoke('room:startDuel', roomId, opponentUserId),
+  createBattleChallenge: (defenderUserId) =>
+    ipcRenderer.invoke('battle:createChallenge', defenderUserId),
+  respondBattle: (sessionId, accept) => ipcRenderer.invoke('battle:respond', sessionId, accept),
+  submitBattleAction: (sessionId, action) =>
+    ipcRenderer.invoke('battle:submitAction', sessionId, action),
+  listBattles: () => ipcRenderer.invoke('battle:list'),
+  getBattleTurns: (sessionId) => ipcRenderer.invoke('battle:getTurns', sessionId),
+  subscribeBattles: (userId) => ipcRenderer.invoke('battle:subscribe', userId),
+  subscribeBattleRoom: (roomId) => ipcRenderer.invoke('room:subscribe', roomId),
+  onBattleUpdate: (callback) => {
+    const handler = (_: unknown, payload: unknown) => callback(payload)
+    ipcRenderer.on('battle:update', handler)
+    return () => ipcRenderer.removeListener('battle:update', handler)
+  },
   sendChat: (senderId, receiverId, content) =>
     ipcRenderer.invoke('chat:send', senderId, receiverId, content),
   chatHistory: (userId, friendId) => ipcRenderer.invoke('chat:history', userId, friendId),

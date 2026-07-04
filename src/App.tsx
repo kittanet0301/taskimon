@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import type { GameSave } from './shared/types'
 import { ONBOARDING_KEY } from './shared/activityScore'
 import { GetStarted } from './hub/GetStarted'
@@ -8,7 +8,9 @@ import { Inventory } from './hub/Inventory'
 import { Missions } from './hub/Missions'
 import { AuthPanel } from './hub/AuthPanel'
 import { Friends } from './hub/Friends'
-import { Battle } from './hub/Battle'
+import { BattleProvider, BattleContext } from './hub/battle/BattleContext'
+import { BattleHub } from './hub/battle/BattleHub'
+import { useBattleGuard } from './hub/battle/useBattleGuard'
 import { Chat } from './hub/Chat'
 import { UserProfile } from './hub/UserProfile'
 
@@ -21,6 +23,16 @@ interface Props {
 }
 
 export default function App({ variant = 'desktop' }: Props) {
+  return (
+    <BattleProvider>
+      <AppContent variant={variant} />
+    </BattleProvider>
+  )
+}
+
+function AppContent({ variant = 'desktop' }: Props) {
+  const battleCtx = useContext(BattleContext)
+  const { isInRoom, confirmLeave } = useBattleGuard()
   const [save, setSave] = useState<GameSave | null>(null)
   const [tab, setTab] = useState<Tab>('home')
   const [cloudReady, setCloudReady] = useState(false)
@@ -47,6 +59,10 @@ export default function App({ variant = 'desktop' }: Props) {
   const handleTabChange = useCallback(
     async (nextTab: Tab) => {
       if (nextTab === tab || tabSyncing) return
+      if (tab === 'battle' && nextTab !== 'battle' && isInRoom) {
+        const ok = await confirmLeave()
+        if (!ok) return
+      }
       setTabSyncing(true)
       try {
         await syncOnTabChange()
@@ -58,7 +74,7 @@ export default function App({ variant = 'desktop' }: Props) {
         setTabSyncing(false)
       }
     },
-    [tab, tabSyncing, syncOnTabChange]
+    [tab, tabSyncing, syncOnTabChange, isInRoom, confirmLeave]
   )
 
   const handleViewProfile = useCallback(
@@ -106,6 +122,10 @@ export default function App({ variant = 'desktop' }: Props) {
       window.removeEventListener('focus', onFocus)
     }
   }, [refresh, checkSession])
+
+  useEffect(() => {
+    battleCtx?.syncUserId(session?.user?.id ?? null)
+  }, [session?.user?.id, battleCtx])
 
   useEffect(() => {
     if (!session?.user?.id || showCover || !window.electronAPI) return
@@ -208,7 +228,7 @@ export default function App({ variant = 'desktop' }: Props) {
             onViewProfile={handleViewProfile}
           />
         )}
-        {tab === 'battle' && <Battle save={save} />}
+        {tab === 'battle' && <BattleHub save={save} variant={variant} />}
         {tab === 'chat' && <Chat key="chat" />}
         {tab === 'profile' && <UserProfile key={`profile-${viewUserId ?? 'self'}`} userId={viewUserId} />}
         {tab === 'settings' && (

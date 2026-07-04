@@ -33,6 +33,13 @@ SUPABASE_ANON_KEY=eyJhbGciOi...
 6. [`006_reset_all_game_data_bootstrap.sql`](migrations/006_reset_all_game_data_bootstrap.sql)
 7. [`008_last_daily_mission_day.sql`](migrations/008_last_daily_mission_day.sql)
 8. [`009_friendships_unique_pair.sql`](migrations/009_friendships_unique_pair.sql)
+9. [`010_battle_sessions.sql`](migrations/010_battle_sessions.sql) — ห้องต่อสู้, sessions, turns, RPCs
+10. [`011_rename_nature_to_neutral.sql`](migrations/011_rename_nature_to_neutral.sql) — ธาตุ `nature` → `neutral`
+11. [`012_fix_battle_rls.sql`](migrations/012_fix_battle_rls.sql) — RLS recursion fix, SECURITY DEFINER RPCs
+12. [`013_battle_energy.sql`](migrations/013_battle_energy.sql) — พลังท่าไม้ตาย 0–100%
+13. [`014_reset_battle_rooms.sql`](migrations/014_reset_battle_rooms.sql) — ล้างระบบรวมห้องต่อสู้
+
+หรือใช้ Supabase CLI: `supabase db push` (ต้อง `supabase link` ก่อน)
 
 ## 4. เปิด Email Auth
 
@@ -83,10 +90,27 @@ npm run dev:web   # http://localhost:5174
 | `mission_progress` | ความคืบหน้าภารกิจ |
 | `friendships` | เพื่อน |
 | `messages` | แชท |
-| `battles` | ประวัติต่อสู้ |
+| `battles` | ประวัติต่อสู้ (สรุปหลังจบดวล) |
+| `battle_rooms` | ห้องต่อสู้ (รหัสห้อง, เจ้าของ, session ที่กำลังเล่น) |
+| `battle_room_members` | สมาชิกในห้อง (สถานะ waiting / in_battle) |
+| `battle_sessions` | ดวลที่กำลังเล่น (HP, พลังท่าไม้ตาย, ตาปัจจุบัน) |
+| `battle_turns` | log แต่ละเทิร์น |
+
+## RPC สำคัญ (ต่อสู้)
+
+| RPC | ใช้ทำอะไร |
+|---|---|
+| `room_create` / `room_join` / `room_leave` | จัดการห้อง |
+| `room_start_duel` | เจ้าของห้องเริ่มดวล 1v1 |
+| `battle_submit_action` | โจมตี / ป้องกัน / หลบหนี / ท่าไม้ตาย |
+| `battle_list_for_user` | รายการดวลของผู้เล่น |
+| `reset_all_game_data` | ล้างระบบ (รวมห้องต่อสู้ + sessions) |
 
 ## การทำงาน
 
-- **Login แล้ว** → โหลดข้อมูลจาก DB, บันทึกอัตโนมัติทุก ~1.5 วินาที
-- **ยังไม่ login** → ใช้ไฟล์ `pet-save.json` ในเครื่อง (desktop) หรือ `localStorage` (web)
+- **ยังไม่ login (desktop)** → สัตว์บนจอเป็นไข่, tray ไม่แสดง HP/คลิก/พิมพ์, ไม่นับ activity
+- **Login แล้ว** → โหลดข้อมูลจาก DB, บันทึกอัตโนมัติทุก ~1.5 วินาที, แสดงสัตว์และสถิติจริง
+- **ยังไม่ login** → ใช้ไฟล์ `pet-save.json` ในเครื่อง (desktop) หรือ `localStorage` (web) เป็น cache
 - **Login ครั้งแรก** → ย้ายข้อมูล local ขึ้น DB อัตโนมัติ
+- **ล้างข้อมูลของฉัน** → ลบเกมของบัญชีตัวเอง (เก็บ login, เพื่อน, แชท)
+- **ล้างระบบ** → ลบเกมทุกคน + ห้องต่อสู้ (เก็บ login, เพื่อน, แชท) — ต้องใส่ PIN

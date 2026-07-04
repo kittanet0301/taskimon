@@ -1,5 +1,10 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import WebSocket from 'ws'
+import { formatApiError } from '../../src/shared/formatError'
+
+function rpcError(error: unknown): never {
+  throw new Error(formatApiError(error))
+}
 
 let client: SupabaseClient | null = null
 
@@ -244,6 +249,161 @@ export async function saveBattleLog(battle: Record<string, unknown>) {
   const { data, error } = await supabase.from('battles').insert(battle).select().single()
   if (error) throw error
   return data
+}
+
+export async function createBattleRoom(name?: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('room_create', { p_name: name ?? null })
+  if (error) rpcError(error)
+  return data
+}
+
+export async function joinBattleRoom(roomCode: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('room_join', { p_room_code: roomCode })
+  if (error) rpcError(error)
+  return data
+}
+
+export async function leaveBattleRoom(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.rpc('room_leave', { p_room_id: roomId })
+  if (error) rpcError(error)
+}
+
+export async function forfeitBattleRoom(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.rpc('room_forfeit', { p_room_id: roomId })
+  if (error) rpcError(error)
+}
+
+export async function listPublicRooms() {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('room_list_public')
+  if (error) rpcError(error)
+  return data ?? []
+}
+
+export async function getRoomMembers(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('room_get_members', { p_room_id: roomId })
+  if (error) rpcError(error)
+  return data ?? []
+}
+
+export async function startRoomDuel(roomId: string, opponentUserId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('room_start_duel', {
+    p_room_id: roomId,
+    p_opponent_user_id: opponentUserId
+  })
+  if (error) rpcError(error)
+  return data
+}
+
+export async function createBattleChallenge(defenderUserId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('battle_create_challenge', {
+    p_defender_user_id: defenderUserId
+  })
+  if (error) rpcError(error)
+  return data
+}
+
+export async function respondBattle(sessionId: string, accept: boolean) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('battle_respond', {
+    p_session_id: sessionId,
+    p_accept: accept
+  })
+  if (error) rpcError(error)
+  return data
+}
+
+export async function submitBattleAction(sessionId: string, action: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('battle_submit_action', {
+    p_session_id: sessionId,
+    p_action: action
+  })
+  if (error) rpcError(error)
+  return data
+}
+
+export async function listBattles() {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('battle_list_for_user')
+  if (error) rpcError(error)
+  return data ?? []
+}
+
+export async function getBattleTurns(sessionId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('battle_get_turns', { p_session_id: sessionId })
+  if (error) rpcError(error)
+  return data ?? []
+}
+
+function isUserBattleSession(row: Record<string, unknown> | undefined, userId: string): boolean {
+  if (!row) return false
+  return row.challenger_user_id === userId || row.defender_user_id === userId
+}
+
+export function subscribeToBattles(userId: string, onUpdate: (payload: unknown) => void) {
+  const supabase = getSupabase()
+  if (!supabase) return () => undefined
+  const channel = supabase
+    .channel(`battles:${userId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'battle_sessions' },
+      (payload) => {
+        const row = (payload.new ?? payload.old) as Record<string, unknown> | undefined
+        if (isUserBattleSession(row, userId)) onUpdate(payload)
+      }
+    )
+    .subscribe()
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}
+
+export function subscribeToBattleRoom(roomId: string, onUpdate: (payload: unknown) => void) {
+  const supabase = getSupabase()
+  if (!supabase) return () => undefined
+  const channel = supabase
+    .channel(`room:${roomId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'battle_rooms', filter: `id=eq.${roomId}` },
+      onUpdate
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'battle_room_members', filter: `room_id=eq.${roomId}` },
+      onUpdate
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'battle_sessions', filter: `room_id=eq.${roomId}` },
+      onUpdate
+    )
+    .subscribe()
+  return () => {
+    supabase.removeChannel(channel)
+  }
 }
 
 export async function sendChatMessage(senderId: string, receiverId: string, content: string) {
