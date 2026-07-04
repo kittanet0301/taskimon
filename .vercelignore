@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-web
+out
+.agents
+.tmp-agent-skills
+.tools
+_ws_extract
+ws.tgz
+*.exe
+*.dmg
+*.blockmap
+builder-debug.yml
+builder-effective-config.yaml
