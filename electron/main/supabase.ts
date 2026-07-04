@@ -117,6 +117,41 @@ export async function searchProfileByFriendCode(friendCode: string) {
 export async function sendFriendRequest(userId: string, friendId: string) {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
+
+  const { data: existing, error: findError } = await supabase
+    .from('friendships')
+    .select('id, user_id, friend_id, status')
+    .or(
+      `and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`
+    )
+    .maybeSingle()
+  if (findError) throw findError
+
+  if (existing) {
+    if (existing.status === 'accepted') throw new Error('Already friends')
+    if (existing.status === 'pending') {
+      if (existing.user_id === userId) throw new Error('Request already sent')
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted' })
+        .eq('id', existing.id)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    }
+    if (existing.status === 'rejected') {
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ user_id: userId, friend_id: friendId, status: 'pending' })
+        .eq('id', existing.id)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    }
+  }
+
   const { data, error } = await supabase
     .from('friendships')
     .insert({ user_id: userId, friend_id: friendId, status: 'pending' })
@@ -145,14 +180,15 @@ export async function listFriends(userId: string) {
   const { data, error } = await supabase
     .from('friendships')
     .select('id, user_id, friend_id, status')
-    .eq('user_id', userId)
     .eq('status', 'accepted')
+    .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
   if (error) throw error
   const rows = data ?? []
   const enriched = await Promise.all(
     rows.map(async (row) => {
-      const profile = await getProfile(row.friend_id)
-      return { ...row, profiles: profile }
+      const otherId = row.user_id === userId ? row.friend_id : row.user_id
+      const profile = await getProfile(otherId)
+      return { ...row, friend_id: otherId, profiles: profile }
     })
   )
   return enriched

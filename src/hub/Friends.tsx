@@ -51,11 +51,21 @@ export function Friends({ onViewProfile }: Props) {
         setMessage('ไม่สามารถเพิ่มตัวเองเป็นเพื่อนได้')
         return
       }
-      await window.electronAPI.sendFriendRequest(userId, profile.id)
-      setMessage(`ส่งคำขอเป็นเพื่อนไปยัง ${profile.username} แล้ว`)
+      const result = (await window.electronAPI.sendFriendRequest(userId, profile.id)) as { status: string }
+      setFriendCode('')
+      setMessage(
+        result.status === 'accepted'
+          ? `เพิ่ม ${profile.username} เป็นเพื่อนแล้ว (ยอมรับคำขออัตโนมัติ)`
+          : `ส่งคำขอเป็นเพื่อนไปยัง ${profile.username} แล้ว — รออีกฝ่ายยอมรับ`
+      )
+      load()
     } catch (e) {
       const text = formatApiError(e)
-      if (text.includes('duplicate') || text.includes('unique')) {
+      if (text.includes('Already friends')) {
+        setMessage('เป็นเพื่อนกันอยู่แล้ว')
+      } else if (text.includes('Request already sent')) {
+        setMessage('ส่งคำขอไปแล้ว — รออีกฝ่ายยอมรับ')
+      } else if (text.includes('duplicate') || text.includes('unique')) {
         setMessage('ส่งคำขอไปแล้ว หรือเป็นเพื่อนกันอยู่แล้ว')
       } else if (text.includes('violates') || text.includes('foreign key')) {
         setMessage('ไม่สามารถส่งคำขอได้ — ตรวจสอบรหัสเพื่อน')
@@ -67,12 +77,16 @@ export function Friends({ onViewProfile }: Props) {
 
   const respond = async (requestId: string, accept: boolean) => {
     await window.electronAPI.respondFriend(requestId, accept)
+    setMessage(accept ? 'ยอมรับคำขอแล้ว' : 'ปฏิเสธคำขอแล้ว')
     load()
   }
 
   return (
     <div className="card">
       <h2>เพื่อน</h2>
+      <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: 0 }}>
+        ใส่รหัสเพื่อนแล้วส่งคำขอ — ถ้าอีกฝ่ายเคยขอมาก่อน จะยอมรับอัตโนมัติ
+      </p>
       {message && <p>{message}</p>}
       <div className="form-row">
         <label>เพิ่มเพื่อนด้วยรหัส</label>
