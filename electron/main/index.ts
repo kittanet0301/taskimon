@@ -59,11 +59,19 @@ import {
   sendChatMessage,
   getChatMessages,
   subscribeToChat,
+  listChatRooms,
+  joinChatRoom,
+  leaveChatRoom,
+  getChatRoomMembers,
+  sendChatRoomMessage,
+  updateChatRoomPosition,
+  subscribeToChatRoom,
   syncInventory,
   syncMissions
 } from './supabase'
 
 let activeBattleRoomId: string | null = null
+let chatRoomUnsubscribe: (() => void) | null = null
 
 loadEnvFile()
 
@@ -232,6 +240,27 @@ function setupIpc(): void {
     const wc = event.sender
     const unsubscribe = subscribeToChat(userId, (payload) => {
       wc.send('chat:message', payload)
+    })
+    return true
+  })
+
+  ipcMain.handle('chatRoom:list', async () => listChatRooms())
+  ipcMain.handle('chatRoom:join', async (_e, roomId: string) => joinChatRoom(roomId))
+  ipcMain.handle('chatRoom:leave', async (_e, roomId: string) => leaveChatRoom(roomId))
+  ipcMain.handle('chatRoom:members', async (_e, roomId: string) => getChatRoomMembers(roomId))
+  ipcMain.handle('chatRoom:send', async (_e, roomId: string, content: string) =>
+    sendChatRoomMessage(roomId, content)
+  )
+  ipcMain.handle(
+    'chatRoom:updatePosition',
+    async (_e, roomId: string, pos: { x: number; y: number; facing: string; anim: string }) =>
+      updateChatRoomPosition(roomId, pos)
+  )
+  ipcMain.handle('chatRoom:subscribe', (event, roomId: string) => {
+    if (chatRoomUnsubscribe) chatRoomUnsubscribe()
+    const wc = event.sender
+    chatRoomUnsubscribe = subscribeToChatRoom(roomId, (payload) => {
+      wc.send('chatRoom:update', payload)
     })
     return true
   })

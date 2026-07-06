@@ -60,6 +60,19 @@ const api: GameAPI = {
     ipcRenderer.on('chat:message', handler)
     return () => ipcRenderer.removeListener('chat:message', handler)
   },
+  listChatRooms: () => ipcRenderer.invoke('chatRoom:list'),
+  joinChatRoom: (roomId) => ipcRenderer.invoke('chatRoom:join', roomId),
+  leaveChatRoom: (roomId) => ipcRenderer.invoke('chatRoom:leave', roomId),
+  getChatRoomMembers: (roomId) => ipcRenderer.invoke('chatRoom:members', roomId),
+  sendChatRoomMessage: (roomId, content) => ipcRenderer.invoke('chatRoom:send', roomId, content),
+  updateChatRoomPosition: (roomId, pos) =>
+    ipcRenderer.invoke('chatRoom:updatePosition', roomId, pos),
+  subscribeChatRoom: (roomId) => ipcRenderer.invoke('chatRoom:subscribe', roomId),
+  onChatRoomUpdate: (callback) => {
+    const handler = (_: unknown, payload: unknown) => callback(payload)
+    ipcRenderer.on('chatRoom:update', handler)
+    return () => ipcRenderer.removeListener('chatRoom:update', handler)
+  },
   syncInventory: (userId, inventory) => ipcRenderer.invoke('cloud:syncInventory', userId, inventory),
   syncMissions: (userId, missions) => ipcRenderer.invoke('cloud:syncMissions', userId, missions),
   isDbMode: () => ipcRenderer.invoke('cloud:isDbMode'),

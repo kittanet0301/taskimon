@@ -43,13 +43,22 @@ import {
   sendChatMessage,
   getChatMessages,
   subscribeToChat,
+  listChatRooms,
+  joinChatRoom,
+  leaveChatRoom,
+  getChatRoomMembers,
+  sendChatRoomMessage,
+  updateChatRoomPosition,
+  subscribeToChatRoom,
   syncInventory,
   syncMissions
 } from './supabase'
 
 const chatListeners = new Set<(payload: unknown) => void>()
+const chatRoomListeners = new Set<(payload: unknown) => void>()
 const battleListeners = new Set<(payload: unknown) => void>()
 let chatUnsubscribe: (() => void) | null = null
+let chatRoomUnsubscribe: (() => void) | null = null
 let battleUnsubscribe: (() => void) | null = null
 let roomUnsubscribe: (() => void) | null = null
 
@@ -150,6 +159,23 @@ export function createWebApi(): GameAPI {
     onChatMessage: (callback) => {
       chatListeners.add(callback)
       return () => chatListeners.delete(callback)
+    },
+    listChatRooms: async () => listChatRooms(),
+    joinChatRoom: async (roomId) => joinChatRoom(roomId),
+    leaveChatRoom: async (roomId) => leaveChatRoom(roomId),
+    getChatRoomMembers: async (roomId) => getChatRoomMembers(roomId),
+    sendChatRoomMessage: async (roomId, content) => sendChatRoomMessage(roomId, content),
+    updateChatRoomPosition: async (roomId, pos) => updateChatRoomPosition(roomId, pos),
+    subscribeChatRoom: async (roomId) => {
+      if (chatRoomUnsubscribe) chatRoomUnsubscribe()
+      chatRoomUnsubscribe = subscribeToChatRoom(roomId, (payload) => {
+        for (const cb of chatRoomListeners) cb(payload)
+      })
+      return true
+    },
+    onChatRoomUpdate: (callback) => {
+      chatRoomListeners.add(callback)
+      return () => chatRoomListeners.delete(callback)
     },
     syncInventory: async (userId, inventory) =>
       syncInventory(

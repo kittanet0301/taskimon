@@ -45,6 +45,17 @@ export interface GameAPI {
   chatHistory: (userId: string, friendId: string) => Promise<unknown>
   subscribeChat: (userId: string) => Promise<boolean>
   onChatMessage: (callback: (payload: unknown) => void) => () => void
+  listChatRooms: () => Promise<unknown>
+  joinChatRoom: (roomId: string) => Promise<unknown>
+  leaveChatRoom: (roomId: string) => Promise<void>
+  getChatRoomMembers: (roomId: string) => Promise<unknown>
+  sendChatRoomMessage: (roomId: string, content: string) => Promise<unknown>
+  updateChatRoomPosition: (
+    roomId: string,
+    pos: { x: number; y: number; facing: string; anim: string }
+  ) => Promise<unknown>
+  subscribeChatRoom: (roomId: string) => Promise<boolean>
+  onChatRoomUpdate: (callback: (payload: unknown) => void) => () => void
   syncInventory: (userId: string, inventory: GameSave['inventory']) => Promise<unknown>
   syncMissions: (userId: string, missions: GameSave['missions']) => Promise<unknown>
   getActivityStatus: () => Promise<{ global: boolean; fallback: boolean; ready: boolean }>

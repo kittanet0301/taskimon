@@ -22,3 +22,16 @@ assets/dino/{male|female}/{character}/{base|egg|ghost}/{animation}.png
 - **Egg:** move, crack, hatch
 - **Base:** idle, move, hurt, bite, kick, dash, jump, avoid, scan, dead
 - **Ghost:** idle, move
+
+### TODO — incomplete male `base/` sprites
+
+Copy missing files from the Dino Family pack into `assets/dino/male/{character}/base/` (need 10 clips each; these folders currently have only 5):
+
+| Character | Missing (typical) |
+|-----------|-------------------|
+| doux | dash, hurt, idle, kick, move |
+| mort | dash, hurt, idle, kick, move |
+| tard | dash, hurt, idle, kick, move |
+| vita | dash, hurt, idle, kick, move |
+
+Until fixed, those male variants may show a colored circle fallback in-game.

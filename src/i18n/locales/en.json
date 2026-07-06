@@ -156,7 +156,7 @@
     "respondDeclined": "Request declined."
   },
   "chat": {
-    "title": "Chat with Friends",
+    "title": "Chat",
     "selectFriend": "Select friend",
     "startBySelectingFriend": "Select a friend to start chatting.",
     "loadingMessages": "Loading messages...",
@@ -165,6 +165,23 @@
     "messagePlaceholder": "Type a message...",
     "selectFriendFirstPlaceholder": "Select a friend first",
     "send": "Send"
+  },
+  "chatLobby": {
+    "title": "Chat Rooms",
+    "subtitle": "Join a room and chat with your dino character walking around.",
+    "loginRequired": "Log in to join chat rooms.",
+    "joining": "Joining room…",
+    "controls": "← → walk · Space jump · Enter to type",
+    "memberCount": "{{count}} online",
+    "leave": "Leave room",
+    "send": "Send",
+    "inputPlaceholder": "Say something...",
+    "rooms": {
+      "plaza": "Plaza",
+      "park": "Park",
+      "beach": "Beach",
+      "cave": "Cave"
+    }
   },
   "profile": {
     "title": "Profile",

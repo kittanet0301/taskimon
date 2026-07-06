@@ -427,6 +427,91 @@ export function subscribeToChat(userId: string, onMessage: (payload: unknown) =>
   }
 }
 
+export async function listChatRooms() {
+  const supabase = getSupabase()
+  if (!supabase) return []
+  const { data, error } = await supabase.rpc('chat_room_list')
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+export async function joinChatRoom(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('chat_room_join', { p_room_id: roomId })
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function leaveChatRoom(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.rpc('chat_room_leave', { p_room_id: roomId })
+  if (error) throw new Error(error.message)
+}
+
+export async function getChatRoomMembers(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) return []
+  const { data, error } = await supabase.rpc('chat_room_get_members', { p_room_id: roomId })
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+export async function sendChatRoomMessage(roomId: string, content: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('chat_room_send', {
+    p_room_id: roomId,
+    p_content: content
+  })
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function updateChatRoomPosition(
+  roomId: string,
+  pos: { x: number; y: number; facing: string; anim: string }
+) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data, error } = await supabase.rpc('chat_room_update_position', {
+    p_room_id: roomId,
+    p_x: pos.x,
+    p_y: pos.y,
+    p_facing: pos.facing,
+    p_anim: pos.anim
+  })
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export function subscribeToChatRoom(roomId: string, onUpdate: (payload: unknown) => void) {
+  const supabase = getSupabase()
+  if (!supabase) return () => undefined
+  const channel = supabase
+    .channel(`chat-room:${roomId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'chat_room_members', filter: `room_id=eq.${roomId}` },
+      onUpdate
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'chat_room_messages', filter: `room_id=eq.${roomId}` },
+      onUpdate
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'chat_room_positions', filter: `room_id=eq.${roomId}` },
+      onUpdate
+    )
+    .subscribe()
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}
+
 export async function syncInventory(userId: string, inventory: { item_type: string; quantity: number }[]) {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')

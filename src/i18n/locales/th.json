@@ -156,7 +156,7 @@
     "respondDeclined": "ปฏิเสธคำขอแล้ว"
   },
   "chat": {
-    "title": "แชทกับเพื่อน",
+    "title": "แชท",
     "selectFriend": "เลือกเพื่อน",
     "startBySelectingFriend": "เลือกเพื่อนเพื่อเริ่มแชท",
     "loadingMessages": "กำลังโหลดข้อความ...",
@@ -165,6 +165,23 @@
     "messagePlaceholder": "พิมพ์ข้อความ...",
     "selectFriendFirstPlaceholder": "เลือกเพื่อนก่อน",
     "send": "ส่ง"
+  },
+  "chatLobby": {
+    "title": "ห้องแชท",
+    "subtitle": "เข้าห้องแล้วแชทได้ ตัวละครจะเดินไปมาในห้อง",
+    "loginRequired": "เข้าสู่ระบบก่อนเข้าห้องแชท",
+    "joining": "กำลังเข้าห้อง…",
+    "controls": "← → เดิน · Space กระโดด · Enter พิมพ์ข้อความ",
+    "memberCount": "{{count}} คน",
+    "leave": "ออกจากห้อง",
+    "send": "ส่ง",
+    "inputPlaceholder": "พิมพ์ข้อความ...",
+    "rooms": {
+      "plaza": "ลานกลาง",
+      "park": "สวนสาธารณะ",
+      "beach": "ชายหาด",
+      "cave": "ถ้ำ"
+    }
   },
   "profile": {
     "title": "โปรไฟล์",

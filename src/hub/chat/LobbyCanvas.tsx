@@ -1,0 +1,360 @@
+import { useEffect, useRef } from 'react'
+import type { Gender, Stage } from '../../shared/types'
+import { DINO_PREVIEW_COLORS } from '../../shared/constants'
+import { normalizeDinoCharacter } from '../../shared/dinoCharacters'
+import {
+  DINO_BOB_PERIOD,
+  DINO_FRAMES_PER_SPRITE_FRAME
+} from '../../shared/dinoTiming'
+import {
+  drawDinoSpriteFrame,
+  dinoSpriteUrl,
+  loadDinoSprite,
+  pixelScaleForStage,
+  preloadDinoSprites,
+  setupCrispCanvas,
+  type DinoSpriteFolder
+} from '../../shared/dinoSprites'
+import { createPhysicsState, tickPhysics, type LobbyInput, type PhysicsState } from './lobbyPhysics'
+import { pruneBubbles, upsertBubble } from './speechBubbles'
+import type { ChatRoomMember, ChatRoomMessage, LobbyEntity } from './types'
+
+const CANVAS_W = 640
+const CANVAS_H = 320
+const LERP = 0.18
+const SYNC_MS = 150
+
+const PET_CLIPS = [
+  { folder: 'base' as const, clip: 'idle' },
+  { folder: 'base' as const, clip: 'move' },
+  { folder: 'base' as const, clip: 'jump' }
+]
+
+interface Props {
+  roomId: string
+  userId: string
+  members: ChatRoomMember[]
+  onPositionSync: (pos: { x: number; y: number; facing: string; anim: string }) => void
+  incomingMessage: ChatRoomMessage | null
+}
+
+function memberToEntity(m: ChatRoomMember, isSelf: boolean): LobbyEntity {
+  return {
+    userId: m.user_id,
+    username: m.username,
+    character: normalizeDinoCharacter(m.pet_character),
+    gender: m.gender as Gender,
+    stage: (m.stage === 'egg' || m.stage === 'baby' ? m.stage : 'adult') as Stage,
+    x: m.x,
+    y: m.y,
+    facing: m.facing === 'left' ? 'left' : 'right',
+    anim: m.anim === 'jump' ? 'jump' : m.anim === 'walk' ? 'walk' : 'idle',
+    isSelf
+  }
+}
+
+function resolveLobbyClip(entity: LobbyEntity): {
+  folder: DinoSpriteFolder
+  clip: string
+  flipX: boolean
+} {
+  const flipX = entity.facing === 'left'
+  if (entity.stage === 'egg') {
+    return { folder: 'egg', clip: 'move', flipX: false }
+  }
+  if (entity.anim === 'jump') {
+    return { folder: 'base', clip: 'jump', flipX }
+  }
+  if (entity.anim === 'walk') {
+    return { folder: 'base', clip: 'move', flipX }
+  }
+  return { folder: 'base', clip: 'idle', flipX }
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(/\s+/)
+  const lines: string[] = []
+  let line = ''
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line)
+      line = word
+    } else {
+      line = test
+    }
+  }
+  if (line) lines.push(line)
+  return lines.slice(0, 3)
+}
+
+function drawBubble(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  text: string,
+  username: string
+): void {
+  ctx.font = '11px sans-serif'
+  const lines = wrapText(ctx, text, 120)
+  const lineH = 14
+  const padX = 10
+  const padY = 8
+  const nameH = 14
+  const w = Math.min(
+    140,
+    Math.max(60, ...lines.map((l) => ctx.measureText(l).width)) + padX * 2
+  )
+  const h = padY * 2 + nameH + lines.length * lineH
+  const left = x - w / 2
+  const top = y - h - 12
+
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'
+  ctx.strokeStyle = 'rgba(15,23,42,0.12)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.roundRect(left, top, w, h, 10)
+  ctx.fill()
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.moveTo(x - 6, top + h)
+  ctx.lineTo(x, top + h + 8)
+  ctx.lineTo(x + 6, top + h)
+  ctx.closePath()
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'
+  ctx.fill()
+  ctx.stroke()
+
+  ctx.fillStyle = '#6366f1'
+  ctx.font = 'bold 10px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(username, x, top + padY + 10)
+
+  ctx.fillStyle = '#1f2937'
+  ctx.font = '11px sans-serif'
+  lines.forEach((line, i) => {
+    ctx.fillText(line, x, top + padY + nameH + 12 + i * lineH)
+  })
+}
+
+export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingMessage }: Props) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const frameRef = useRef(0)
+  const physicsRef = useRef<PhysicsState>(createPhysicsState(userId))
+  const inputRef = useRef<LobbyInput>({ move: 0, jump: false })
+  const jumpQueuedRef = useRef(false)
+  const displayRef = useRef<Map<string, { x: number; y: number }>>(new Map())
+  const bubblesRef = useRef<Map<string, import('./types').SpeechBubble>>(new Map())
+  const spriteCacheRef = useRef<Map<string, HTMLImageElement>>(new Map())
+  const lastSyncRef = useRef(0)
+  const membersRef = useRef(members)
+  const onSyncRef = useRef(onPositionSync)
+
+  membersRef.current = members
+  onSyncRef.current = onPositionSync
+
+  useEffect(() => {
+    if (!incomingMessage) return
+    bubblesRef.current = upsertBubble(
+      bubblesRef.current,
+      incomingMessage.sender_id,
+      incomingMessage.content
+    )
+  }, [incomingMessage])
+
+  useEffect(() => {
+    const urls = members.flatMap((m) => {
+      const character = normalizeDinoCharacter(m.pet_character)
+      if (m.stage === 'egg') {
+        return ['move', 'crack', 'hatch'].map((clip) =>
+          dinoSpriteUrl(m.gender as Gender, character, 'egg', clip)
+        )
+      }
+      return PET_CLIPS.map(({ folder, clip }) =>
+        dinoSpriteUrl(m.gender as Gender, character, folder, clip)
+      )
+    })
+    void preloadDinoSprites(urls)
+  }, [members])
+
+  useEffect(() => {
+    const isTyping = () => {
+      const el = document.activeElement
+      return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+    }
+
+    const held = { left: false, right: false }
+
+    const syncInput = () => {
+      inputRef.current.move = held.left && !held.right ? -1 : held.right && !held.left ? 1 : 0
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isTyping()) return
+      if (e.key === 'ArrowLeft') {
+        held.left = true
+        syncInput()
+        e.preventDefault()
+      }
+      if (e.key === 'ArrowRight') {
+        held.right = true
+        syncInput()
+        e.preventDefault()
+      }
+      if (e.key === ' ' && !e.repeat) {
+        jumpQueuedRef.current = true
+        e.preventDefault()
+      }
+    }
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        held.left = false
+        syncInput()
+      }
+      if (e.key === 'ArrowRight') {
+        held.right = false
+        syncInput()
+      }
+    }
+
+    const resetInput = () => {
+      held.left = false
+      held.right = false
+      inputRef.current = { move: 0, jump: false }
+      jumpQueuedRef.current = false
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    window.addEventListener('blur', resetInput)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', resetInput)
+      resetInput()
+    }
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = setupCrispCanvas(canvas, CANVAS_W)
+    ctx.imageSmoothingEnabled = false
+
+    let raf = 0
+    const tick = async () => {
+      frameRef.current++
+      const frame = frameRef.current
+      const now = performance.now()
+
+      const input: LobbyInput = {
+        move: inputRef.current.move,
+        jump: jumpQueuedRef.current
+      }
+      jumpQueuedRef.current = false
+
+      physicsRef.current = tickPhysics(physicsRef.current, frame, input)
+      const phys = physicsRef.current
+
+      if (now - lastSyncRef.current >= SYNC_MS) {
+        lastSyncRef.current = now
+        onSyncRef.current({
+          x: phys.x,
+          y: phys.y,
+          facing: phys.facing,
+          anim: phys.anim
+        })
+      }
+
+      bubblesRef.current = pruneBubbles(bubblesRef.current)
+
+      ctx.clearRect(0, 0, CANVAS_W, CANVAS_H)
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_H)
+      gradient.addColorStop(0, '#e0f2fe')
+      gradient.addColorStop(1, '#f0fdf4')
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
+
+      ctx.fillStyle = '#86efac'
+      ctx.fillRect(0, CANVAS_H * 0.72, CANVAS_W, CANVAS_H * 0.28)
+
+      const entities: LobbyEntity[] = membersRef.current.map((m) => {
+        if (m.user_id !== userId) return memberToEntity(m, false)
+        return memberToEntity(
+          { ...m, x: phys.x, y: phys.y, facing: phys.facing, anim: phys.anim },
+          true
+        )
+      })
+
+      for (const entity of entities) {
+        let px: number
+        let py: number
+
+        if (entity.isSelf) {
+          px = entity.x * CANVAS_W
+          py = entity.y * CANVAS_H
+        } else {
+          const disp = displayRef.current.get(entity.userId) ?? { x: entity.x, y: entity.y }
+          const nx = disp.x + (entity.x - disp.x) * LERP
+          const ny = disp.y + (entity.y - disp.y) * LERP
+          displayRef.current.set(entity.userId, { x: nx, y: ny })
+          px = nx * CANVAS_W
+          py = ny * CANVAS_H
+        }
+
+        const clip = resolveLobbyClip(entity)
+
+        const url = dinoSpriteUrl(entity.gender, entity.character, clip.folder, clip.clip)
+        let img = spriteCacheRef.current.get(url)
+        if (!img) {
+          try {
+            img = await loadDinoSprite(url)
+            spriteCacheRef.current.set(url, img)
+          } catch {
+            img = undefined
+          }
+        }
+
+        const bob = Math.round(Math.sin(frame / DINO_BOB_PERIOD) * 2)
+        const scale = pixelScaleForStage(entity.stage)
+        const displaySize = 48 * (scale / 4)
+
+        if (img) {
+          drawDinoSpriteFrame(ctx, img, Math.floor(frame / DINO_FRAMES_PER_SPRITE_FRAME), {
+            x: Math.round(px),
+            y: Math.round(py + bob),
+            pixelScale: Math.max(2, Math.round(displaySize / 24)),
+            flipX: clip.flipX
+          })
+        } else {
+          ctx.fillStyle = DINO_PREVIEW_COLORS[entity.character]
+          ctx.beginPath()
+          ctx.arc(Math.round(px), Math.round(py + bob), displaySize / 3, 0, Math.PI * 2)
+          ctx.fill()
+        }
+
+        const bubble = bubblesRef.current.get(entity.userId)
+        if (bubble) {
+          drawBubble(ctx, px, py - displaySize / 2 - 8, bubble.content, entity.username)
+        }
+      }
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    tick()
+    return () => cancelAnimationFrame(raf)
+  }, [roomId, userId])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="chat-lobby-canvas dino-sprite-canvas"
+      tabIndex={0}
+      aria-label="Chat lobby"
+    />
+  )
+}
