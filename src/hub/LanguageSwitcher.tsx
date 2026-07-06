@@ -1,7 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { setAppLocale, type AppLocale } from '../i18n'
 
-export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
+export function LanguageSwitcher({
+  compact = false,
+  variant = 'default'
+}: {
+  compact?: boolean
+  variant?: 'default' | 'pixel'
+}) {
   const { i18n } = useTranslation()
   const locale = (i18n.language === 'th' ? 'th' : 'en') as AppLocale
 
@@ -10,8 +16,16 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     setAppLocale(next)
   }
 
+  const className = [
+    'lang-switcher',
+    compact ? 'lang-switcher-compact' : '',
+    variant === 'pixel' ? 'lang-switcher-pixel' : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`lang-switcher ${compact ? 'lang-switcher-compact' : ''}`}>
+    <div className={className}>
       <button
         type="button"
         className={locale === 'en' ? 'active' : ''}

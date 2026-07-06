@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { formatAuthError } from '../shared/formatError'
 import { isAtLeast18, isValidBirthDate, toBirthDateIso } from '../shared/birthDate'
 import { BirthDateFields } from './BirthDateFields'
-import { LanguageSwitcher } from './LanguageSwitcher'
+import { PixelCoverShell } from './PixelCoverShell'
 
 interface Props {
   onLoggedIn: () => void
 }
 
-export function AuthShell({
+function AuthShell({
   tagline,
   message,
   children,
@@ -22,22 +22,9 @@ export function AuthShell({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="cover-screen">
-      <div className="cover-card login-card">
-        <div className="login-card-top">
-          <div className="cover-logo">🥚</div>
-          <LanguageSwitcher compact />
-        </div>
-        <h1 className="cover-title">{t('app.title')}</h1>
-        <p className="cover-tagline">{tagline}</p>
-
-        {message && <p className="login-message">{message}</p>}
-
-        {children}
-
-        <div className="auth-switch">{footer}</div>
-      </div>
-    </div>
+    <PixelCoverShell title={t('app.title')} tagline={tagline} message={message || undefined} footer={footer}>
+      {children}
+    </PixelCoverShell>
   )
 }
 
@@ -107,13 +94,13 @@ function LoginPage({
         />
       </div>
 
-      <p style={{ margin: '0 0 12px', textAlign: 'right' }}>
+      <p className="pixel-forgot-link">
         <button type="button" className="auth-link" onClick={onGoForgot} disabled={loading}>
           {t('auth.forgotPassword')}
         </button>
       </p>
 
-      <button className="primary cover-btn" onClick={signIn} disabled={loading}>
+      <button className="primary cover-btn pixel-btn" onClick={signIn} disabled={loading}>
         {loading ? t('auth.loadingLogin') : t('common.login')}
       </button>
     </AuthShell>
@@ -157,9 +144,7 @@ function ForgotPasswordPage({ onGoLogin }: { onGoLogin: () => void }) {
     >
       {!done && (
         <>
-          <p style={{ margin: '0 0 12px', fontSize: '0.9rem', color: '#6b7280' }}>
-            {t('auth.forgotPasswordHint')}
-          </p>
+          <p className="pixel-hint">{t('auth.forgotPasswordHint')}</p>
           <div className="form-row">
             <label>{t('auth.emailLabel')}</label>
             <input
@@ -170,13 +155,13 @@ function ForgotPasswordPage({ onGoLogin }: { onGoLogin: () => void }) {
               autoComplete="email"
             />
           </div>
-          <button type="button" className="primary cover-btn" onClick={() => void reset()} disabled={loading}>
+          <button type="button" className="primary cover-btn pixel-btn" onClick={() => void reset()} disabled={loading}>
             {loading ? t('auth.resettingPassword') : t('auth.resetPassword')}
           </button>
         </>
       )}
       {done && (
-        <button type="button" className="primary cover-btn" onClick={onGoLogin}>
+        <button type="button" className="primary cover-btn pixel-btn" onClick={onGoLogin}>
           {t('common.goToLogin')}
         </button>
       )}
@@ -290,7 +275,7 @@ function SignUpPage({
         />
       </div>
 
-      <button className="primary cover-btn" onClick={signUp} disabled={loading}>
+      <button className="primary cover-btn pixel-btn" onClick={signUp} disabled={loading}>
         {loading ? t('auth.loadingSignUp') : t('common.signUp')}
       </button>
     </AuthShell>

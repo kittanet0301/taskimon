@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Press+Start+2P&display=swap');
+
 :root {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   color: #1f2937;
@@ -913,4 +915,319 @@ input, select {
 
 .leave-dialog h3 {
   margin-top: 0;
+}
+
+/* ── Pixel Auth Theme ── */
+
+.pixel-cover {
+  --pixel-sky-top: #38bdf8;
+  --pixel-sky-bottom: #bae6fd;
+  --pixel-grass: #86efac;
+  --pixel-grass-dark: #4ade80;
+  --pixel-border: #1e293b;
+  --pixel-shadow: #0f172a;
+  --pixel-card-bg: #fffbeb;
+  --pixel-accent: #f59e0b;
+  --pixel-accent-dark: #d97706;
+  --pixel-text: #1e293b;
+  --pixel-muted: #475569;
+  --pixel-link: #b45309;
+
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--pixel-sky-top) 0%, var(--pixel-sky-bottom) 72%, var(--pixel-grass) 72%, var(--pixel-grass-dark) 100%);
+  image-rendering: pixelated;
+  padding: 24px 16px;
+}
+
+.pixel-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pixel-grass {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28%;
+  background:
+  repeating-linear-gradient(
+    90deg,
+    var(--pixel-grass) 0,
+    var(--pixel-grass) 8px,
+    var(--pixel-grass-dark) 8px,
+    var(--pixel-grass-dark) 16px
+  );
+  border-top: 4px solid var(--pixel-border);
+}
+
+.pixel-cloud {
+  position: absolute;
+  background: #fff;
+  border: 3px solid var(--pixel-border);
+  box-shadow:
+    8px 0 0 #fff,
+    8px 0 0 3px var(--pixel-border),
+    16px 4px 0 #fff,
+    16px 4px 0 3px var(--pixel-border);
+}
+
+.pixel-cloud-1 {
+  width: 48px;
+  height: 16px;
+  top: 12%;
+  left: 8%;
+}
+
+.pixel-cloud-2 {
+  width: 64px;
+  height: 20px;
+  top: 8%;
+  right: 12%;
+  box-shadow:
+    10px 0 0 #fff,
+    10px 0 0 3px var(--pixel-border),
+    20px 6px 0 #fff,
+    20px 6px 0 3px var(--pixel-border),
+    -10px 4px 0 #fff,
+    -10px 4px 0 3px var(--pixel-border);
+}
+
+.pixel-cloud-3 {
+  width: 40px;
+  height: 14px;
+  top: 22%;
+  left: 55%;
+}
+
+.pixel-cloud-4 {
+  width: 36px;
+  height: 12px;
+  top: 18%;
+  right: 35%;
+  opacity: 0.85;
+}
+
+.pixel-cover .pixel-card {
+  position: relative;
+  z-index: 1;
+  background: var(--pixel-card-bg);
+  border: 4px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 8px 8px 0 var(--pixel-shadow);
+  padding: 28px 24px;
+  max-width: 420px;
+}
+
+.pixel-cover .pixel-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--pixel-text);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.pixel-cover .pixel-body {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  color: var(--pixel-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.pixel-cover .cover-tagline {
+  color: var(--pixel-muted);
+  text-align: center;
+}
+
+.pixel-cover .login-card {
+  text-align: left;
+}
+
+.pixel-cover .pixel-card-lang {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.pixel-cover .pixel-card-egg {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.pixel-cover .auth-egg-sprite {
+  flex-shrink: 0;
+}
+
+.pixel-cover .pixel-message,
+.pixel-cover .login-message {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  margin: 0 0 16px;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+}
+
+.pixel-cover .form-row label {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-weight: 700;
+  color: var(--pixel-text);
+  font-size: 0.9rem;
+}
+
+.pixel-cover input,
+.pixel-cover select {
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  background: #fff;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.95rem;
+  box-shadow: inset 2px 2px 0 #e2e8f0;
+  margin-top: 6px;
+}
+
+.pixel-cover input:focus,
+.pixel-cover select:focus {
+  outline: 2px solid var(--pixel-accent);
+  outline-offset: 1px;
+}
+
+.pixel-cover .birth-date-row select {
+  border-radius: 0;
+}
+
+.pixel-cover .pixel-btn,
+.pixel-cover .cover-btn {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.65rem;
+  line-height: 1.6;
+  border: 4px solid var(--pixel-border);
+  border-radius: 0;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--pixel-shadow);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.pixel-cover .pixel-btn.primary,
+.pixel-cover .cover-btn.primary,
+.pixel-cover button.primary.cover-btn {
+  background: var(--pixel-accent);
+  color: var(--pixel-text);
+}
+
+.pixel-cover .pixel-btn.primary:hover:not(:disabled),
+.pixel-cover .cover-btn.primary:hover:not(:disabled),
+.pixel-cover button.primary.cover-btn:hover:not(:disabled) {
+  background: #fbbf24;
+}
+
+.pixel-cover .pixel-btn:active:not(:disabled),
+.pixel-cover .cover-btn:active:not(:disabled),
+.pixel-cover button.primary.cover-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+}
+
+.pixel-cover .pixel-btn:disabled,
+.pixel-cover .cover-btn:disabled,
+.pixel-cover button.primary.cover-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pixel-cover .auth-switch {
+  color: var(--pixel-muted);
+  font-size: 0.9rem;
+}
+
+.pixel-cover .auth-link {
+  color: var(--pixel-link);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pixel-cover .auth-link:hover:not(:disabled) {
+  color: var(--pixel-accent-dark);
+}
+
+.pixel-cover .pixel-forgot-link {
+  margin: 0 0 12px;
+  text-align: right;
+}
+
+.pixel-cover .pixel-hint {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: var(--pixel-muted);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+}
+
+.pixel-cover .cover-features {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  color: var(--pixel-text);
+  border: 3px solid var(--pixel-border);
+  background: #fff;
+  padding: 12px 12px 12px 28px;
+  box-shadow: inset 2px 2px 0 #e2e8f0;
+  border-radius: 0;
+}
+
+.pixel-cover .lang-switcher-pixel {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.pixel-cover .lang-switcher-pixel button {
+  min-width: 40px;
+  padding: 6px 10px;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  background: #fff;
+  color: var(--pixel-text);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.5rem;
+  font-weight: 400;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+}
+
+.pixel-cover .lang-switcher-pixel button.active {
+  background: var(--pixel-accent);
+  color: var(--pixel-text);
+}
+
+.pixel-cover .lang-switcher-pixel button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--pixel-shadow);
+}
+
+@media (max-width: 480px) {
+  .pixel-cover .pixel-card {
+    padding: 20px 16px;
+  }
+
+  .pixel-cover .pixel-title {
+    font-size: 0.95rem;
+  }
+
+  .pixel-cover .pixel-btn,
+  .pixel-cover .cover-btn,
+  .pixel-cover button.primary.cover-btn {
+    font-size: 0.55rem;
+    padding: 12px 10px;
+  }
 }
