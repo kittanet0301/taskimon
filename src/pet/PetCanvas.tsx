@@ -1,64 +1,35 @@
 import { useEffect, useRef, useState } from 'react'
-import type { AnimationState, GameSave, PetData } from '../shared/types'
-import { ELEMENT_COLORS } from '../shared/constants'
-import { getMoodLabel, shouldBeSick } from '../shared/stats'
+import type { AnimationState, GameSave } from '../shared/types'
+import { DINO_PREVIEW_COLORS } from '../shared/constants'
+import { resolveDinoClip } from '../shared/dinoAnim'
+import {
+  DINO_BOB_PERIOD,
+  DINO_BOB_PERIOD_EGG,
+  DINO_FRAMES_PER_SPRITE_FRAME,
+  DINO_WALK_SPEED
+} from '../shared/dinoTiming'
+
+import {
+  drawDinoSpriteFrame,
+  dinoSpriteUrl,
+  loadDinoSprite,
+  pixelScaleForStage,
+  preloadDinoSprites,
+  setupCrispCanvas
+} from '../shared/dinoSprites'
 
 const SIZE = 96
-const PET_BODY = 48
 
-function resolveAnimation(pet: PetData, frame: number, animState: AnimationState): AnimationState {
-  if (pet.stage === 'egg') return pet.animationState === 'egg_hatch' ? 'egg_hatch' : 'egg_idle'
-  if (pet.animationState === 'eat' || pet.animationState === 'sleep' || pet.animationState === 'evolve') {
-    return pet.animationState
-  }
-  if (shouldBeSick(pet.stats)) return 'sick'
-  const mood = getMoodLabel(pet.stats.mood)
-  if (mood === 'happy') return frame % 120 < 30 ? 'happy' : animState.includes('walk') ? animState : 'idle'
-  if (mood === 'sad') return 'sad'
-  return animState
-}
-
-function drawPet(
-  ctx: CanvasRenderingContext2D,
-  pet: PetData,
-  frame: number,
-  animState: AnimationState
-): void {
-  ctx.clearRect(0, 0, SIZE, SIZE)
-  const state = resolveAnimation(pet, frame, animState)
-  const color = ELEMENT_COLORS[pet.element]
-  const cx = SIZE / 2
-  const cy = SIZE / 2 + Math.sin(frame / 10) * (state === 'walk_left' || state === 'walk_right' ? 2 : 4)
-  const scale = pet.stage === 'baby' ? 0.85 : pet.stage === 'egg' ? 0.7 : 1
-
-  if (pet.stage === 'egg') {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.ellipse(cx, cy, 18 * scale, 22 * scale, 0, 0, Math.PI * 2)
-    ctx.fill()
-    return
-  }
-
-  const bodyW = PET_BODY * scale
-  const bodyH = PET_BODY * scale
-  const x = cx - bodyW / 2
-  const y = cy - bodyH / 2
-  ctx.fillStyle = color
-  ctx.fillRect(x, y, bodyW, bodyH)
-  ctx.fillStyle = '#fff'
-  ctx.fillRect(x + 10, y + 14, 6, 6)
-  ctx.fillRect(x + bodyW - 16, y + 14, 6, 6)
-
-  if (state === 'eat') {
-    ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(x + bodyW + 4, y + 18, 8, 8)
-  }
-  if (state === 'sleep') {
-    ctx.fillStyle = '#fff'
-    ctx.font = '12px sans-serif'
-    ctx.fillText('z', x + bodyW + 2, y + 4)
-  }
-}
+const PET_CLIPS = [
+  { folder: 'base' as const, clip: 'idle' },
+  { folder: 'base' as const, clip: 'move' },
+  { folder: 'base' as const, clip: 'hurt' },
+  { folder: 'base' as const, clip: 'bite' },
+  { folder: 'base' as const, clip: 'jump' },
+  { folder: 'egg' as const, clip: 'move' },
+  { folder: 'egg' as const, clip: 'crack' },
+  { folder: 'egg' as const, clip: 'hatch' }
+]
 
 export function PetCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -67,9 +38,11 @@ export function PetCanvas() {
     frame: 0,
     posX: 200,
     posY: 200,
-    velocityX: 1.2,
+    velocityX: DINO_WALK_SPEED,
     animState: 'idle' as AnimationState,
-    dragging: false
+    dragging: false,
+    spriteUrl: '',
+    spriteImg: null as HTMLImageElement | null
   })
 
   useEffect(() => {
@@ -85,16 +58,28 @@ export function PetCanvas() {
   }, [])
 
   useEffect(() => {
+    const pet = save?.pet
+    if (!pet) return
+    const urls = PET_CLIPS.map(({ folder, clip }) =>
+      dinoSpriteUrl(pet.gender, pet.character, folder, clip)
+    )
+    void preloadDinoSprites(urls)
+    stateRef.current.spriteUrl = ''
+    stateRef.current.spriteImg = null
+  }, [save?.pet?.gender, save?.pet?.character])
+
+  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const ctx = setupCrispCanvas(canvas, SIZE)
 
     let raf = 0
-    const tick = () => {
+    const tick = async () => {
       const s = stateRef.current
       s.frame++
-      if (save?.pet && save.pet.stage !== 'egg' && !s.dragging) {
+      const pet = save?.pet
+
+      if (pet && pet.stage !== 'egg' && !s.dragging) {
         s.posX += s.velocityX
         const left = 8
         const right = window.screen.availWidth - SIZE - 8
@@ -110,7 +95,45 @@ export function PetCanvas() {
           s.animState = s.velocityX > 0 ? 'walk_right' : 'walk_left'
         }
       }
-      if (save?.pet) drawPet(ctx, save.pet, s.frame, s.animState)
+
+      if (pet) {
+        const clip = resolveDinoClip(pet, s.frame, s.animState)
+        const url = dinoSpriteUrl(pet.gender, pet.character, clip.folder, clip.clip)
+        if (url !== s.spriteUrl) {
+          s.spriteUrl = url
+          try {
+            s.spriteImg = await loadDinoSprite(url)
+          } catch {
+            s.spriteImg = null
+          }
+        }
+
+        ctx.clearRect(0, 0, SIZE, SIZE)
+        const bob =
+          pet.stage === 'egg'
+            ? Math.round(Math.sin(s.frame / DINO_BOB_PERIOD_EGG) * 2)
+            : s.animState.includes('walk')
+              ? Math.round(Math.sin(s.frame / DINO_BOB_PERIOD) * 2)
+              : Math.round(Math.sin(s.frame / DINO_BOB_PERIOD) * 3)
+        const cx = Math.round(SIZE / 2)
+        const cy = Math.round(SIZE / 2 + bob)
+        const pixelScale = pixelScaleForStage(pet.stage)
+
+        if (s.spriteImg) {
+          drawDinoSpriteFrame(ctx, s.spriteImg, Math.floor(s.frame / DINO_FRAMES_PER_SPRITE_FRAME), {
+            x: cx,
+            y: cy,
+            pixelScale,
+            flipX: clip.flipX
+          })
+        } else {
+          ctx.fillStyle = DINO_PREVIEW_COLORS[pet.character]
+          ctx.beginPath()
+          ctx.arc(cx, cy, pixelScale * 8, 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+
       raf = requestAnimationFrame(tick)
     }
     tick()
@@ -138,8 +161,7 @@ export function PetCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      width={SIZE}
-      height={SIZE}
+      className="dino-sprite-canvas"
       style={{ display: 'block', background: 'transparent' }}
       onMouseEnter={() => window.petAPI.setIgnoreMouse(false)}
       onMouseLeave={() => window.petAPI.setIgnoreMouse(true)}

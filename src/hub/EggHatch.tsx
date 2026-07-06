@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { DEV_POINTS_HATCH, ELEMENT_COLORS } from '../shared/constants'
+import { DEV_POINTS_HATCH, DINO_PREVIEW_COLORS } from '../shared/constants'
+import { DINO_HATCH_MS } from '../shared/dinoTiming'
+import { DinoSprite } from '../components/DinoSprite'
+import { GenderTag } from '../components/GenderTag'
 import { canHatchEgg } from '../shared/stats'
-import { tElement, tSpecies } from '../i18n/labels'
+import { tCharacter } from '../i18n/labels'
 
 interface Props {
   pet: PetData
@@ -46,7 +49,7 @@ export function EggHatch({ pet, onHatched }: Props) {
   const hatch = async () => {
     if (!ready) return
     setHatching(true)
-    await new Promise((r) => setTimeout(r, 2000))
+    await new Promise((r) => setTimeout(r, DINO_HATCH_MS))
     await window.electronAPI.patchGame('rename', [name])
     await window.electronAPI.patchGame('hatch')
     setHatching(false)
@@ -58,17 +61,16 @@ export function EggHatch({ pet, onHatched }: Props) {
       <h2>{t('pet.mysteriousEgg')}</h2>
       <div
         className="pet-preview dash-pet-sprite"
-        style={{ background: ELEMENT_COLORS[pet.element], marginBottom: 16 }}
+        style={{ background: DINO_PREVIEW_COLORS[pet.character], marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        {hatching ? '...' : '🥚'}
+        <DinoSprite pet={pet} size={96} hatching={hatching} />
       </div>
       <p>
-        {t('pet.element')}:{' '}
-        <span className="tag" style={{ background: ELEMENT_COLORS[pet.element], color: '#fff' }}>
-          {tElement(pet.element)}
+        {t('pet.character')}:{' '}
+        <span className="tag" style={{ background: DINO_PREVIEW_COLORS[pet.character], color: '#fff' }}>
+          {tCharacter(pet.character)}
         </span>
-        {t('pet.species')}: {tSpecies(pet.species)} · {t('pet.gender')}:{' '}
-        {pet.gender === 'male' ? t('pet.maleShort') : t('pet.femaleShort')}
+        · {t('pet.gender')}: <GenderTag gender={pet.gender} />
       </p>
       <StatBar
         label={t('home.evolution')}

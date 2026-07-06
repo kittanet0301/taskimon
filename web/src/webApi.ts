@@ -91,8 +91,8 @@ export function createWebApi(): GameAPI {
       const mapped = {
         id: pet.id,
         name: pet.name,
-        species: pet.species,
-        element: pet.element,
+        species: pet.character,
+        element: 'none',
         gender: pet.gender,
         stage: pet.stage,
         hp: pet.stats.hp,

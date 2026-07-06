@@ -26,6 +26,7 @@ export default defineConfig({
   },
   renderer: {
     root: resolve(__dirname, 'src'),
+    publicDir: resolve(__dirname, 'assets'),
     resolve: {
       alias: {
         '@renderer': resolve('src'),

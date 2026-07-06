@@ -1,5 +1,3 @@
-import type { Element } from '../types'
-
 export type BattleActionType = 'attack' | 'ultimate' | 'defend' | 'flee'
 
 export type BattleSessionStatus =
@@ -19,7 +17,7 @@ export interface BattleCombatant {
   userId: string
   petId: string
   name: string
-  element: Element
+  character: string
   hp: number
   hpStart: number
   energy: number

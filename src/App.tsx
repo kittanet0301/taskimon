@@ -6,7 +6,6 @@ import './i18n'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
 import { HomeDashboard } from './hub/HomeDashboard'
-import { Inventory } from './hub/Inventory'
 import { Missions } from './hub/Missions'
 import { AuthPanel } from './hub/AuthPanel'
 import { Friends } from './hub/Friends'
@@ -17,7 +16,7 @@ import { Chat } from './hub/Chat'
 import { UserProfile } from './hub/UserProfile'
 import { LanguageSwitcher } from './hub/LanguageSwitcher'
 
-type Tab = 'home' | 'inventory' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
+type Tab = 'home' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
 
 type Session = { user: { id: string; email?: string } } | null
 
@@ -188,7 +187,6 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'home', label: t('tabs.home'), icon: '🏠' },
-    { id: 'inventory', label: t('tabs.inventory'), icon: '🎒' },
     { id: 'missions', label: t('tabs.missions'), icon: '📋' },
     { id: 'friends', label: t('tabs.friends'), icon: '👥' },
     { id: 'battle', label: t('tabs.battle'), icon: '⚔️' },
@@ -227,7 +225,6 @@ function AppContent({ variant = 'desktop' }: Props) {
 
       <main className="content">
         {tab === 'home' && <HomeDashboard save={save} onUpdated={refresh} />}
-        {tab === 'inventory' && <Inventory save={save} onUpdated={refresh} />}
         {tab === 'missions' && <Missions save={save} onUpdated={refresh} />}
         {tab === 'friends' && (
           <Friends

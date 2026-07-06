@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { ELEMENT_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
-import { tElement, tSpecies, tStage } from '../i18n/labels'
+import { DINO_PREVIEW_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
+import { DinoSprite } from '../components/DinoSprite'
+import { GenderTag } from '../components/GenderTag'
+import { tCharacter, tStage } from '../i18n/labels'
 import { canEvolveToAdult } from '../shared/stats'
 
 interface ProfileProps {
@@ -30,11 +32,11 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
   return (
     <div className="card">
       <h2>{pet.name}</h2>
-      <div className="pet-preview" style={{ background: ELEMENT_COLORS[pet.element] }}>
-        {pet.stage === 'baby' ? 'B' : 'A'}
+      <div className="pet-preview" style={{ background: DINO_PREVIEW_COLORS[pet.character], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <DinoSprite pet={pet} size={96} />
       </div>
       <p>
-        {tSpecies(pet.species)} · {tElement(pet.element)} · {pet.gender === 'male' ? t('pet.male') : t('pet.female')} ·{' '}
+        {tCharacter(pet.character)} · <GenderTag gender={pet.gender} /> ·{' '}
         {tStage(pet.stage)}
       </p>
       <div className="stat-row"><span>HP</span><strong>{pet.stats.hp}</strong></div>

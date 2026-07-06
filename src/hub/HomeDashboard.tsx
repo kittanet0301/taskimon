@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, ItemType, PetData } from '../shared/types'
-import { ELEMENT_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
+import { DINO_PREVIEW_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
+import { DinoSprite } from '../components/DinoSprite'
+import { GenderTag } from '../components/GenderTag'
 import { getActivityScore, getPetLevel, getStageLabel } from '../shared/activityScore'
 import { canEvolveToAdult } from '../shared/stats'
 import { formatDailyResetCountdown, getMissionDefinition } from '../shared/missions'
 import { QUICK_CARE_ITEMS } from '../shared/items'
 import { EggHatch } from './EggHatch'
-import { tElement, tItemDescription, tItemLabel, tMissionTitle, tSpecies } from '../i18n/labels'
+import { tCharacter, tItemDescription, tItemLabel, tMissionTitle } from '../i18n/labels'
 
 interface Props {
   save: GameSave
@@ -53,18 +55,16 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
           <h2 style={{ margin: 0 }}>{pet.name}</h2>
           <p className="dash-pet-meta">
             Lv.{getPetLevel(pet.stage, pet.stats.devPoints)} · {getStageLabel(pet.stage)} ·{' '}
-            {tSpecies(pet.species)}
+            {tCharacter(pet.character)}
           </p>
         </div>
-        <span className="tag" style={{ background: ELEMENT_COLORS[pet.element], color: '#fff' }}>
-          {tElement(pet.element)}
-        </span>
+        <GenderTag gender={pet.gender} />
       </div>
       <div
         className="pet-preview dash-pet-sprite"
-        style={{ background: ELEMENT_COLORS[pet.element] }}
+        style={{ background: DINO_PREVIEW_COLORS[pet.character], display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        {pet.stage === 'egg' ? '🥚' : pet.stage === 'baby' ? '🐣' : '🐉'}
+        <DinoSprite pet={pet} size={96} />
       </div>
       <StatBar label={t('home.health')} value={pet.stats.hp} color="#22c55e" />
       <StatBar label={t('home.emotion')} value={pet.stats.mood} color="#6366f1" />
@@ -239,8 +239,8 @@ export function HomeDashboard({ save, onUpdated }: Props) {
         <PetStatusCard pet={save.pet} onUpdated={onUpdated} />
         <ActivityCard save={save} />
       </div>
-      <DailyMissionsPanel save={save} onUpdated={onUpdated} />
       <QuickCare save={save} onUpdated={onUpdated} />
+      <DailyMissionsPanel save={save} onUpdated={onUpdated} />
     </div>
   )
 }

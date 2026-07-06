@@ -178,8 +178,8 @@
   },
   "pet": {
     "mysteriousEgg": "Mysterious Egg",
-    "element": "Element",
-    "species": "Species",
+    "character": "Character",
+    "species": "Character",
     "gender": "Gender",
     "maleShort": "M",
     "femaleShort": "F",
@@ -315,24 +315,33 @@
     "tooltipLoggedIn": "{{name}} - Clicks {{clicks}} · Typing {{keystrokes}}",
     "tooltipLoggedOut": "Taskimon - Log in to play"
   },
-  "elements": {
-    "fire": "Fire",
-    "water": "Water",
-    "earth": "Earth",
-    "wind": "Wind",
-    "neutral": "Neutral"
-  },
-  "species": {
-    "mamono": "Mamono",
-    "avian": "Avian",
-    "aquatic": "Aquatic",
-    "mythic": "Mythic"
+  "characters": {
+    "cole": "Cole",
+    "doux": "Doux",
+    "kira": "Kira",
+    "kuro": "Kuro",
+    "loki": "Loki",
+    "mono": "Mono",
+    "mort": "Mort",
+    "nico": "Nico",
+    "olaf": "Olaf",
+    "sena": "Sena",
+    "tard": "Tard",
+    "vita": "Vita"
   },
   "defaultPetNames": {
-    "mamono": "Mono",
-    "avian": "Littlewing",
-    "aquatic": "Bubble",
-    "mythic": "Mythi"
+    "cole": "Cole",
+    "doux": "Doux",
+    "kira": "Kira",
+    "kuro": "Kuro",
+    "loki": "Loki",
+    "mono": "Mono",
+    "mort": "Mort",
+    "nico": "Nico",
+    "olaf": "Olaf",
+    "sena": "Sena",
+    "tard": "Tard",
+    "vita": "Vita"
   },
   "stages": {
     "egg": "Egg",
@@ -365,8 +374,8 @@
       "label": "Evolution vitamin",
       "description": "Evolution +50"
     },
-    "element_shield": {
-      "label": "Element shield",
+    "battle_shield": {
+      "label": "Battle shield",
       "description": "Battle use - reduce damage by 50%"
     }
   },

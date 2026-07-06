@@ -123,19 +123,11 @@ export function applyAction(
 
   const damage = calcDamage({
     action: effectiveAction,
-    attackerElement: actorRef.element,
-    defenderElement: opponentRef.element,
     defenderDefending: opponentRef.defending,
     randomFactor
   })
 
-  const logMessage = formatActionMessage(
-    actor.name,
-    opponent.name,
-    effectiveAction,
-    damage,
-    actorRef.element
-  )
+  const logMessage = formatActionMessage(actor.name, opponent.name, effectiveAction, damage)
 
   opponentRef.hp = Math.max(0, opponentRef.hp - damage)
   if (opponentRef.defending) opponentRef.defending = false

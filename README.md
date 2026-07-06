@@ -1,6 +1,6 @@
 # Taskimon
 
-Tamagotchi-style desktop pet game with elemental RPG — desktop (Electron) + web.
+Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron) + web.
 
 **เวอร์ชันเว็บ (production):** [https://taskimon.vercel.app](https://taskimon.vercel.app)
 
@@ -8,7 +8,7 @@ Tamagotchi-style desktop pet game with elemental RPG — desktop (Electron) + we
 
 - Transparent always-on-top pet window on desktop
 - **ก่อน login:** สัตว์แสดงเป็นไข่, tray ไม่โชว์สถิติ — **หลัง login** โหลดสัตว์จริงจาก cloud
-- Random egg hatch → species, element (5 types), gender
+- Random egg hatch → 1 of 12 dino characters, male/female gender
 - Growth: Egg → Baby → Adult
 - Stats: HP, mood, development points
 - Global click/keyboard activity tracking for development (desktop, หลัง login เท่านั้น)
@@ -18,7 +18,7 @@ Tamagotchi-style desktop pet game with elemental RPG — desktop (Electron) + we
   - ห้องต่อสู้ — สร้าง/เข้าร่วมด้วยรหัส, 1v1 ในห้อง
   - การกระทำ: โจมตี, ป้องกัน, หลบหนี, ท่าไม้ตาย
   - **พลังท่าไม้ตาย** 0–100% — สะสมจากโจมตี/ป้องกัน (สุ่ม), ใช้ได้เมื่อครบ 100% แล้วรีเซ็ต
-  - ธาตุ: ไฟ → ดิน → ลม → น้ำ → ไฟ (×2 / ×0.5), กลาง = ×1.0 ทุกคู่
+  - ไม่มีระบบธาตุ — ดาเมจตามสถิติและท่าไม้ตายเท่านั้น
   - จบดวล → popup ผลชนะ/แพ้ + กลับแท็บห้องอัตโนมัติ
 
 ## Quick Start
@@ -103,4 +103,9 @@ Global input tracking requires **Accessibility** permission in System Settings.
 - `src/shared/` — Game logic shared across processes
 - `src/shared/battle/` — Battle engine, damage, rewards, mappers
 - `web/` — Vite config สำหรับเวอร์ชันเบราว์เซอร์
+- `assets/dino/` — Dino Family pixel sprites (see [assets/CREDITS.md](assets/CREDITS.md))
 - `supabase/migrations/` — SQL schema + RLS + battle RPCs
+
+## Credits
+
+- **Pet sprites:** [Dino Family](https://demching.itch.io/dino-family) by DemChing — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Based on [Dino Characters](https://arks.itch.io/dino-characters) by ScissorMarks.

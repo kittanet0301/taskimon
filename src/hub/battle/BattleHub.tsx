@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { GameSave } from '../../shared/types'
 import type { BattleActionType, BattleSession } from '../../shared/battle/types'
 import { mapBattleSession, mapBattleTurn } from '../../shared/battle/mappers'
-import { tElement } from '../../i18n/labels'
+import { tCharacter } from '../../i18n/labels'
 import { BattleContext } from './BattleContext'
 import { RoomLobby } from './RoomLobby'
 import { BattleRoom } from './BattleRoom'
@@ -195,7 +195,7 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
           <p>{t('pet.needRaiseBeforeBattleHp')}</p>
         ) : (
           <p>
-            {t('pet.yourPet')}: {save.pet!.name} ({tElement(save.pet!.element)}) · HP {save.pet!.stats.hp}
+            {t('pet.yourPet')}: {save.pet!.name} ({tCharacter(save.pet!.character)}) · HP {save.pet!.stats.hp}
           </p>
         )}
       </div>

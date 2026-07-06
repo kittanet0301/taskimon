@@ -11,7 +11,7 @@ import {
 interface BattlePet {
   id: string
   name: string
-  element: PetData['element']
+  character: PetData['character']
   hp: number
   ultimateUsed: boolean
   defending: boolean
@@ -22,11 +22,9 @@ function toLegacyAction(action: LegacyBattleAction): BattleActionType {
   return action.type
 }
 
-function calcLegacyDamage(attacker: BattlePet, defender: BattlePet, action: LegacyBattleAction): number {
+function calcLegacyDamage(defender: BattlePet, action: LegacyBattleAction): number {
   return calcDamage({
     action: toLegacyAction(action),
-    attackerElement: attacker.element,
-    defenderElement: defender.element,
     defenderDefending: defender.defending,
     randomFactor: randomDamageFactor()
   })
@@ -43,7 +41,7 @@ export function simulateBattle(
   const c: BattlePet = {
     id: challenger.id,
     name: challenger.name,
-    element: challenger.element,
+    character: challenger.character,
     hp: challenger.stats.hp,
     ultimateUsed: false,
     defending: false
@@ -51,7 +49,7 @@ export function simulateBattle(
   const d: BattlePet = {
     id: defender.id,
     name: defender.name,
-    element: defender.element,
+    character: defender.character,
     hp: defender.stats.hp,
     ultimateUsed: false,
     defending: false
@@ -66,36 +64,36 @@ export function simulateBattle(
     d.defending = dAction.type === 'defend'
 
     if (cAction.type === 'skill' && c.ultimateUsed) {
-      const dmg = calcLegacyDamage(c, d, { type: 'attack' })
+      const dmg = calcLegacyDamage(d, { type: 'attack' })
       d.hp = Math.max(0, d.hp - dmg)
       log.push(formatUltimateFallbackMessage(c.name, d.name, dmg))
     } else {
       if (cAction.type === 'skill') c.ultimateUsed = true
-      const dmg = calcLegacyDamage(c, d, cAction)
+      const dmg = calcLegacyDamage(d, cAction)
       if (cAction.type === 'defend') {
         log.push(formatDefendMessage(c.name))
       } else {
         d.hp = Math.max(0, d.hp - dmg)
         const action = toLegacyAction(cAction)
-        log.push(formatActionMessage(c.name, d.name, action, dmg, c.element))
+        log.push(formatActionMessage(c.name, d.name, action, dmg, c.character))
       }
     }
 
     if (d.hp <= 0) break
 
     if (dAction.type === 'skill' && d.ultimateUsed) {
-      const dmg = calcLegacyDamage(d, c, { type: 'attack' })
+      const dmg = calcLegacyDamage(c, { type: 'attack' })
       c.hp = Math.max(0, c.hp - dmg)
       log.push(formatUltimateFallbackMessage(d.name, c.name, dmg))
     } else {
       if (dAction.type === 'skill') d.ultimateUsed = true
-      const dmg = calcLegacyDamage(d, c, dAction)
+      const dmg = calcLegacyDamage(c, dAction)
       if (dAction.type === 'defend') {
         log.push(formatDefendMessage(d.name))
       } else {
         c.hp = Math.max(0, c.hp - dmg)
         const action = toLegacyAction(dAction)
-        log.push(formatActionMessage(d.name, c.name, action, dmg, d.element))
+        log.push(formatActionMessage(d.name, c.name, action, dmg, d.character))
       }
     }
 

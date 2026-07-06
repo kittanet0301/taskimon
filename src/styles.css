@@ -523,9 +523,15 @@ input, select {
 .dash-pet-sprite {
   width: 120px;
   height: 120px;
-  font-size: 3rem;
   margin: 0 auto 16px;
   border-radius: 20px;
+  overflow: hidden;
+}
+
+.dino-sprite-canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .dash-stat {

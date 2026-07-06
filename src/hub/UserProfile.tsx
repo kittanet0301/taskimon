@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Element, Species, Stage } from '../shared/types'
-import { tElement, tSpecies, tStage } from '../i18n/labels'
+import type { Stage } from '../shared/types'
+import { normalizeDinoCharacter } from '../shared/dinoCharacters'
+import { tCharacter, tStage } from '../i18n/labels'
 
 interface Props {
   userId: string | null
@@ -42,8 +43,8 @@ export function UserProfile({ userId }: Props) {
         <div style={{ marginTop: 16 }}>
           <h3>{t('profile.petTitle')}</h3>
           <p>
-            {String(pet.name)} · {tSpecies(String(pet.species) as Species)} ·{' '}
-            {tElement(String(pet.element) as Element)} · {tStage(String(pet.stage) as Stage)}
+            {String(pet.name)} · {tCharacter(normalizeDinoCharacter(String(pet.species)))} ·{' '}
+            {tStage(String(pet.stage) as Stage)}
           </p>
           <p>
             {t('profile.statsLine', {

@@ -178,11 +178,11 @@
   },
   "pet": {
     "mysteriousEgg": "ไข่ลึกลับ",
-    "element": "ธาตุ",
-    "species": "ประเภท",
+    "character": "ตัวละคร",
+    "species": "ตัวละคร",
     "gender": "เพศ",
-    "maleShort": "ช",
-    "femaleShort": "ญ",
+    "maleShort": "M",
+    "femaleShort": "F",
     "male": "ชาย",
     "female": "หญิง",
     "setHatchName": "ตั้งชื่อหลังฟัก",
@@ -315,24 +315,33 @@
     "tooltipLoggedIn": "{{name}} - คลิก {{clicks}} · พิมพ์ {{keystrokes}}",
     "tooltipLoggedOut": "Taskimon - เข้าสู่ระบบเพื่อเล่น"
   },
-  "elements": {
-    "fire": "ไฟ",
-    "water": "น้ำ",
-    "earth": "ดิน",
-    "wind": "ลม",
-    "neutral": "กลาง"
-  },
-  "species": {
-    "mamono": "มาโมโน",
-    "avian": "อเวี่ยน",
-    "aquatic": "อะควาติก",
-    "mythic": "มิธิค"
+  "characters": {
+    "cole": "โคล",
+    "doux": "ดูซ์",
+    "kira": "คิรา",
+    "kuro": "คุโระ",
+    "loki": "โลกิ",
+    "mono": "โมโน",
+    "mort": "มอร์ต",
+    "nico": "นิโกะ",
+    "olaf": "โอลาฟ",
+    "sena": "เซนา",
+    "tard": "ทาร์ด",
+    "vita": "วิตา"
   },
   "defaultPetNames": {
-    "mamono": "โมโน",
-    "avian": "ปีกน้อย",
-    "aquatic": "บับเบิ้ล",
-    "mythic": "มิธิ"
+    "cole": "โคล",
+    "doux": "ดูซ์",
+    "kira": "คิรา",
+    "kuro": "คุโระ",
+    "loki": "โลกิ",
+    "mono": "โมโน",
+    "mort": "มอร์ต",
+    "nico": "นิโกะ",
+    "olaf": "โอลาฟ",
+    "sena": "เซนา",
+    "tard": "ทาร์ด",
+    "vita": "วิตา"
   },
   "stages": {
     "egg": "Egg",
@@ -365,8 +374,8 @@
       "label": "วิตามินพัฒนาร่าง",
       "description": "พัฒนาร่าง +50"
     },
-    "element_shield": {
-      "label": "โล่ธาตุ",
+    "battle_shield": {
+      "label": "โล่ต่อสู้",
       "description": "ใช้ในต่อสู้ - ลดความเสียหาย 50%"
     }
   },

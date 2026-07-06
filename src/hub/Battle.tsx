@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData } from '../shared/types'
-import { tElement, tSpecies } from '../i18n/labels'
+import { tCharacter } from '../i18n/labels'
+import { normalizeDinoCharacter } from '../shared/dinoCharacters'
 
 interface Props {
   save: GameSave
@@ -38,8 +39,7 @@ export function Battle({ save }: Props) {
     setEnemyPet({
       id: String(pet.id),
       name: String(pet.name),
-      species: pet.species as PetData['species'],
-      element: pet.element as PetData['element'],
+      character: normalizeDinoCharacter(String(pet.species)),
       gender: pet.gender as PetData['gender'],
       stage: pet.stage as PetData['stage'],
       stats: {
@@ -72,7 +72,7 @@ export function Battle({ save }: Props) {
         <p>{t('pet.needRaiseBeforeBattle')}</p>
       ) : (
         <>
-          <p>{t('pet.yourPet')}: {save.pet.name} ({tElement(save.pet.element)})</p>
+          <p>{t('pet.yourPet')}: {save.pet.name} ({tCharacter(save.pet.character)})</p>
           <div className="form-row">
             <label>{t('battle.friendSelectLabel')}</label>
             <select value={selectedFriend} onChange={(e) => setSelectedFriend(e.target.value)}>
@@ -90,7 +90,7 @@ export function Battle({ save }: Props) {
           </div>
           {enemyPet && (
             <p>
-              {t('pet.opponent')}: {enemyPet.name} · {tSpecies(enemyPet.species)} · {tElement(enemyPet.element)}
+              {t('pet.opponent')}: {enemyPet.name} · {tCharacter(enemyPet.character)}
             </p>
           )}
           {log.length > 0 && (

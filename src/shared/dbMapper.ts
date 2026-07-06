@@ -1,17 +1,17 @@
 import type {
   AnimationState,
-  Element,
+  DinoCharacter,
   GameSave,
   Gender,
   InventoryItem,
   ItemType,
   MissionProgress,
   PetData,
-  Species,
   Stage
 } from './types'
 import { SAVE_VERSION } from './constants'
 import { createDefaultSave } from './growth'
+import { normalizeDinoCharacter } from './dinoCharacters'
 
 type DbPet = {
   id: string
@@ -56,13 +56,18 @@ type DbActivity = {
   save_version: number
 }
 
+function normalizeItemType(type: string): ItemType {
+  if (type === 'element_shield') return 'battle_shield'
+  return type as ItemType
+}
+
 export function petToDbRow(pet: PetData, ownerId: string) {
   return {
     id: pet.id,
     owner_id: ownerId,
     name: pet.name,
-    species: pet.species,
-    element: pet.element,
+    species: pet.character,
+    element: 'none',
     gender: pet.gender,
     stage: pet.stage,
     hp: pet.stats.hp,
@@ -80,8 +85,7 @@ export function petFromDbRow(row: DbPet): PetData {
   return {
     id: row.id,
     name: row.name,
-    species: row.species as Species,
-    element: row.element as Element,
+    character: normalizeDinoCharacter(row.species),
     gender: row.gender as Gender,
     stage: row.stage as Stage,
     stats: {
@@ -139,7 +143,7 @@ export function gameSaveFromDbParts(
     pet: pet ? petFromDbRow(pet) : null,
     inventory: inventory.map(
       (row): InventoryItem => ({
-        type: row.item_type as ItemType,
+        type: normalizeItemType(row.item_type),
         quantity: row.quantity
       })
     ),

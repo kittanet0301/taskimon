@@ -1,12 +1,8 @@
-import type { Element, ItemType, Species, Stage } from '../shared/types'
+import type { DinoCharacter, ItemType, Stage } from '../shared/types'
 import i18n from './index'
 
-export function tElement(element: Element): string {
-  return i18n.t(`elements.${element}`)
-}
-
-export function tSpecies(species: Species): string {
-  return i18n.t(`species.${species}`)
+export function tCharacter(character: DinoCharacter | string): string {
+  return i18n.t(`characters.${character}`, { defaultValue: String(character) })
 }
 
 export function tItemLabel(type: ItemType): string {
@@ -25,8 +21,8 @@ export function tStage(stage: Stage | 'teen'): string {
   return i18n.t(`stages.${stage}`)
 }
 
-export function tDefaultPetName(species: Species): string {
-  return i18n.t(`defaultPetNames.${species}`)
+export function tDefaultPetName(character: DinoCharacter): string {
+  return i18n.t(`defaultPetNames.${character}`)
 }
 
 export function tMonth(month: number): string {
@@ -36,3 +32,6 @@ export function tMonth(month: number): string {
 export function tTray(key: string, params?: Record<string, string | number>): string {
   return i18n.t(`tray.${key}`, params)
 }
+
+/** @deprecated Use tCharacter */
+export const tSpecies = tCharacter

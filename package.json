@@ -1,7 +1,7 @@
 {
   "name": "taskimon",
   "version": "0.1.0",
-  "description": "Taskimon — Tamagotchi desktop pet with elemental RPG",
+  "description": "Taskimon — Tamagotchi desktop pet with 12 dino characters",
   "main": "./out/main/index.js",
   "author": "kittanet0301",
   "license": "MIT",

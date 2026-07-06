@@ -2,7 +2,8 @@ import type { GameSave, PetData } from './types'
 import { SAVE_VERSION, TEST_FAST_EVO } from './constants'
 import { createDefaultMissions } from './missions'
 import { getDefaultInventory } from './items'
-import { hatchEgg, defaultPetName } from './species'
+import { hatchEgg, defaultPetName } from './dinoCharacters'
+import { normalizeDinoCharacter } from './dinoCharacters'
 
 function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -16,9 +17,8 @@ export function createEggPet(): PetData {
   const hatch = hatchEgg()
   return {
     id: uuid(),
-    name: defaultPetName(hatch.species),
-    species: hatch.species,
-    element: hatch.element,
+    name: defaultPetName(hatch.character),
+    character: hatch.character,
     gender: hatch.gender,
     stage: 'egg',
     stats: { hp: 100, mood: 80, devPoints: 0 },
@@ -38,7 +38,7 @@ export function hatchPet(pet: PetData): PetData {
   }
 }
 
-/** Keep species/stats; rewind to egg (e.g. after clear-data / test bootstrap). */
+/** Keep character/stats; rewind to egg (e.g. after clear-data / test bootstrap). */
 export function resetPetToEggStage(pet: PetData): PetData {
   return {
     ...pet,
@@ -56,12 +56,26 @@ export function evolvePet(pet: PetData): PetData {
   }
 }
 
-/** One-time save upgrades (e.g. test mode: rewind hatched pets to egg on v2). */
+function migratePet(pet: PetData & { species?: string; element?: string }): PetData {
+  const character = pet.character
+    ? normalizeDinoCharacter(pet.character)
+    : pet.species
+      ? normalizeDinoCharacter(pet.species)
+      : 'cole'
+  const { species: _species, element: _element, ...rest } = pet
+  return { ...rest, character }
+}
+
+/** One-time save upgrades (test mode egg rewind on v2; dino characters on v3). */
 export function migrateSave(save: GameSave): GameSave {
   if (save.version >= SAVE_VERSION) return save
-  let next = { ...save, version: SAVE_VERSION }
-  if (TEST_FAST_EVO && next.pet && next.pet.stage !== 'egg') {
-    next = { ...next, pet: resetPetToEggStage(next.pet) }
+
+  let next: GameSave = { ...save, version: SAVE_VERSION }
+  if (next.pet) {
+    next = { ...next, pet: migratePet(next.pet) }
+    if (TEST_FAST_EVO && save.version < 2 && next.pet.stage !== 'egg') {
+      next = { ...next, pet: resetPetToEggStage(next.pet) }
+    }
   }
   return next
 }

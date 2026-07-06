@@ -1,6 +1,8 @@
-export type Element = 'fire' | 'water' | 'earth' | 'wind' | 'neutral'
-export type CyclicalElement = 'fire' | 'water' | 'earth' | 'wind'
-export type Species = 'mamono' | 'avian' | 'aquatic' | 'mythic'
+import type { DinoCharacter } from './dinoCharacters'
+
+export type { DinoCharacter } from './dinoCharacters'
+export { DINO_CHARACTERS } from './dinoCharacters'
+
 export type Gender = 'male' | 'female'
 export type Stage = 'egg' | 'baby' | 'adult'
 export type AnimationState =
@@ -25,7 +27,7 @@ export type ItemType =
   | 'water'
   | 'toy'
   | 'dev_vitamin'
-  | 'element_shield'
+  | 'battle_shield'
 
 export interface PetStats {
   hp: number
@@ -36,8 +38,7 @@ export interface PetStats {
 export interface PetData {
   id: string
   name: string
-  species: Species
-  element: Element
+  character: DinoCharacter
   gender: Gender
   stage: Stage
   stats: PetStats
@@ -127,7 +128,6 @@ export interface ChatMessage {
 }
 
 export interface HatchResult {
-  species: Species
-  element: Element
+  character: DinoCharacter
   gender: Gender
 }

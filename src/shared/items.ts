@@ -31,8 +31,8 @@ export const ITEMS: Record<ItemType, ItemDefinition> = {
     type: 'dev_vitamin',
     apply: (stats) => addDevPoints(stats, 50)
   },
-  element_shield: {
-    type: 'element_shield',
+  battle_shield: {
+    type: 'battle_shield',
     apply: (stats) => stats
   }
 }
