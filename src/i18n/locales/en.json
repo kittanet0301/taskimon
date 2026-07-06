@@ -38,6 +38,9 @@
     "syncing": "Syncing...",
     "autoSync": "Auto sync"
   },
+  "title": {
+    "pressAnyKey": "Please press any key"
+  },
   "auth": {
     "panelTitle": "Player Account & Database",
     "statusLabel": "Status",

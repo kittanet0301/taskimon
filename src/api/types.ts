@@ -10,6 +10,7 @@ export interface GameAPI {
   isDbMode: () => Promise<boolean>
   reloadFromCloud: () => Promise<GameSave>
   onGameUpdated: (callback: (save: GameSave) => void) => () => void
+  onHubOpened: (callback: () => void) => () => void
   openHub: () => Promise<void>
   supabaseConfigured: () => Promise<boolean>
   signUp: (email: string, password: string, username: string, birthDate: string) => Promise<unknown>

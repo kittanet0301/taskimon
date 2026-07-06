@@ -69,6 +69,7 @@ export function createWebApi(): GameAPI {
     isDbMode: async () => isDbMode(),
     reloadFromCloud: async () => hydrateFromSession(),
     onGameUpdated: (callback) => onSaveChange(callback),
+    onHubOpened: () => () => {},
     openHub: async () => {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },

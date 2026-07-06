@@ -20,9 +20,8 @@ function AuthShell({
   children: ReactNode
   footer: ReactNode
 }) {
-  const { t } = useTranslation()
   return (
-    <PixelCoverShell title={t('app.title')} tagline={tagline} message={message || undefined} footer={footer}>
+    <PixelCoverShell tagline={tagline} message={message || undefined} footer={footer}>
       {children}
     </PixelCoverShell>
   )

@@ -87,7 +87,7 @@ export function BattleArena({ session, turns, userId, challengerName, defenderNa
         label={challengerName ?? t('battle.challenger')}
         hp={session.challengerHp}
         hpStart={session.challengerHpStart}
-        color="#6366f1"
+        color="var(--pixel-accent-dark)"
       />
       <HpBar
         label={defenderName ?? t('battle.defender')}

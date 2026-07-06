@@ -5,9 +5,16 @@ import { getRendererPageUrl, getRendererIndexPath, isDevMode } from './rendererU
 
 let hubWindow: BrowserWindow | null = null
 
+function notifyHubOpened(win: BrowserWindow) {
+  if (!win.isDestroyed()) {
+    win.webContents.send('hub:opened')
+  }
+}
+
 export function createHubWindow(): BrowserWindow {
   if (hubWindow && !hubWindow.isDestroyed()) {
     hubWindow.focus()
+    notifyHubOpened(hubWindow)
     return hubWindow
   }
 
@@ -36,6 +43,7 @@ export function createHubWindow(): BrowserWindow {
   hubWindow.once('ready-to-show', () => {
     hubWindow?.show()
     hubWindow?.webContents.send('game:updated', JSON.stringify(getGameSave()))
+    if (hubWindow) notifyHubOpened(hubWindow)
   })
 
   hubWindow.on('closed', () => {

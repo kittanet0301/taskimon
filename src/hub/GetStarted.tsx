@@ -10,7 +10,6 @@ export function GetStarted({ onStart }: Props) {
 
   return (
     <PixelCoverShell
-      title={t('app.title')}
       tagline={
         <>
           {t('home.getStartedTaglineLine1')}

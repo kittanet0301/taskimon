@@ -5,6 +5,8 @@ import { ONBOARDING_KEY } from './shared/activityScore'
 import './i18n'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
+import { TitleScreen } from './hub/TitleScreen'
+import { PixelCoverShell } from './hub/PixelCoverShell'
 import { HomeDashboard } from './hub/HomeDashboard'
 import { Missions } from './hub/Missions'
 import { AuthPanel } from './hub/AuthPanel'
@@ -20,6 +22,7 @@ import { LanguageSwitcher } from './hub/LanguageSwitcher'
 type Tab = 'home' | 'collection' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
 
 type Session = { user: { id: string; email?: string } } | null
+type UserProfile = { username: string; friend_code: string }
 
 interface Props {
   variant?: 'desktop' | 'web'
@@ -43,7 +46,9 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [viewUserId, setViewUserId] = useState<string | null>(null)
   const [showCover, setShowCover] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
   const [session, setSession] = useState<Session>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [showTitle, setShowTitle] = useState(true)
 
   const refresh = useCallback(async () => {
     if (!window.electronAPI) return
@@ -106,8 +111,16 @@ function AppContent({ variant = 'desktop' }: Props) {
     setSession(s)
     setAuthLoading(false)
     if (s?.user?.id) {
+      try {
+        const p = (await window.electronAPI.getProfile(s.user.id)) as UserProfile
+        setProfile(p)
+      } catch {
+        setProfile(null)
+      }
       await window.electronAPI.reloadFromCloud()
       await refresh()
+    } else {
+      setProfile(null)
     }
   }, [refresh])
 
@@ -128,6 +141,13 @@ function AppContent({ variant = 'desktop' }: Props) {
   }, [refresh, checkSession])
 
   useEffect(() => {
+    if (!window.electronAPI?.onHubOpened) return
+    return window.electronAPI.onHubOpened(() => {
+      setShowTitle(true)
+    })
+  }, [])
+
+  useEffect(() => {
     battleCtx?.syncUserId(session?.user?.id ?? null)
   }, [session?.user?.id, battleCtx])
 
@@ -146,6 +166,8 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const handleLogout = () => {
     setSession(null)
+    setProfile(null)
+    setShowTitle(true)
     refresh()
   }
 
@@ -161,24 +183,29 @@ function AppContent({ variant = 'desktop' }: Props) {
   }
 
   if (!save || authLoading) {
-    return <div className="content">{t('common.loading')}</div>
-  }
-
-  if (!cloudReady) {
     return (
-      <div className="cover-screen">
-        <div className="cover-card">
-          <h1 className="cover-title">{t('app.title')}</h1>
-          <p className="cover-tagline">{t('app.supabaseRequiredSubtitle')}</p>
-          <p className="notice" style={{ textAlign: 'left', margin: 0 }}>
-            {t('app.supabaseRequiredBody')}
-          </p>
+      <div className="title-screen-loading">
+        <div className="title-screen-bg" aria-hidden />
+        <div className="title-screen-loading-inner">
+          <img className="title-screen-logo" src="/ui/taskino-logo.png" alt="TASKINO" draggable={false} />
+          <p className="title-screen-loading-text">{t('common.loading')}</p>
         </div>
       </div>
     )
   }
 
+  if (!cloudReady) {
+    return (
+      <PixelCoverShell tagline={t('app.supabaseRequiredSubtitle')} showLangSwitcher={false} centered>
+        <p className="notice" style={{ textAlign: 'left', margin: 0 }}>
+          {t('app.supabaseRequiredBody')}
+        </p>
+      </PixelCoverShell>
+    )
+  }
+
   if (!session?.user?.id) {
+    if (showTitle) return <TitleScreen onContinue={() => setShowTitle(false)} />
     return <LoginGate onLoggedIn={checkSession} />
   }
 
@@ -196,17 +223,25 @@ function AppContent({ variant = 'desktop' }: Props) {
     { id: 'settings', label: t('tabs.settings'), icon: '⚙️' }
   ]
 
+  const displayName =
+    profile?.username ?? session?.user?.email?.split('@')[0] ?? ''
+
   return (
     <div className="app pixel-hub">
       <header className="header">
-        <div>
-          <h1>
-            {t('app.title')}
-            {variant === 'web' ? ` - ${t('app.webSuffix')}` : ''}
-          </h1>
-          <span className="header-sub">
-            {session.user.email} · {tabSyncing ? t('app.syncing') : t('app.autoSync')}
-          </span>
+        <div className="header-brand">
+          <img
+            src="/ui/taskino-logo.png"
+            alt="TASKINO"
+            className="hub-logo"
+            draggable={false}
+          />
+          <div className="header-meta">
+            <span className="header-username">{displayName}</span>
+            <span className="header-sub">
+              {tabSyncing ? t('app.syncing') : t('app.autoSync')}
+            </span>
+          </div>
         </div>
         <LanguageSwitcher variant="pixel" />
       </header>

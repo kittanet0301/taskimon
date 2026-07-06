@@ -76,7 +76,7 @@ export function EggHatch({ pet, onHatched }: Props) {
         label={t('home.evolution')}
         value={pet.stats.devPoints}
         max={DEV_POINTS_HATCH}
-        color="#f59e0b"
+        color="var(--pixel-accent)"
       />
       <p className="dash-activity-hint dash-hint-spaced">
         {ready ? t('pet.hatchReadyHint') : t('pet.hatchEvolutionHint', { points: DEV_POINTS_HATCH })}

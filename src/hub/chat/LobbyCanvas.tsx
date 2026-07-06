@@ -129,7 +129,7 @@ function drawBubble(
 
   // bubble body
   ctx.fillStyle = '#ffffff'
-  ctx.strokeStyle = 'rgba(99, 102, 241, 0.35)'
+  ctx.strokeStyle = 'rgba(200, 112, 80, 0.35)'
   ctx.lineWidth = 2
   ctx.beginPath()
   ctx.roundRect(left, top, w, h, radius)
@@ -142,7 +142,7 @@ function drawBubble(
   const pillW = Math.min(w - padX * 2, nameW + pillPadX * 2)
   const pillX = left + (w - pillW) / 2
   const pillY = top + padY
-  ctx.fillStyle = 'rgba(99, 102, 241, 0.12)'
+  ctx.fillStyle = 'rgba(255, 176, 124, 0.12)'
   ctx.beginPath()
   ctx.roundRect(pillX, pillY, pillW, pillH, 9)
   ctx.fill()
@@ -150,7 +150,7 @@ function drawBubble(
   // tail
   const tailTop = top + h
   ctx.fillStyle = '#ffffff'
-  ctx.strokeStyle = 'rgba(99, 102, 241, 0.35)'
+  ctx.strokeStyle = 'rgba(200, 112, 80, 0.35)'
   ctx.lineWidth = 2
   ctx.beginPath()
   ctx.moveTo(x - 7, tailTop - 1)

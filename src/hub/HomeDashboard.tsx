@@ -67,12 +67,12 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
         <DinoSprite pet={pet} size={96} />
       </div>
       <StatBar label={t('home.health')} value={pet.stats.hp} color="#22c55e" />
-      <StatBar label={t('home.emotion')} value={pet.stats.mood} color="#6366f1" />
+      <StatBar label={t('home.emotion')} value={pet.stats.mood} color="var(--pixel-accent-dark)" />
       <StatBar
         label={t('home.evolution')}
         value={pet.stats.devPoints}
         max={DEV_POINTS_ADULT}
-        color="#f59e0b"
+        color="var(--pixel-accent)"
       />
       {pet.stage === 'baby' && (
         <button
@@ -159,7 +159,7 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
                 <span
                   style={{
                     width: `${pct}%`,
-                    background: mission.completed ? '#22c55e' : '#6366f1'
+                    background: mission.completed ? '#22c55e' : 'var(--pixel-accent-dark)'
                   }}
                 />
               </div>

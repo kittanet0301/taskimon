@@ -42,9 +42,9 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
       <div className="stat-row"><span>HP</span><strong>{pet.stats.hp}</strong></div>
       <div className="bar"><span style={{ width: `${pet.stats.hp}%` }} /></div>
       <div className="stat-row"><span>{t('home.emotion')}</span><strong>{pet.stats.mood}</strong></div>
-      <div className="bar"><span style={{ width: `${pet.stats.mood}%`, background: '#6366f1' }} /></div>
+      <div className="bar"><span style={{ width: `${pet.stats.mood}%`, background: 'var(--pixel-accent-dark)' }} /></div>
       <div className="stat-row"><span>{t('home.evolution')}</span><strong>{pet.stats.devPoints}</strong></div>
-      <div className="bar"><span style={{ width: `${Math.min(100, pet.stats.devPoints / 10)}%`, background: '#f59e0b' }} /></div>
+      <div className="bar"><span style={{ width: `${Math.min(100, pet.stats.devPoints / 10)}%`, background: 'var(--pixel-accent)' }} /></div>
       <div className="form-row" style={{ marginTop: 16 }}>
         <label>{t('pet.rename')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} />

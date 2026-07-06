@@ -1,9 +1,7 @@
 import { type ReactNode } from 'react'
-import { AuthEggSprite } from '../components/AuthEggSprite'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
 interface Props {
-  title: string
   tagline: ReactNode
   message?: string
   children: ReactNode
@@ -13,7 +11,6 @@ interface Props {
 }
 
 export function PixelCoverShell({
-  title,
   tagline,
   message,
   children,
@@ -23,24 +20,18 @@ export function PixelCoverShell({
 }: Props) {
   return (
     <div className="cover-screen pixel-cover">
-      <div className="pixel-scene" aria-hidden>
-        <div className="pixel-cloud pixel-cloud-1" />
-        <div className="pixel-cloud pixel-cloud-2" />
-        <div className="pixel-cloud pixel-cloud-3" />
-        <div className="pixel-cloud pixel-cloud-4" />
-        <div className="pixel-grass" />
-      </div>
+      <div className="pixel-cover-bg" aria-hidden />
+      <div className="pixel-cover-overlay" aria-hidden />
 
       <div className={`cover-card pixel-card${centered ? '' : ' login-card'}`}>
-        {showLangSwitcher && (
-          <div className="pixel-card-lang">
-            <LanguageSwitcher compact variant="pixel" />
-          </div>
-        )}
-        <div className="pixel-card-egg">
-          <AuthEggSprite />
+        <div className="pixel-card-header">
+          {showLangSwitcher && (
+            <div className="pixel-card-lang">
+              <LanguageSwitcher compact variant="pixel" />
+            </div>
+          )}
+          <img className="pixel-logo" src="/ui/taskino-logo.png" alt="TASKINO" draggable={false} />
         </div>
-        <h1 className="cover-title pixel-title">{title}</h1>
         <p className="cover-tagline pixel-body">{tagline}</p>
 
         {message && <p className="login-message pixel-message">{message}</p>}

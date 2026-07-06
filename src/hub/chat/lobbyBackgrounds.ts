@@ -74,7 +74,7 @@ function drawBeach(ctx: Ctx, w: number, h: number, frame: number): void {
   const sandG = ctx.createLinearGradient(0, gt, 0, h)
   sandG.addColorStop(0, '#fde68a')
   sandG.addColorStop(0.35, '#fcd34d')
-  sandG.addColorStop(1, '#f59e0b')
+  sandG.addColorStop(1, '#c87050')
   ctx.fillStyle = sandG
   ctx.fillRect(0, gt, w, h - gt)
 
@@ -190,11 +190,11 @@ function drawPlaza(ctx: Ctx, w: number, h: number, frame: number): void {
 
   // buildings
   const buildings = [
-    { x: 40, w: 90, h: 120, c: '#6366f1' },
+    { x: 40, w: 90, h: 120, c: '#c87050' },
     { x: 150, w: 70, h: 95, c: '#818cf8' },
     { x: 250, w: 110, h: 140, c: '#4f46e5' },
     { x: w - 200, w: 85, h: 110, c: '#7c3aed' },
-    { x: w - 95, w: 75, h: 130, c: '#6366f1' }
+    { x: w - 95, w: 75, h: 130, c: '#c87050' }
   ]
   for (const b of buildings) {
     ctx.fillStyle = b.c

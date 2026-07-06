@@ -13,6 +13,11 @@ const api: GameAPI = {
     ipcRenderer.on('game:updated', handler)
     return () => ipcRenderer.removeListener('game:updated', handler)
   },
+  onHubOpened: (callback) => {
+    const handler = () => callback()
+    ipcRenderer.on('hub:opened', handler)
+    return () => ipcRenderer.removeListener('hub:opened', handler)
+  },
   openHub: () => ipcRenderer.invoke('hub:open'),
   supabaseConfigured: () => ipcRenderer.invoke('supabase:configured'),
   signUp: (email, password, username, birthDate) =>
