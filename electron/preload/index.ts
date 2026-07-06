@@ -15,12 +15,13 @@ const api: GameAPI = {
   },
   openHub: () => ipcRenderer.invoke('hub:open'),
   supabaseConfigured: () => ipcRenderer.invoke('supabase:configured'),
-  signUp: (email, password, username) => ipcRenderer.invoke('auth:signup', email, password, username),
+  signUp: (email, password, username, birthDate) =>
+    ipcRenderer.invoke('auth:signup', email, password, username, birthDate),
   signIn: (email, password) => ipcRenderer.invoke('auth:signin', email, password),
   signOut: () => ipcRenderer.invoke('auth:signout'),
-  requestPasswordReset: (email) => ipcRenderer.invoke('auth:requestPasswordReset', email),
+  setLocale: (locale) => ipcRenderer.invoke('locale:set', locale),
+  resetPasswordByBirthdate: (email) => ipcRenderer.invoke('auth:resetPasswordByBirthdate', email),
   updatePassword: (password) => ipcRenderer.invoke('auth:updatePassword', password),
-  onPasswordRecovery: () => () => {},
   getSession: () => ipcRenderer.invoke('auth:session'),
   getProfile: (userId) => ipcRenderer.invoke('auth:profile', userId),
   syncPet: (userId, pet) => ipcRenderer.invoke('cloud:syncPet', userId, pet),
@@ -39,9 +40,6 @@ const api: GameAPI = {
   getRoomMembers: (roomId) => ipcRenderer.invoke('room:getMembers', roomId),
   startRoomDuel: (roomId, opponentUserId) =>
     ipcRenderer.invoke('room:startDuel', roomId, opponentUserId),
-  createBattleChallenge: (defenderUserId) =>
-    ipcRenderer.invoke('battle:createChallenge', defenderUserId),
-  respondBattle: (sessionId, accept) => ipcRenderer.invoke('battle:respond', sessionId, accept),
   submitBattleAction: (sessionId, action) =>
     ipcRenderer.invoke('battle:submitAction', sessionId, action),
   listBattles: () => ipcRenderer.invoke('battle:list'),

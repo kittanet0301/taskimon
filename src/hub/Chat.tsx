@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface FriendRow {
   friend_id: string
@@ -21,6 +22,7 @@ function isInThread(msg: ChatRow, userId: string, friendId: string): boolean {
 }
 
 export function Chat() {
+  const { t } = useTranslation()
   const [friends, setFriends] = useState<FriendRow[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [friendId, setFriendId] = useState('')
@@ -90,11 +92,11 @@ export function Chat() {
 
   return (
     <div className="card">
-      <h2>แชทกับเพื่อน</h2>
+      <h2>{t('chat.title')}</h2>
       <div className="form-row">
-        <label>เลือกเพื่อน</label>
+        <label>{t('chat.selectFriend')}</label>
         <select value={friendId} onChange={(e) => setFriendId(e.target.value)}>
-          <option value="">-- เลือก --</option>
+          <option value="">-- {t('chat.selectFriend')} --</option>
           {friends.map((f) => (
             <option key={f.friend_id} value={f.friend_id}>
               {f.profiles?.username ?? f.friend_id}
@@ -104,11 +106,13 @@ export function Chat() {
       </div>
 
       {!friendId ? (
-        <p className="dash-activity-hint">เลือกเพื่อนเพื่อเริ่มแชท</p>
+        <p className="dash-activity-hint">{t('chat.startBySelectingFriend')}</p>
       ) : loading ? (
-        <p className="dash-activity-hint">กำลังโหลดข้อความ...</p>
+        <p className="dash-activity-hint">{t('chat.loadingMessages')}</p>
       ) : messages.length === 0 ? (
-        <p className="dash-activity-hint">ยังไม่มีข้อความกับ {selectedFriend?.profiles?.username ?? 'เพื่อน'}</p>
+        <p className="dash-activity-hint">
+          {t('chat.noMessagesYet', { friendName: selectedFriend?.profiles?.username ?? t('chat.friendFallbackName') })}
+        </p>
       ) : null}
 
       <div ref={chatBoxRef} className="chat-box" style={{ marginTop: 12 }}>
@@ -122,7 +126,7 @@ export function Chat() {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={friendId ? 'พิมพ์ข้อความ...' : 'เลือกเพื่อนก่อน'}
+          placeholder={friendId ? t('chat.messagePlaceholder') : t('chat.selectFriendFirstPlaceholder')}
           disabled={!friendId}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -132,7 +136,7 @@ export function Chat() {
           }}
         />
         <button className="primary" onClick={send} disabled={!friendId || !text.trim()}>
-          ส่ง
+          {t('chat.send')}
         </button>
       </div>
     </div>

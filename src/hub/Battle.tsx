@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData } from '../shared/types'
-import { ELEMENT_NAMES, SPECIES_NAMES } from '../shared/constants'
+import { tElement, tSpecies } from '../i18n/labels'
 
 interface Props {
   save: GameSave
@@ -12,6 +13,7 @@ interface FriendRow {
 }
 
 export function Battle({ save }: Props) {
+  const { t } = useTranslation()
   const [friends, setFriends] = useState<FriendRow[]>([])
   const [selectedFriend, setSelectedFriend] = useState<string>('')
   const [enemyPet, setEnemyPet] = useState<PetData | null>(null)
@@ -30,7 +32,7 @@ export function Battle({ save }: Props) {
     if (!selectedFriend) return
     const pet = (await window.electronAPI.getFriendPet(selectedFriend)) as Record<string, unknown> | null
     if (!pet) {
-      setMessage('เพื่อนยังไม่มีสัตว์เลี้ยงใน cloud')
+      setMessage(t('pet.noCloudPetForFriend'))
       return
     }
     setEnemyPet({
@@ -59,22 +61,22 @@ export function Battle({ save }: Props) {
       winnerPetId: string
     }
     setLog(result.log)
-    setMessage(result.winnerPetId === save.pet.id ? 'คุณชนะ!' : 'คุณแพ้!')
+    setMessage(result.winnerPetId === save.pet.id ? t('battle.modal.titleWin') : t('battle.modal.titleLose'))
   }
 
   return (
     <div className="card">
-      <h2>ต่อสู้</h2>
+      <h2>{t('battle.title')}</h2>
       {message && <p><strong>{message}</strong></p>}
       {!save.pet || save.pet.stage === 'egg' ? (
-        <p>ฟักไข่และเลี้ยงสัตว์ก่อนต่อสู้</p>
+        <p>{t('pet.needRaiseBeforeBattle')}</p>
       ) : (
         <>
-          <p>สัตว์ของคุณ: {save.pet.name} ({ELEMENT_NAMES[save.pet.element]})</p>
+          <p>{t('pet.yourPet')}: {save.pet.name} ({tElement(save.pet.element)})</p>
           <div className="form-row">
-            <label>เลือกเพื่อน (ต้อง login + sync cloud)</label>
+            <label>{t('battle.friendSelectLabel')}</label>
             <select value={selectedFriend} onChange={(e) => setSelectedFriend(e.target.value)}>
-              <option value="">-- เลือก --</option>
+              <option value="">-- {t('chat.selectFriend')} --</option>
               {friends.map((f) => (
                 <option key={f.friend_id} value={f.friend_id}>
                   {f.profiles?.username ?? f.friend_id}
@@ -83,12 +85,12 @@ export function Battle({ save }: Props) {
             </select>
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <button className="secondary" onClick={loadEnemy}>โหลดสัตว์เพื่อน</button>
-            <button className="primary" onClick={fight} disabled={!enemyPet}>เริ่มต่อสู้</button>
+            <button className="secondary" onClick={loadEnemy}>{t('battle.loadFriendPet')}</button>
+            <button className="primary" onClick={fight} disabled={!enemyPet}>{t('battle.startBattle')}</button>
           </div>
           {enemyPet && (
             <p>
-              คู่ต่อสู้: {enemyPet.name} · {SPECIES_NAMES[enemyPet.species]} · {ELEMENT_NAMES[enemyPet.element]}
+              {t('pet.opponent')}: {enemyPet.name} · {tSpecies(enemyPet.species)} · {tElement(enemyPet.element)}
             </p>
           )}
           {log.length > 0 && (

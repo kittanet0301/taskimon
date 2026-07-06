@@ -1,19 +1,19 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameSave } from '../../shared/types'
 import type { BattleActionType, BattleSession } from '../../shared/battle/types'
 import { mapBattleSession, mapBattleTurn } from '../../shared/battle/mappers'
-import { ELEMENT_NAMES } from '../../shared/constants'
+import { tElement } from '../../i18n/labels'
 import { BattleContext } from './BattleContext'
 import { RoomLobby } from './RoomLobby'
 import { BattleRoom } from './BattleRoom'
 import { BattleArena } from './BattleArena'
-import { BattleChallenge } from './BattleChallenge'
 import { BattleHistory } from './BattleHistory'
 import { BattleEndModal } from './BattleEndModal'
 import { useBattleSession } from './useBattleSession'
 import { useBattleGuard } from './useBattleGuard'
 
-type HubTab = 'room' | 'challenge' | 'active' | 'history'
+type HubTab = 'room' | 'active' | 'history'
 
 interface EndedBattle {
   session: BattleSession
@@ -26,6 +26,7 @@ interface Props {
 }
 
 export function BattleHub({ save, variant = 'desktop' }: Props) {
+  const { t } = useTranslation()
   const ctx = useContext(BattleContext)
   const { isInRoom } = useBattleGuard()
   const [hubTab, setHubTab] = useState<HubTab>('room')
@@ -181,21 +182,20 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
   const canBattle = save.pet && save.pet.stage !== 'egg' && save.pet.stats.hp >= 10
 
   const hubTabs: { id: HubTab; label: string }[] = [
-    { id: 'room', label: 'ห้อง' },
-    { id: 'challenge', label: 'ท้าเพื่อน' },
-    { id: 'active', label: 'กำลังเล่น' },
-    { id: 'history', label: 'ประวัติ' }
+    { id: 'room', label: t('battle.tabs.room') },
+    { id: 'active', label: t('battle.tabs.active') },
+    { id: 'history', label: t('battle.tabs.history') }
   ]
 
   return (
     <div>
       <div className="card" style={{ marginBottom: 12 }}>
-        <h2>ต่อสู้</h2>
+        <h2>{t('battle.title')}</h2>
         {!canBattle ? (
-          <p>ฟักไข่และเลี้ยงสัตว์ (HP ≥ 10) ก่อนต่อสู้</p>
+          <p>{t('pet.needRaiseBeforeBattleHp')}</p>
         ) : (
           <p>
-            สัตว์ของคุณ: {save.pet!.name} ({ELEMENT_NAMES[save.pet!.element]}) · HP {save.pet!.stats.hp}
+            {t('pet.yourPet')}: {save.pet!.name} ({tElement(save.pet!.element)}) · HP {save.pet!.stats.hp}
           </p>
         )}
       </div>
@@ -222,14 +222,6 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
           )}
         </>
       )}
-      {hubTab === 'challenge' && (
-        <BattleChallenge
-          onBattleActive={(id) => {
-            ctx?.setActiveSessionId(id)
-            setHubTab('active')
-          }}
-        />
-      )}
       {hubTab === 'active' && (
         session && session.status === 'active' && userId ? (
           <BattleArena
@@ -240,10 +232,10 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
           />
         ) : (
           <div className="card">
-            <p>ไม่มีการต่อสู้ที่กำลังเล่น</p>
+            <p>{t('battle.activeNone')}</p>
             {ctx?.memberStatus === 'in_battle' && (
               <button type="button" className="primary" onClick={() => void discoverRoomSession()}>
-                โหลดการต่อสู้ใหม่
+                {t('battle.reloadBattle')}
               </button>
             )}
           </div>

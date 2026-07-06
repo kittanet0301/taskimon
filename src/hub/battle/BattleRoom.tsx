@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BattleRoom, BattleRoomMember } from '../../shared/battle/types'
 import { mapBattleRoom, mapBattleRoomMember, mapBattleSession } from '../../shared/battle/mappers'
 import { formatApiError } from '../../shared/formatError'
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function BattleRoom({ onDuelStarted }: Props) {
+  const { t } = useTranslation()
   const ctx = useContext(BattleContext)
   const { requestLeave } = useBattleGuard()
   const [room, setRoom] = useState<BattleRoom | null>(null)
@@ -167,7 +169,7 @@ export function BattleRoom({ onDuelStarted }: Props) {
 
   const leave = async () => {
     const ok = await requestLeave()
-    if (ok) setMessage('ออกจากห้องแล้ว')
+    if (ok) setMessage(t('battle.leftRoom'))
   }
 
   if (!roomId) return null
@@ -188,32 +190,36 @@ export function BattleRoom({ onDuelStarted }: Props) {
 
   return (
     <div className="card">
-      <h3>ห้องต่อสู้</h3>
+      <h3>{t('battle.roomTitle')}</h3>
       {message && <p className="notice">{message}</p>}
       {room && (
         <p>
-          <strong>{room.name}</strong> · รหัส: <code>{room.roomCode}</code>
+          <strong>{room.name}</strong> · {t('battle.roomCode')}: <code>{room.roomCode}</code>
         </p>
       )}
 
       {inBattle && (
         <div className="notice" style={{ marginBottom: 12 }}>
-          <p style={{ margin: '0 0 8px' }}>ดวลกำลังดำเนินอยู่</p>
+          <p style={{ margin: '0 0 8px' }}>{t('battle.duelInProgress')}</p>
           <button type="button" className="primary" onClick={() => void syncActiveSession()}>
-            ไปแท็บกำลังเล่น
+            {t('battle.goToActiveTab')}
           </button>
         </div>
       )}
 
-      <h4>สมาชิกในห้อง</h4>
+      <h4>{t('battle.membersInRoom')}</h4>
       <ul className="room-list">
         {members.map((m) => (
           <li key={m.userId} className="room-list-item">
             <span>
               {m.username}
-              {m.role === 'host' && <span className="tag">เจ้าของห้อง</span>}
+              {m.role === 'host' && <span className="tag">{t('battle.hostTag')}</span>}
               <span className="tag">
-                {m.status === 'waiting' ? 'รอ' : m.status === 'in_battle' ? 'กำลังสู้' : m.status}
+                {m.status === 'waiting'
+                  ? t('battle.memberWaiting')
+                  : m.status === 'in_battle'
+                    ? t('battle.memberFighting')
+                    : m.status}
               </span>
             </span>
           </li>
@@ -222,9 +228,9 @@ export function BattleRoom({ onDuelStarted }: Props) {
 
       {!inBattle && isHost && waitingOpponents.length > 0 && (
         <div className="battle-room-duel">
-          <h4>เริ่มดวล</h4>
+          <h4>{t('battle.startDuel')}</h4>
           <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: '0 0 8px' }}>
-            เลือกคู่ต่อสู้จากสมาชิกที่รออยู่ในห้อง
+            {t('battle.pickOpponentHint')}
           </p>
           <div className="battle-actions">
             {waitingOpponents.map((m) => (
@@ -235,7 +241,7 @@ export function BattleRoom({ onDuelStarted }: Props) {
                 onClick={() => void startDuel(m.userId)}
                 disabled={loading}
               >
-                ดวลกับ {m.username}
+                {t('battle.duelWith', { username: m.username })}
               </button>
             ))}
           </div>
@@ -243,15 +249,15 @@ export function BattleRoom({ onDuelStarted }: Props) {
       )}
 
       {!inBattle && isHost && waitingOpponents.length === 0 && (
-        <p>รอผู้เล่นอื่นเข้าห้องเพื่อเริ่มดวล</p>
+        <p>{t('battle.waitForOthers')}</p>
       )}
 
       {!inBattle && !isHost && (
-        <p>รอเจ้าของห้องเริ่มดวล…</p>
+        <p>{t('battle.waitForHost')}</p>
       )}
 
       <button type="button" className="secondary" onClick={() => void leave()} style={{ marginTop: 12 }}>
-        ออกจากห้อง
+        {t('battle.leaveRoom')}
       </button>
     </div>
   )

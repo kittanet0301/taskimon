@@ -16,9 +16,8 @@ import {
   signIn,
   signOut,
   signUp,
-  requestPasswordReset,
+  resetPasswordByBirthdate,
   updatePassword,
-  subscribePasswordRecovery,
   getProfile,
   syncPetToCloud,
   getActivePet,
@@ -36,8 +35,6 @@ import {
   listPublicRooms,
   getRoomMembers,
   startRoomDuel,
-  createBattleChallenge,
-  respondBattle,
   submitBattleAction,
   listBattles,
   getBattleTurns,
@@ -71,8 +68,8 @@ export function createWebApi(): GameAPI {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     supabaseConfigured: async () => isSupabaseConfigured(),
-    signUp: async (email, password, username) => {
-      const data = await signUp(email, password, username)
+    signUp: async (email, password, username, birthDate) => {
+      const data = await signUp(email, password, username, birthDate)
       if (data.session?.user?.id) await setCurrentUser(data.session.user.id)
       return data
     },
@@ -85,9 +82,9 @@ export function createWebApi(): GameAPI {
       await signOut()
       await setCurrentUser(null)
     },
-    requestPasswordReset: async (email) => requestPasswordReset(email),
+    setLocale: async () => {},
+    resetPasswordByBirthdate: async (email) => resetPasswordByBirthdate(email),
     updatePassword: async (password) => updatePassword(password),
-    onPasswordRecovery: (callback) => subscribePasswordRecovery(callback),
     getSession: async () => getSession(),
     getProfile: async (userId) => getProfile(userId),
     syncPet: async (userId, pet) => {
@@ -120,8 +117,6 @@ export function createWebApi(): GameAPI {
     listPublicRooms: async () => listPublicRooms(),
     getRoomMembers: async (roomId) => getRoomMembers(roomId),
     startRoomDuel: async (roomId, opponentUserId) => startRoomDuel(roomId, opponentUserId),
-    createBattleChallenge: async (defenderUserId) => createBattleChallenge(defenderUserId),
-    respondBattle: async (sessionId, accept) => respondBattle(sessionId, accept),
     submitBattleAction: async (sessionId, action) => submitBattleAction(sessionId, action),
     listBattles: async () => listBattles(),
     getBattleTurns: async (sessionId) => getBattleTurns(sessionId),

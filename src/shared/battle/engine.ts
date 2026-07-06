@@ -1,4 +1,5 @@
 import type { BattleActionType, BattleSessionState } from './types'
+import i18n from '../../i18n'
 import {
   ENERGY_GAIN_ATTACK_MAX,
   ENERGY_GAIN_ATTACK_MIN,
@@ -101,7 +102,7 @@ export function applyAction(
     return {
       state: next,
       damage: 0,
-      logMessage: `${formatDefendMessage(actor.name)} (+${gain}% พลัง)`,
+      logMessage: `${formatDefendMessage(actor.name)} (+${gain}% ${i18n.t('battle.ultimateEnergy')})`,
       finished: false
     }
   }

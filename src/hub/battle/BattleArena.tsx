@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BattleActionType, BattleSession } from '../../shared/battle/types'
 import type { BattleTurn } from '../../shared/battle/types'
 import { ULTIMATE_ENERGY_MAX } from '../../shared/battle/constants'
@@ -28,13 +29,14 @@ function HpBar({ label, hp, hpStart, color }: { label: string; hp: number; hpSta
 }
 
 function EnergyBar({ energy }: { energy: number }) {
+  const { t } = useTranslation()
   const pct = Math.max(0, Math.min(100, energy))
   const ready = pct >= ULTIMATE_ENERGY_MAX
   return (
     <div className="energy-bar">
       <div className="hp-bar-label">
-        <span>พลังท่าไม้ตาย</span>
-        <span>{pct}% {ready ? '· พร้อมใช้!' : ''}</span>
+        <span>{t('battle.ultimateEnergy')}</span>
+        <span>{pct}% {ready ? `· ${t('battle.ultimateReady')}` : ''}</span>
       </div>
       <div className="hp-bar-track energy-bar-track">
         <div
@@ -47,6 +49,7 @@ function EnergyBar({ energy }: { energy: number }) {
 }
 
 export function BattleArena({ session, turns, userId, challengerName, defenderName, onAction }: Props) {
+  const { t } = useTranslation()
   const [submitting, setSubmitting] = useState(false)
   const isChallenger = session.challengerUserId === userId
   const myTurn = session.turnUserId === userId && session.status === 'active'
@@ -67,27 +70,27 @@ export function BattleArena({ session, turns, userId, challengerName, defenderNa
   const statusLabel =
     session.status === 'active'
       ? myTurn
-        ? 'ถึงตาคุณ!'
-        : 'รอคู่ต่อสู้...'
+        ? t('battle.statusYourTurn')
+        : t('battle.statusWaitingOpponent')
       : session.status === 'completed'
-        ? 'จบการต่อสู้'
+        ? t('battle.statusCompleted')
         : session.status === 'fled'
-          ? 'มีคนหลบหนี'
+          ? t('battle.statusFled')
           : session.status
 
   return (
     <div className="battle-arena card">
-      <h3>สนามต่อสู้</h3>
+      <h3>{t('battle.arenaTitle')}</h3>
       <p><strong>{statusLabel}</strong></p>
 
       <HpBar
-        label={challengerName ?? 'ผู้ท้า'}
+        label={challengerName ?? t('battle.challenger')}
         hp={session.challengerHp}
         hpStart={session.challengerHpStart}
         color="#6366f1"
       />
       <HpBar
-        label={defenderName ?? 'ผู้รับท้า'}
+        label={defenderName ?? t('battle.defender')}
         hp={session.defenderHp}
         hpStart={session.defenderHpStart}
         color="#ef4444"
@@ -98,27 +101,31 @@ export function BattleArena({ session, turns, userId, challengerName, defenderNa
           <EnergyBar energy={myEnergy} />
           <div className="battle-actions">
             <button type="button" className="primary" disabled={!myTurn || submitting} onClick={() => void act('attack')}>
-              โจมตี
+              {t('battle.attack')}
             </button>
             <button
               type="button"
               className={`primary ${ultimateReady ? 'ultimate-ready' : ''}`}
               disabled={!myTurn || submitting || !ultimateReady}
               onClick={() => void act('ultimate')}
-              title={ultimateReady ? 'ใช้ท่าไม้ตาย' : `ต้องการพลัง ${ULTIMATE_ENERGY_MAX}% (ตอนนี้ ${myEnergy}%)`}
+              title={
+                ultimateReady
+                  ? t('battle.ultimate')
+                  : t('battle.ultimateNeedEnergy', { required: ULTIMATE_ENERGY_MAX, current: myEnergy })
+              }
             >
-              ท่าไม้ตาย
+              {t('battle.ultimate')}
             </button>
             <button type="button" className="secondary" disabled={!myTurn || submitting} onClick={() => void act('defend')}>
-              ป้องกัน
+              {t('battle.defend')}
             </button>
             <button type="button" className="secondary" disabled={!myTurn || submitting} onClick={() => void act('flee')}>
-              หลบหนี
+              {t('battle.flee')}
             </button>
           </div>
           {!ultimateReady && myTurn && (
             <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
-              โจมตีหรือป้องกันเพื่อสะสมพลังท่าไม้ตาย
+              {t('battle.ultimateHint')}
             </p>
           )}
         </>

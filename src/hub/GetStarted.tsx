@@ -1,25 +1,29 @@
+import { useTranslation } from 'react-i18next'
+
 interface Props {
   onStart: () => void
 }
 
 export function GetStarted({ onStart }: Props) {
+  const { t } = useTranslation()
+
   return (
     <div className="cover-screen">
       <div className="cover-card">
         <div className="cover-logo">🥚</div>
-        <h1 className="cover-title">TASKIMON</h1>
+        <h1 className="cover-title">{t('app.title')}</h1>
         <p className="cover-tagline">
-          เปลี่ยนกิจกรรมในเบราว์เซอร์
+          {t('home.getStartedTaglineLine1')}
           <br />
-          เป็นพลังเลี้ยงสัตว์ของคุณ
+          {t('home.getStartedTaglineLine2')}
         </p>
         <ul className="cover-features">
-          <li>คลิก & พิมพ์ → คะแนนกิจกรรม</li>
-          <li>เลี้ยงสัตว์ → วิวัฒนาการ Egg → Teen → Adult</li>
-          <li>ภารกิจรายวัน → รับรางวัล</li>
+          <li>{t('home.featureActivity')}</li>
+          <li>{t('home.featureEvolution')}</li>
+          <li>{t('home.featureMissions')}</li>
         </ul>
         <button className="primary cover-btn" onClick={onStart}>
-          เริ่มเล่น
+          {t('home.startGame')}
         </button>
       </div>
     </div>

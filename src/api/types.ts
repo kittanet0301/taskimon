@@ -12,12 +12,12 @@ export interface GameAPI {
   onGameUpdated: (callback: (save: GameSave) => void) => () => void
   openHub: () => Promise<void>
   supabaseConfigured: () => Promise<boolean>
-  signUp: (email: string, password: string, username: string) => Promise<unknown>
+  signUp: (email: string, password: string, username: string, birthDate: string) => Promise<unknown>
   signIn: (email: string, password: string) => Promise<unknown>
   signOut: () => Promise<void>
-  requestPasswordReset: (email: string) => Promise<void>
+  setLocale: (locale: 'en' | 'th') => Promise<void>
+  resetPasswordByBirthdate: (email: string) => Promise<void>
   updatePassword: (password: string) => Promise<void>
-  onPasswordRecovery: (callback: () => void) => () => void
   getSession: () => Promise<unknown>
   getProfile: (userId: string) => Promise<unknown>
   syncPet: (userId: string, pet: PetData) => Promise<unknown>
@@ -35,8 +35,6 @@ export interface GameAPI {
   listPublicRooms: () => Promise<unknown>
   getRoomMembers: (roomId: string) => Promise<unknown>
   startRoomDuel: (roomId: string, opponentUserId: string) => Promise<unknown>
-  createBattleChallenge: (defenderUserId: string) => Promise<unknown>
-  respondBattle: (sessionId: string, accept: boolean) => Promise<unknown>
   submitBattleAction: (sessionId: string, action: string) => Promise<unknown>
   listBattles: () => Promise<unknown>
   getBattleTurns: (sessionId: string) => Promise<unknown>

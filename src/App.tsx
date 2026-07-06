@@ -1,9 +1,10 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameSave } from './shared/types'
 import { ONBOARDING_KEY } from './shared/activityScore'
+import './i18n'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
-import { ChangePasswordPage } from './hub/ChangePasswordPage'
 import { HomeDashboard } from './hub/HomeDashboard'
 import { Inventory } from './hub/Inventory'
 import { Missions } from './hub/Missions'
@@ -14,6 +15,7 @@ import { BattleHub } from './hub/battle/BattleHub'
 import { useBattleGuard } from './hub/battle/useBattleGuard'
 import { Chat } from './hub/Chat'
 import { UserProfile } from './hub/UserProfile'
+import { LanguageSwitcher } from './hub/LanguageSwitcher'
 
 type Tab = 'home' | 'inventory' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
 
@@ -32,6 +34,7 @@ export default function App({ variant = 'desktop' }: Props) {
 }
 
 function AppContent({ variant = 'desktop' }: Props) {
+  const { t } = useTranslation()
   const battleCtx = useContext(BattleContext)
   const { isInRoom, confirmLeave } = useBattleGuard()
   const [save, setSave] = useState<GameSave | null>(null)
@@ -41,10 +44,6 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [showCover, setShowCover] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
   const [session, setSession] = useState<Session>(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [passwordRecovery, setPasswordRecovery] = useState(() => {
-    const hash = window.location.hash.slice(1)
-    return new URLSearchParams(hash).get('type') === 'recovery'
-  })
 
   const refresh = useCallback(async () => {
     if (!window.electronAPI) return
@@ -118,14 +117,12 @@ function AppContent({ variant = 'desktop' }: Props) {
     window.electronAPI.supabaseConfigured().then(setCloudReady)
     checkSession()
     const unsubscribe = window.electronAPI.onGameUpdated(setSave)
-    const unsubRecovery = window.electronAPI.onPasswordRecovery(() => setPasswordRecovery(true))
     const onFocus = () => {
       void refresh()
     }
     window.addEventListener('focus', onFocus)
     return () => {
       unsubscribe()
-      unsubRecovery()
       window.removeEventListener('focus', onFocus)
     }
   }, [refresh, checkSession])
@@ -159,39 +156,26 @@ function AppContent({ variant = 'desktop' }: Props) {
     refresh()
   }
 
-  const handlePasswordRecoveryComplete = () => {
-    setPasswordRecovery(false)
-    window.history.replaceState(null, '', window.location.pathname + window.location.search)
-    void window.electronAPI?.signOut()
-    setSession(null)
-    setAuthLoading(false)
-  }
-
   if (!window.electronAPI) {
-    return <div className="content">กำลังเชื่อมต่อแอป...</div>
+    return <div className="content">{t('common.connectingApp')}</div>
   }
 
   if (!save || authLoading) {
-    return <div className="content">กำลังโหลด...</div>
+    return <div className="content">{t('common.loading')}</div>
   }
 
   if (!cloudReady) {
     return (
       <div className="cover-screen">
         <div className="cover-card">
-          <h1 className="cover-title">TASKIMON</h1>
-          <p className="cover-tagline">ต้องตั้งค่า Supabase ก่อนใช้งาน</p>
+          <h1 className="cover-title">{t('app.title')}</h1>
+          <p className="cover-tagline">{t('app.supabaseRequiredSubtitle')}</p>
           <p className="notice" style={{ textAlign: 'left', margin: 0 }}>
-            สร้างไฟล์ <code>.env</code> หรือ <code>.env.production</code> แล้วรัน SQL ใน{' '}
-            <code>supabase/migrations/</code>
+            {t('app.supabaseRequiredBody')}
           </p>
         </div>
       </div>
     )
-  }
-
-  if (passwordRecovery) {
-    return <ChangePasswordPage onComplete={handlePasswordRecoveryComplete} />
   }
 
   if (!session?.user?.id) {
@@ -203,36 +187,40 @@ function AppContent({ variant = 'desktop' }: Props) {
   }
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'home', label: 'หน้าแรก', icon: '🏠' },
-    { id: 'inventory', label: 'ไอเทม', icon: '🎒' },
-    { id: 'missions', label: 'ภารกิจ', icon: '📋' },
-    { id: 'friends', label: 'ชุมชน', icon: '👥' },
-    { id: 'battle', label: 'ต่อสู้', icon: '⚔️' },
-    { id: 'chat', label: 'แชท', icon: '💬' },
-    { id: 'settings', label: 'ตั้งค่า', icon: '⚙️' }
+    { id: 'home', label: t('tabs.home'), icon: '🏠' },
+    { id: 'inventory', label: t('tabs.inventory'), icon: '🎒' },
+    { id: 'missions', label: t('tabs.missions'), icon: '📋' },
+    { id: 'friends', label: t('tabs.friends'), icon: '👥' },
+    { id: 'battle', label: t('tabs.battle'), icon: '⚔️' },
+    { id: 'chat', label: t('tabs.chat'), icon: '💬' },
+    { id: 'settings', label: t('tabs.settings'), icon: '⚙️' }
   ]
 
   return (
     <div className="app">
       <header className="header">
         <div>
-          <h1>Taskimon{variant === 'web' ? ' — Web' : ''}</h1>
+          <h1>
+            {t('app.title')}
+            {variant === 'web' ? ` - ${t('app.webSuffix')}` : ''}
+          </h1>
           <span className="header-sub">
-            {session.user.email} · {tabSyncing ? 'กำลัง sync...' : 'sync อัตโนมัติ'}
+            {session.user.email} · {tabSyncing ? t('app.syncing') : t('app.autoSync')}
           </span>
         </div>
+        <LanguageSwitcher />
       </header>
 
       <nav className="tabs">
-        {tabs.map((t) => (
+        {tabs.map((tTab) => (
           <button
-            key={t.id}
-            className={`tab ${tab === t.id ? 'active' : ''}`}
-            onClick={() => handleTabChange(t.id)}
+            key={tTab.id}
+            className={`tab ${tab === tTab.id ? 'active' : ''}`}
+            onClick={() => handleTabChange(tTab.id)}
             disabled={tabSyncing}
           >
-            <span className="tab-icon">{t.icon}</span>
-            {t.label}
+            <span className="tab-icon">{tTab.icon}</span>
+            {tTab.label}
           </button>
         ))}
       </nav>

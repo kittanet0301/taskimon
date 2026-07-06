@@ -1,12 +1,12 @@
 import type { MissionProgress, GameSave } from './types'
 import type { ItemType } from './types'
+import i18n from '../i18n'
 
 export type MissionKind = 'daily' | 'weekly'
 
 export interface MissionDefinition {
   id: string
   kind: MissionKind
-  title: string
   target: number
   reward: { type: ItemType; quantity: number } | { mood: number } | { devPoints: number }
 }
@@ -15,49 +15,42 @@ export const MISSIONS: MissionDefinition[] = [
   {
     id: 'daily_type_500',
     kind: 'daily',
-    title: 'พิมพ์ 500 ตัวอักษร',
     target: 500,
     reward: { type: 'food_basic', quantity: 1 }
   },
   {
     id: 'daily_click_200',
     kind: 'daily',
-    title: 'คลิก 200 ครั้ง',
     target: 200,
     reward: { type: 'toy', quantity: 1 }
   },
   {
     id: 'daily_feed_3',
     kind: 'daily',
-    title: 'ให้อาหารสัตว์ 3 ครั้ง',
     target: 3,
     reward: { mood: 10 }
   },
   {
     id: 'daily_play_1h',
     kind: 'daily',
-    title: 'สัตว์เดินบนจอครบ 1 ชม.',
     target: 3600,
     reward: { devPoints: 5 }
   },
   {
     id: 'weekly_dev_100',
     kind: 'weekly',
-    title: 'สะสมพัฒนาร่าง +100',
     target: 100,
     reward: { type: 'food_premium', quantity: 2 }
   },
   {
     id: 'weekly_daily_5',
     kind: 'weekly',
-    title: 'ทำภารกิจรายวันครบ 5 วัน',
     target: 5,
     reward: { type: 'medicine', quantity: 1 }
   },
   {
     id: 'weekly_hatch_1',
     kind: 'weekly',
-    title: 'ฟักไข่ใหม่ 1 ครั้ง',
     target: 1,
     reward: { type: 'dev_vitamin', quantity: 1 }
   }
@@ -155,9 +148,9 @@ export function formatDailyResetCountdown(now = new Date()): string {
   const ms = Math.max(0, getNextDailyResetAt(now).getTime() - now.getTime())
   const hours = Math.floor(ms / 3_600_000)
   const minutes = Math.floor((ms % 3_600_000) / 60_000)
-  if (hours > 0) return `รีเซ็ตภารกิจรายวันใน ${hours} ชม. ${minutes} นาที`
-  if (minutes > 0) return `รีเซ็ตภารกิจรายวันใน ${minutes} นาที`
-  return 'กำลังรีเซ็ตภารกิจรายวัน...'
+  if (hours > 0) return i18n.t('missions.resetInHoursMinutes', { hours, minutes })
+  if (minutes > 0) return i18n.t('missions.resetInMinutes', { minutes })
+  return i18n.t('missions.resettingNow')
 }
 
 export function updateMissionProgress(

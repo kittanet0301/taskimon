@@ -1,10 +1,12 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatApiError } from '../../shared/formatError'
 import type { BattleRoomSummary } from '../../shared/battle/types'
 import { mapBattleRoom, mapBattleRoomSummary } from '../../shared/battle/mappers'
 import { BattleContext } from './BattleContext'
 
 export function RoomLobby() {
+  const { t } = useTranslation()
   const ctx = useContext(BattleContext)
   const [rooms, setRooms] = useState<BattleRoomSummary[]>([])
   const [roomCode, setRoomCode] = useState('')
@@ -69,29 +71,29 @@ export function RoomLobby() {
 
   return (
     <div className="room-lobby card">
-      <h3>ห้องต่อสู้สาธารณะ</h3>
+      <h3>{t('battle.roomLobbyTitle')}</h3>
       {message && <p className="notice">{message}</p>}
 
       <div className="form-row">
-        <label>ชื่อห้อง (ตอนสร้าง)</label>
+        <label>{t('battle.roomNameLabel')}</label>
         <input
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
-          placeholder="ห้องของฉัน"
+          placeholder={t('battle.roomNamePlaceholder')}
         />
       </div>
       <button type="button" className="primary" onClick={() => void createRoom()} disabled={loading}>
-        สร้างห้องใหม่
+        {t('battle.createRoom')}
       </button>
 
       <div className="form-row" style={{ marginTop: 16 }}>
-        <label>รหัสห้อง</label>
+        <label>{t('battle.roomCodeLabel')}</label>
         <input
           type="text"
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-          placeholder="ABC123"
+          placeholder={t('common.placeholderFriendCode')}
         />
       </div>
       <button
@@ -100,12 +102,12 @@ export function RoomLobby() {
         onClick={() => void enterRoom(roomCode)}
         disabled={loading || !roomCode.trim()}
       >
-        เข้าห้องด้วยรหัส
+        {t('battle.joinWithCode')}
       </button>
 
-      <h4 style={{ marginTop: 20 }}>ห้องที่เปิดอยู่</h4>
+      <h4 style={{ marginTop: 20 }}>{t('battle.openRooms')}</h4>
       {rooms.length === 0 ? (
-        <p>ยังไม่มีห้องเปิด — สร้างห้องแรกได้เลย</p>
+        <p>{t('battle.noOpenRooms')}</p>
       ) : (
         <ul className="room-list">
           {rooms.map((room) => (
@@ -115,7 +117,7 @@ export function RoomLobby() {
                 <span className="tag">{room.roomCode}</span>
               </div>
               <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-                เจ้าของ: {room.hostUsername} · {room.memberCount} คน · รอ {room.waitingCount}
+                {t('battle.roomOwner')}: {room.hostUsername} · {t('battle.waitingCount', { count: room.waitingCount })}
               </div>
               <button
                 type="button"
@@ -123,14 +125,14 @@ export function RoomLobby() {
                 onClick={() => void enterRoom(room.roomCode)}
                 disabled={loading}
               >
-                เข้าร่วม
+                {t('battle.join')}
               </button>
             </li>
           ))}
         </ul>
       )}
       <button type="button" className="secondary" onClick={() => void loadRooms()} style={{ marginTop: 12 }}>
-        รีเฟรช
+        {t('common.refresh')}
       </button>
     </div>
   )

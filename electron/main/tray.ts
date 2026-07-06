@@ -2,6 +2,7 @@ import { Menu, Tray, nativeImage } from 'electron'
 import { createHubWindow } from './hubWindow'
 import { getPetWindow } from './petWindow'
 import { isUserLoggedIn } from './gameState'
+import { tMain } from './locale'
 import type { GameSave } from '../../src/shared/types'
 
 let tray: Tray | null = null
@@ -26,35 +27,43 @@ function rebuildTrayMenu(getSave: () => GameSave): void {
   if (loggedIn && pet) {
     menuItems.push(
       {
-        label: `${pet.name} | HP ${pet.stats.hp} | อารมณ์ ${pet.stats.mood} | พัฒนา ${pet.stats.devPoints}`,
+        label: tMain('tray.petStatsLabel', {
+          name: pet.name,
+          hp: pet.stats.hp,
+          mood: pet.stats.mood,
+          devPoints: pet.stats.devPoints
+        }),
         enabled: false
       },
       {
-        label: `คลิก: ${activity.clicks} | พิมพ์: ${activity.keystrokes}`,
+        label: tMain('tray.activityLabel', {
+          clicks: activity.clicks,
+          keystrokes: activity.keystrokes
+        }),
         enabled: false
       },
       { type: 'separator' }
     )
   } else {
     menuItems.push(
-      { label: 'Taskimon', enabled: false },
-      { label: 'เข้าสู่ระบบเพื่อดูสถานะสัตว์เลี้ยง', enabled: false },
+      { label: tMain('tray.title'), enabled: false },
+      { label: tMain('tray.loginToSeePetStatus'), enabled: false },
       { type: 'separator' }
     )
   }
 
   menuItems.push(
     {
-      label: 'เปิด Hub',
+      label: tMain('tray.openHub'),
       click: () => createHubWindow()
     },
     {
-      label: getPetWindow()?.isVisible() ? 'ซ่อนสัตว์' : 'แสดงสัตว์',
+      label: getPetWindow()?.isVisible() ? tMain('tray.hidePet') : tMain('tray.showPet'),
       click: () => trayCallbacks?.onTogglePet()
     },
     { type: 'separator' },
     {
-      label: 'ออกจากโปรแกรม',
+      label: tMain('tray.quitApp'),
       click: () => trayCallbacks?.onQuit()
     }
   )
@@ -63,9 +72,15 @@ function rebuildTrayMenu(getSave: () => GameSave): void {
   tray.setContextMenu(menu)
 
   if (loggedIn && pet) {
-    tray.setToolTip(`${pet.name} — คลิก ${activity.clicks} · พิมพ์ ${activity.keystrokes}`)
+    tray.setToolTip(
+      tMain('tray.tooltipLoggedIn', {
+        name: pet.name,
+        clicks: activity.clicks,
+        keystrokes: activity.keystrokes
+      })
+    )
   } else {
-    tray.setToolTip('Taskimon — เข้าสู่ระบบเพื่อเล่น')
+    tray.setToolTip(tMain('tray.tooltipLoggedOut'))
   }
 }
 

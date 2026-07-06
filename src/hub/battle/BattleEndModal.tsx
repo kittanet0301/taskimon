@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { BattleSession, BattleTurn } from '../../shared/battle/types'
 
 interface Props {
@@ -10,12 +11,14 @@ interface Props {
 function getWinnerName(turns: BattleTurn[]): string | null {
   for (let i = turns.length - 1; i >= 0; i--) {
     const msg = turns[i].message
-    if (msg.startsWith('ผู้ชนะ:')) return msg.replace('ผู้ชนะ:', '').trim()
+    const winner = msg.match(/^[^:]+:\s*(.+)$/)
+    if (winner?.[1]) return winner[1].trim()
   }
   return null
 }
 
 export function BattleEndModal({ session, turns, userId, onClose }: Props) {
+  const { t } = useTranslation()
   const winnerName = getWinnerName(turns)
   const isWinner = session.winnerUserId === userId
   const fledSelf = session.status === 'fled' && session.fledUserId === userId
@@ -25,18 +28,18 @@ export function BattleEndModal({ session, turns, userId, onClose }: Props) {
 
   if (session.status === 'fled') {
     if (fledSelf) {
-      title = 'คุณหลบหนี'
-      subtitle = 'ถือว่าแพ้การต่อสู้'
+      title = t('battle.modal.titleFledSelf')
+      subtitle = t('battle.modal.subtitleFledSelf')
     } else {
-      title = 'คุณชนะ!'
-      subtitle = 'คู่ต่อสู้หลบหนีจากการต่อสู้'
+      title = t('battle.modal.titleWin')
+      subtitle = t('battle.modal.subtitleEnemyFled')
     }
   } else if (isWinner) {
-    title = 'คุณชนะ!'
-    subtitle = 'ชนะการดวลนี้'
+    title = t('battle.modal.titleWin')
+    subtitle = t('battle.modal.subtitleWin')
   } else {
-    title = 'คุณแพ้'
-    subtitle = winnerName ? `ผู้ชนะ: ${winnerName}` : 'ลองใหม่ในดวลถัดไป'
+    title = t('battle.modal.titleLose')
+    subtitle = winnerName ? t('battle.modal.subtitleWinnerNamed', { winnerName }) : t('battle.modal.subtitleRetry')
   }
 
   return (
@@ -56,7 +59,7 @@ export function BattleEndModal({ session, turns, userId, onClose }: Props) {
         )}
 
         <button type="button" className="primary" onClick={onClose} style={{ marginTop: 16, width: '100%' }}>
-          กลับไปห้อง
+          {t('battle.modal.backToRoom')}
         </button>
       </div>
     </div>

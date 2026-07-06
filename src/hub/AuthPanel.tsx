@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameSave } from '../shared/types'
 import { formatAuthError } from '../shared/formatError'
+import { isAtLeast18, isValidBirthDate, toBirthDateIso } from '../shared/birthDate'
 import { ClearMyDataPanel } from './ClearMyDataPanel'
 import { SystemResetPanel } from './SystemResetPanel'
 import { ChangePasswordForm } from './ChangePasswordForm'
+import { BirthDateFields } from './BirthDateFields'
 
 interface Props {
   save: GameSave
@@ -14,6 +17,7 @@ interface Props {
 }
 
 export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }: Props) {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -22,6 +26,9 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
   const [message, setMessage] = useState('')
   const [dbMode, setDbMode] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [birthDay, setBirthDay] = useState(0)
+  const [birthMonth, setBirthMonth] = useState(0)
+  const [birthYear, setBirthYear] = useState(0)
 
   const loadSession = async () => {
     const s = (await window.electronAPI.getSession()) as { user: { id: string; email?: string } } | null
@@ -40,20 +47,31 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
   }, [])
 
   const signUp = async () => {
+    if (!username.trim()) {
+      setMessage(t('auth.needUsername'))
+      return
+    }
+    if (!isValidBirthDate(birthDay, birthMonth, birthYear)) {
+      setMessage(t('auth.needBirthDate'))
+      return
+    }
+    if (!isAtLeast18(birthDay, birthMonth, birthYear)) {
+      setMessage(t('auth.mustBe18'))
+      return
+    }
     try {
-      const data = (await window.electronAPI.signUp(email, password, username)) as {
+      const birthDate = toBirthDateIso(birthDay, birthMonth, birthYear)
+      const data = (await window.electronAPI.signUp(email, password, username, birthDate)) as {
         session: { user: { id: string } } | null
         user: { id: string } | null
       }
       if (data.session?.user?.id) {
-        setMessage('สมัครสำเร็จ — กำลังเข้าสู่ระบบ...')
+        setMessage(t('auth.signUpSuccessAutoLogin'))
         await loadSession()
-        setMessage('เข้าสู่ระบบแล้ว — ข้อมูลถูกโหลดจากฐานข้อมูล')
+        setMessage(t('auth.signInSuccess'))
         return
       }
-      setMessage(
-        'สมัครสำเร็จ — เปิดอีเมลแล้วคลิกลิงก์ยืนยันก่อนเข้าสู่ระบบ (หรือปิด Confirm email ใน Supabase เพื่อทดสอบเร็ว)'
-      )
+      setMessage(t('auth.signUpSuccessVerifyEmail'))
     } catch (e) {
       setMessage(formatAuthError(e))
     }
@@ -63,7 +81,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
     try {
       await window.electronAPI.signIn(email, password)
       await loadSession()
-      setMessage('เข้าสู่ระบบแล้ว — ข้อมูลถูกโหลดจากฐานข้อมูล')
+      setMessage(t('auth.signInSuccess'))
     } catch (e) {
       setMessage(formatAuthError(e))
     }
@@ -80,7 +98,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
   const forceSave = async () => {
     try {
       await window.electronAPI.forceCloudSave()
-      setMessage('บันทึกลงฐานข้อมูลทันทีแล้ว')
+      setMessage(t('common.saveNow'))
     } catch (e) {
       setMessage(String(e))
     }
@@ -94,10 +112,9 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
   if (!cloudReady) {
     return (
       <div className="card">
-        <h2>บัญชีผู้เล่น & ฐานข้อมูล</h2>
+        <h2>{t('auth.panelTitle')}</h2>
         <p className="notice" style={{ margin: 0 }}>
-          ยังไม่ได้ตั้งค่า Supabase — สร้างไฟล์ <code>.env</code> ตาม <code>.env.example</code> แล้วรัน SQL ใน{' '}
-          <code>supabase/migrations/</code>
+          {t('auth.supabaseNotConfigured')}
         </p>
       </div>
     )
@@ -105,37 +122,41 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
 
   return (
     <div className="card">
-      <h2>บัญชีผู้เล่น & ฐานข้อมูล</h2>
+      <h2>{t('auth.panelTitle')}</h2>
       <p>
-        สถานะ:{' '}
+        {t('auth.statusLabel')}:{' '}
         <strong style={{ color: dbMode ? '#16a34a' : '#ca8a04' }}>
-          {dbMode ? 'เชื่อมต่อ DB แล้ว (บันทึกอัตโนมัติ)' : 'กำลังเชื่อมต่อ...'}
+          {dbMode ? t('auth.dbConnected') : t('auth.dbConnecting')}
         </strong>
       </p>
       {message && <p>{message}</p>}
       {session ? (
         <>
-          <p>เข้าสู่ระบบ: {session.user.email}</p>
+          <p>{t('auth.loggedInAs', { email: session.user.email })}</p>
           {profile && (
             <p>
-              ชื่อ: <strong>{profile.username}</strong> · รหัสเพื่อน: <strong>{profile.friend_code}</strong>
+              {t('auth.profileSummary', { username: profile.username, friendCode: profile.friend_code })}
             </p>
           )}
           <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-            สัตว์: {save.pet?.name ?? '—'} · ไอเทม {save.inventory.length} ชนิด · ภารกิจ {save.missions.length} รายการ
+            {t('auth.petSummary', {
+              petName: save.pet?.name ?? t('common.none'),
+              itemCount: save.inventory.length,
+              missionCount: save.missions.length
+            })}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button className="primary" onClick={forceSave}>บันทึก DB ทันที</button>
-            <button className="secondary" onClick={signOut}>ออกจากระบบ</button>
+            <button className="primary" onClick={forceSave}>{t('auth.saveDbNow')}</button>
+            <button className="secondary" onClick={signOut}>{t('common.logout')}</button>
           </div>
 
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>เปลี่ยนรหัสผ่าน</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>{t('auth.changePassword')}</h3>
             {passwordSuccess ? (
-              <p style={{ color: '#16a34a', margin: 0 }}>เปลี่ยนรหัสผ่านสำเร็จแล้ว</p>
+              <p style={{ color: '#16a34a', margin: 0 }}>{t('auth.newPasswordSaved')}</p>
             ) : (
               <ChangePasswordForm
-                submitLabel="เปลี่ยนรหัสผ่าน"
+                submitLabel={t('auth.savePassword')}
                 onSubmit={async (password) => {
                   await window.electronAPI.updatePassword(password)
                   setPasswordSuccess(true)
@@ -150,20 +171,30 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
       ) : (
         <>
           <div className="form-row">
-            <label>อีเมล</label>
+            <label>{t('auth.emailLabel')}</label>
             <input value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="form-row">
-            <label>รหัสผ่าน</label>
+            <label>{t('auth.passwordLabel')}</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="form-row">
-            <label>ชื่อผู้ใช้ (สมัครใหม่)</label>
+            <label>{t('auth.usernameSignUpLabel')}</label>
             <input value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
+          <BirthDateFields
+            day={birthDay}
+            month={birthMonth}
+            year={birthYear}
+            onChange={({ day, month, year }) => {
+              setBirthDay(day)
+              setBirthMonth(month)
+              setBirthYear(year)
+            }}
+          />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="primary" onClick={signIn}>เข้าสู่ระบบ</button>
-            <button className="secondary" onClick={signUp}>สมัครสมาชิก</button>
+            <button className="primary" onClick={signIn}>{t('common.login')}</button>
+            <button className="secondary" onClick={signUp}>{t('common.signUp')}</button>
           </div>
         </>
       )}

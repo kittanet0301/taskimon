@@ -2,7 +2,8 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { loadEnvFile } from './env'
 import { createPetWindow, getPetWindow, setPetIgnoreMouse } from './petWindow'
 import { createHubWindow, getHubWindow } from './hubWindow'
-import { createTray, destroyTray } from './tray'
+import { createTray, destroyTray, refreshTray } from './tray'
+import { setMainLocale } from './locale'
 import {
   broadcastToWindows,
   forceCloudSave,
@@ -31,7 +32,7 @@ import {
   signIn,
   signOut,
   signUp,
-  requestPasswordReset,
+  resetPasswordByBirthdate,
   updatePassword,
   getProfile,
   syncPetToCloud,
@@ -50,8 +51,6 @@ import {
   listPublicRooms,
   getRoomMembers,
   startRoomDuel,
-  createBattleChallenge,
-  respondBattle,
   submitBattleAction,
   listBattles,
   getBattleTurns,
@@ -115,8 +114,8 @@ function setupIpc(): void {
   ipcMain.handle('cloud:resetSystem', async () => resetSystemGameData())
   ipcMain.handle('cloud:reload', async () => hydrateFromSession())
 
-  ipcMain.handle('auth:signup', async (_e, email: string, password: string, username: string) => {
-    const data = await signUp(email, password, username)
+  ipcMain.handle('auth:signup', async (_e, email: string, password: string, username: string, birthDate: string) => {
+    const data = await signUp(email, password, username, birthDate)
     if (data.session?.user?.id) await setCurrentUser(data.session.user.id)
     return data
   })
@@ -129,14 +128,18 @@ function setupIpc(): void {
     await signOut()
     await setCurrentUser(null)
   })
-  ipcMain.handle('auth:requestPasswordReset', async (_e, email: string) => {
-    await requestPasswordReset(email)
-  })
   ipcMain.handle('auth:updatePassword', async (_e, password: string) => {
     await updatePassword(password)
   })
+  ipcMain.handle('auth:resetPasswordByBirthdate', async (_e, email: string) => {
+    await resetPasswordByBirthdate(email)
+  })
   ipcMain.handle('auth:session', async () => getSession())
   ipcMain.handle('auth:profile', async (_e, userId: string) => getProfile(userId))
+  ipcMain.handle('locale:set', (_e, locale: 'en' | 'th') => {
+    setMainLocale(locale)
+    refreshTray(getGameSave)
+  })
 
   ipcMain.handle('cloud:syncPet', async (_e, userId: string, pet: PetData) => {
     const mapped = {
@@ -203,12 +206,6 @@ function setupIpc(): void {
     return true
   })
 
-  ipcMain.handle('battle:createChallenge', async (_e, defenderUserId: string) =>
-    createBattleChallenge(defenderUserId)
-  )
-  ipcMain.handle('battle:respond', async (_e, sessionId: string, accept: boolean) =>
-    respondBattle(sessionId, accept)
-  )
   ipcMain.handle('battle:submitAction', async (_e, sessionId: string, action: string) =>
     submitBattleAction(sessionId, action)
   )

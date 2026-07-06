@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameSave } from '../shared/types'
 import { formatDailyResetCountdown, getMissionDefinition } from '../shared/missions'
+import { tMissionTitle } from '../i18n/labels'
 
 interface Props {
   save: GameSave
@@ -8,6 +10,7 @@ interface Props {
 }
 
 export function Missions({ save, onUpdated }: Props) {
+  const { t } = useTranslation()
   const [resetLabel, setResetLabel] = useState(() => formatDailyResetCountdown())
 
   useEffect(() => {
@@ -23,7 +26,7 @@ export function Missions({ save, onUpdated }: Props) {
 
   return (
     <div className="card">
-      <h2>ภารกิจรายวัน / รายสัปดาห์</h2>
+      <h2>{t('missions.title')}</h2>
       <p className="dash-reset-hint">{resetLabel}</p>
       {save.missions.map((mission) => {
         const def = getMissionDefinition(mission.missionId)
@@ -31,9 +34,9 @@ export function Missions({ save, onUpdated }: Props) {
         return (
           <div key={mission.missionId} className="mission-item">
             <div>
-              <strong>{def.title}</strong>
+              <strong>{tMissionTitle(def.id)}</strong>
               <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-                {def.kind === 'daily' ? 'รายวัน' : 'รายสัปดาห์'} · {mission.progress}/{def.target}
+                {def.kind === 'daily' ? t('missions.kindDaily') : t('missions.kindWeekly')} · {mission.progress}/{def.target}
               </div>
             </div>
             <button
@@ -41,7 +44,7 @@ export function Missions({ save, onUpdated }: Props) {
               disabled={!mission.completed}
               onClick={() => claim(mission.missionId)}
             >
-              {mission.completed ? 'รับรางวัล' : 'ยังไม่เสร็จ'}
+              {mission.completed ? t('missions.claimReward') : t('missions.notCompleted')}
             </button>
           </div>
         )

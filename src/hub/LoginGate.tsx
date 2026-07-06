@@ -1,5 +1,9 @@
 import { useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatAuthError } from '../shared/formatError'
+import { isAtLeast18, isValidBirthDate, toBirthDateIso } from '../shared/birthDate'
+import { BirthDateFields } from './BirthDateFields'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 interface Props {
   onLoggedIn: () => void
@@ -16,11 +20,15 @@ export function AuthShell({
   children: ReactNode
   footer: ReactNode
 }) {
+  const { t } = useTranslation()
   return (
     <div className="cover-screen">
       <div className="cover-card login-card">
-        <div className="cover-logo">🥚</div>
-        <h1 className="cover-title">TASKIMON</h1>
+        <div className="login-card-top">
+          <div className="cover-logo">🥚</div>
+          <LanguageSwitcher compact />
+        </div>
+        <h1 className="cover-title">{t('app.title')}</h1>
         <p className="cover-tagline">{tagline}</p>
 
         {message && <p className="login-message">{message}</p>}
@@ -35,63 +43,6 @@ export function AuthShell({
 
 type AuthView = 'login' | 'signup' | 'forgot'
 
-function ForgotPasswordPage({ onGoLogin }: { onGoLogin: () => void }) {
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
-
-  const sendReset = async () => {
-    if (!email.trim()) {
-      setMessage('กรุณากรอกอีเมล')
-      return
-    }
-    setLoading(true)
-    setMessage('')
-    try {
-      await window.electronAPI.requestPasswordReset(email.trim())
-      setSent(true)
-      setMessage('ส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมลแล้ว — เปิดลิงก์แล้วตั้งรหัสใหม่')
-    } catch (e) {
-      setMessage(formatAuthError(e))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <AuthShell
-      tagline={sent ? 'เช็คอีเมลของคุณ' : 'ลืมรหัสผ่าน'}
-      message={message}
-      footer={
-        <>
-          <button type="button" className="auth-link" onClick={onGoLogin} disabled={loading}>
-            กลับไปเข้าสู่ระบบ
-          </button>
-        </>
-      }
-    >
-      {!sent && (
-        <>
-          <div className="form-row">
-            <label>อีเมลที่ใช้สมัคร</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@email.com"
-              disabled={loading}
-              autoComplete="email"
-            />
-          </div>
-          <button type="button" className="primary cover-btn" onClick={() => void sendReset()} disabled={loading}>
-            {loading ? 'กำลังส่ง...' : 'ส่งลิงก์รีเซ็ตรหัสผ่าน'}
-          </button>
-        </>
-      )}
-    </AuthShell>
-  )
-}
-
 function LoginPage({
   onLoggedIn,
   onGoSignUp,
@@ -101,6 +52,7 @@ function LoginPage({
   onGoSignUp: () => void
   onGoForgot: () => void
 }) {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -122,34 +74,34 @@ function LoginPage({
 
   return (
     <AuthShell
-      tagline="เข้าสู่ระบบเพื่อเริ่มเลี้ยงสัตว์ของคุณ"
+      tagline={t('auth.taglineLogin')}
       message={message}
       footer={
         <>
-          ยังไม่มีบัญชี?{' '}
+          {t('auth.switchNoAccount')}{' '}
           <button type="button" className="auth-link" onClick={onGoSignUp} disabled={loading}>
-            สมัครสมาชิก
+            {t('common.signUp')}
           </button>
         </>
       }
     >
       <div className="form-row">
-        <label>อีเมล</label>
+        <label>{t('auth.emailLabel')}</label>
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@email.com"
+          placeholder={t('common.placeholderEmail')}
           disabled={loading}
           autoComplete="email"
         />
       </div>
       <div className="form-row">
-        <label>รหัสผ่าน</label>
+        <label>{t('auth.passwordLabel')}</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="รหัสผ่านของคุณ"
+          placeholder={t('auth.passwordLabel')}
           disabled={loading}
           autoComplete="current-password"
         />
@@ -157,13 +109,77 @@ function LoginPage({
 
       <p style={{ margin: '0 0 12px', textAlign: 'right' }}>
         <button type="button" className="auth-link" onClick={onGoForgot} disabled={loading}>
-          ลืมรหัสผ่าน?
+          {t('auth.forgotPassword')}
         </button>
       </p>
 
       <button className="primary cover-btn" onClick={signIn} disabled={loading}>
-        {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+        {loading ? t('auth.loadingLogin') : t('common.login')}
       </button>
+    </AuthShell>
+  )
+}
+
+function ForgotPasswordPage({ onGoLogin }: { onGoLogin: () => void }) {
+  const { t } = useTranslation()
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [done, setDone] = useState(false)
+
+  const reset = async () => {
+    if (!email.trim()) {
+      setMessage(t('auth.needEmail'))
+      return
+    }
+    setLoading(true)
+    setMessage('')
+    try {
+      await window.electronAPI.resetPasswordByBirthdate(email.trim())
+      setDone(true)
+      setMessage(t('auth.resetPasswordDone'))
+    } catch (e) {
+      setMessage(formatAuthError(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AuthShell
+      tagline={done ? t('auth.forgotPasswordDoneTitle') : t('auth.forgotPasswordTitle')}
+      message={message}
+      footer={
+        <button type="button" className="auth-link" onClick={onGoLogin} disabled={loading}>
+          {t('common.backToLogin')}
+        </button>
+      }
+    >
+      {!done && (
+        <>
+          <p style={{ margin: '0 0 12px', fontSize: '0.9rem', color: '#6b7280' }}>
+            {t('auth.forgotPasswordHint')}
+          </p>
+          <div className="form-row">
+            <label>{t('auth.emailLabel')}</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('common.placeholderEmail')}
+              disabled={loading}
+              autoComplete="email"
+            />
+          </div>
+          <button type="button" className="primary cover-btn" onClick={() => void reset()} disabled={loading}>
+            {loading ? t('auth.resettingPassword') : t('auth.resetPassword')}
+          </button>
+        </>
+      )}
+      {done && (
+        <button type="button" className="primary cover-btn" onClick={onGoLogin}>
+          {t('common.goToLogin')}
+        </button>
+      )}
     </AuthShell>
   )
 }
@@ -175,21 +191,34 @@ function SignUpPage({
   onLoggedIn: () => void
   onGoLogin: () => void
 }) {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [birthDay, setBirthDay] = useState(0)
+  const [birthMonth, setBirthMonth] = useState(0)
+  const [birthYear, setBirthYear] = useState(0)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   const signUp = async () => {
     if (!username.trim()) {
-      setMessage('กรุณาตั้งชื่อผู้ใช้')
+      setMessage(t('auth.needUsername'))
+      return
+    }
+    if (!isValidBirthDate(birthDay, birthMonth, birthYear)) {
+      setMessage(t('auth.needBirthDate'))
+      return
+    }
+    if (!isAtLeast18(birthDay, birthMonth, birthYear)) {
+      setMessage(t('auth.mustBe18'))
       return
     }
     setLoading(true)
     setMessage('')
     try {
-      const data = (await window.electronAPI.signUp(email, password, username)) as {
+      const birthDate = toBirthDateIso(birthDay, birthMonth, birthYear)
+      const data = (await window.electronAPI.signUp(email, password, username, birthDate)) as {
         session: { user: { id: string } } | null
       }
       if (data.session?.user?.id) {
@@ -197,7 +226,7 @@ function SignUpPage({
         onLoggedIn()
         return
       }
-      setMessage('สมัครสำเร็จ — ยืนยันอีเมลแล้วเข้าสู่ระบบ (หรือปิด Confirm email ใน Supabase)')
+      setMessage(t('auth.signUpSuccessVerifyEmail'))
     } catch (e) {
       setMessage(formatAuthError(e))
     } finally {
@@ -207,51 +236,62 @@ function SignUpPage({
 
   return (
     <AuthShell
-      tagline="สร้างบัญชีใหม่เพื่อเริ่มผจญภัยกับ Taskimon"
+      tagline={t('auth.taglineSignup')}
       message={message}
       footer={
         <>
-          มีบัญชีแล้ว?{' '}
+          {t('auth.switchHaveAccount')}{' '}
           <button type="button" className="auth-link" onClick={onGoLogin} disabled={loading}>
-            เข้าสู่ระบบ
+            {t('common.login')}
           </button>
         </>
       }
     >
       <div className="form-row">
-        <label>ชื่อผู้ใช้</label>
+        <label>{t('auth.usernameLabel')}</label>
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="ชื่อในเกม"
+          placeholder={t('auth.usernameLabel')}
           disabled={loading}
           autoComplete="username"
         />
       </div>
+      <BirthDateFields
+        day={birthDay}
+        month={birthMonth}
+        year={birthYear}
+        onChange={({ day, month, year }) => {
+          setBirthDay(day)
+          setBirthMonth(month)
+          setBirthYear(year)
+        }}
+        disabled={loading}
+      />
       <div className="form-row">
-        <label>อีเมล</label>
+        <label>{t('auth.emailLabel')}</label>
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@email.com"
+          placeholder={t('common.placeholderEmail')}
           disabled={loading}
           autoComplete="email"
         />
       </div>
       <div className="form-row">
-        <label>รหัสผ่าน</label>
+        <label>{t('auth.passwordLabel')}</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="อย่างน้อย 6 ตัว"
+          placeholder={t('auth.passwordMin')}
           disabled={loading}
           autoComplete="new-password"
         />
       </div>
 
       <button className="primary cover-btn" onClick={signUp} disabled={loading}>
-        {loading ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}
+        {loading ? t('auth.loadingSignUp') : t('common.signUp')}
       </button>
     </AuthShell>
   )

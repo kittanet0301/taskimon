@@ -1,4 +1,5 @@
 import type { Element, Gender, HatchResult, Species } from './types'
+import { tDefaultPetName } from '../i18n/labels'
 
 const MYTHIC_CHANCE = 0.1
 
@@ -37,11 +38,5 @@ export function hatchEgg(): HatchResult {
 }
 
 export function defaultPetName(species: Species): string {
-  const names: Record<Species, string> = {
-    mamono: 'โมโน',
-    avian: 'ปีกน้อย',
-    aquatic: 'บับเบิ้ล',
-    mythic: 'มิธิ'
-  }
-  return names[species]
+  return tDefaultPetName(species)
 }

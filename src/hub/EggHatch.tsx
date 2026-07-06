@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { ELEMENT_COLORS, ELEMENT_NAMES, SPECIES_NAMES } from '../shared/constants'
+import { ELEMENT_COLORS } from '../shared/constants'
+import { tElement, tSpecies } from '../i18n/labels'
 
 interface Props {
   pet: PetData
@@ -8,6 +10,7 @@ interface Props {
 }
 
 export function EggHatch({ pet, onHatched }: Props) {
+  const { t } = useTranslation()
   const [hatching, setHatching] = useState(false)
   const [name, setName] = useState(pet.name)
 
@@ -22,7 +25,7 @@ export function EggHatch({ pet, onHatched }: Props) {
 
   return (
     <div className="card">
-      <h2>ไข่ลึกลับ</h2>
+      <h2>{t('pet.mysteriousEgg')}</h2>
       <div
         className="pet-preview"
         style={{ background: ELEMENT_COLORS[pet.element], marginBottom: 16 }}
@@ -30,17 +33,17 @@ export function EggHatch({ pet, onHatched }: Props) {
         {hatching ? '...' : '🥚'}
       </div>
       <p>
-        ธาตุ: <span className="tag" style={{ background: ELEMENT_COLORS[pet.element], color: '#fff' }}>
-          {ELEMENT_NAMES[pet.element]}
+        {t('pet.element')}: <span className="tag" style={{ background: ELEMENT_COLORS[pet.element], color: '#fff' }}>
+          {tElement(pet.element)}
         </span>
-        ประเภท: {SPECIES_NAMES[pet.species]} · เพศ: {pet.gender === 'male' ? 'ช' : 'ญ'}
+        {t('pet.species')}: {tSpecies(pet.species)} · {t('pet.gender')}: {pet.gender === 'male' ? t('pet.maleShort') : t('pet.femaleShort')}
       </p>
       <div className="form-row">
-        <label>ตั้งชื่อหลังฟัก</label>
+        <label>{t('pet.setHatchName')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} disabled={hatching} />
       </div>
       <button className="primary" onClick={hatch} disabled={hatching || !name.trim()}>
-        {hatching ? 'กำลังฟัก...' : 'ฟักไข่'}
+        {hatching ? t('pet.hatching') : t('pet.hatch')}
       </button>
     </div>
   )

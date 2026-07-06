@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '../../src/i18n'
 import App from '../../src/App'
 import '../../src/styles.css'
 import { createWebApi } from './webApi'
@@ -20,5 +21,5 @@ async function bootstrap() {
 
 bootstrap().catch((err) => {
   console.error(err)
-  document.body.innerHTML = `<pre style="padding:24px;color:#b91c1c">โหลดแอปไม่สำเร็จ: ${String(err)}</pre>`
+  document.body.innerHTML = `<pre style="padding:24px;color:#b91c1c">Failed to bootstrap app: ${String(err)}</pre>`
 })

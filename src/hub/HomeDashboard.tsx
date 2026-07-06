@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameSave, ItemType, PetData } from '../shared/types'
-import { ELEMENT_COLORS, ELEMENT_NAMES, SPECIES_NAMES } from '../shared/constants'
+import { ELEMENT_COLORS } from '../shared/constants'
 import { getActivityScore, getPetLevel, getStageLabel } from '../shared/activityScore'
 import { canEvolveToAdult } from '../shared/stats'
 import { formatDailyResetCountdown, getMissionDefinition } from '../shared/missions'
-import { ITEMS, QUICK_CARE_ITEMS } from '../shared/items'
+import { QUICK_CARE_ITEMS } from '../shared/items'
 import { EggHatch } from './EggHatch'
+import { tElement, tItemDescription, tItemLabel, tMissionTitle, tSpecies } from '../i18n/labels'
 
 interface Props {
   save: GameSave
@@ -38,6 +40,7 @@ function StatBar({
 }
 
 function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void }) {
+  const { t } = useTranslation()
   const evolve = async () => {
     await window.electronAPI.patchGame('evolve')
     onUpdated()
@@ -50,11 +53,11 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
           <h2 style={{ margin: 0 }}>{pet.name}</h2>
           <p className="dash-pet-meta">
             Lv.{getPetLevel(pet.stage, pet.stats.devPoints)} · {getStageLabel(pet.stage)} ·{' '}
-            {SPECIES_NAMES[pet.species]}
+            {tSpecies(pet.species)}
           </p>
         </div>
         <span className="tag" style={{ background: ELEMENT_COLORS[pet.element], color: '#fff' }}>
-          {ELEMENT_NAMES[pet.element]}
+          {tElement(pet.element)}
         </span>
       </div>
       <div
@@ -63,10 +66,10 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
       >
         {pet.stage === 'egg' ? '🥚' : pet.stage === 'baby' ? '🐣' : '🐉'}
       </div>
-      <StatBar label="Health" value={pet.stats.hp} color="#22c55e" />
-      <StatBar label="Emotion" value={pet.stats.mood} color="#6366f1" />
+      <StatBar label={t('home.health')} value={pet.stats.hp} color="#22c55e" />
+      <StatBar label={t('home.emotion')} value={pet.stats.mood} color="#6366f1" />
       <StatBar
-        label="Evolution"
+        label={t('home.evolution')}
         value={pet.stats.devPoints}
         max={500}
         color="#f59e0b"
@@ -78,7 +81,7 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
           onClick={evolve}
           disabled={!canEvolveToAdult(pet)}
         >
-          {canEvolveToAdult(pet) ? 'วิวัฒนาการ → Adult' : 'วิวัฒนาการ (ต้องการพัฒนาร่าง 500+)'}
+          {canEvolveToAdult(pet) ? t('home.evolveAdult') : t('home.evolveLocked')}
         </button>
       )}
     </div>
@@ -86,41 +89,43 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
 }
 
 function ActivityCard({ save }: { save: GameSave }) {
+  const { t } = useTranslation()
   const score = getActivityScore(save.activity)
   return (
     <div className="card dash-activity-card">
-      <h3 className="dash-section-title">กิจกรรมวันนี้</h3>
+      <h3 className="dash-section-title">{t('home.todayActivity')}</h3>
       <div className="dash-activity-grid">
         <div className="dash-activity-stat">
           <span className="dash-activity-icon">🖱️</span>
           <div>
             <div className="dash-activity-value">{save.activity.clicks}</div>
-            <div className="dash-activity-label">คลิก</div>
+            <div className="dash-activity-label">{t('home.clicks')}</div>
           </div>
         </div>
         <div className="dash-activity-stat">
           <span className="dash-activity-icon">⌨️</span>
           <div>
             <div className="dash-activity-value">{save.activity.keystrokes}</div>
-            <div className="dash-activity-label">พิมพ์</div>
+            <div className="dash-activity-label">{t('home.typing')}</div>
           </div>
         </div>
         <div className="dash-activity-stat dash-activity-score">
           <span className="dash-activity-icon">⚡</span>
           <div>
             <div className="dash-activity-value">{score}</div>
-            <div className="dash-activity-label">คะแนนกิจกรรม</div>
+            <div className="dash-activity-label">{t('home.activityScore')}</div>
           </div>
         </div>
       </div>
       <p className="dash-activity-hint">
-        คะแนน = คลิก + พิมพ์÷10 · สูงสุด {save.activity.devPointsThisHour}/10 พัฒนาร่าง/ชม.
+        {t('home.activityFormula', { maxPerHour: save.activity.devPointsThisHour })}
       </p>
     </div>
   )
 }
 
 function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: () => void }) {
+  const { t } = useTranslation()
   const [resetLabel, setResetLabel] = useState(() => formatDailyResetCountdown())
 
   useEffect(() => {
@@ -138,9 +143,9 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
 
   return (
     <div className="card">
-      <h3 className="dash-section-title">Daily Missions</h3>
+      <h3 className="dash-section-title">{t('home.dailyMissions')}</h3>
       <p className="dash-reset-hint">{resetLabel}</p>
-      {daily.length === 0 && <p>ไม่มีภารกิจ</p>}
+      {daily.length === 0 && <p>{t('home.noMissions')}</p>}
       {daily.map((mission) => {
         const def = getMissionDefinition(mission.missionId)
         if (!def) return null
@@ -148,7 +153,7 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
         return (
           <div key={mission.missionId} className="dash-mission-row">
             <div className="dash-mission-info">
-              <strong>{def.title}</strong>
+              <strong>{tMissionTitle(def.id)}</strong>
               <div className="bar" style={{ marginTop: 6 }}>
                 <span
                   style={{
@@ -166,7 +171,7 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
               disabled={!mission.completed}
               onClick={() => claim(mission.missionId)}
             >
-              {mission.completed ? 'Claim' : '...'}
+              {mission.completed ? t('home.claim') : t('missions.notCompleted')}
             </button>
           </div>
         )
@@ -176,6 +181,7 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
 }
 
 function QuickCare({ save, onUpdated }: { save: GameSave; onUpdated: () => void }) {
+  const { t } = useTranslation()
   const use = async (type: ItemType) => {
     const qty = save.inventory.find((i) => i.type === type)?.quantity ?? 0
     if (qty <= 0) return
@@ -187,21 +193,20 @@ function QuickCare({ save, onUpdated }: { save: GameSave; onUpdated: () => void 
 
   return (
     <div className="card">
-      <h3 className="dash-section-title">Quick Care</h3>
+      <h3 className="dash-section-title">{t('home.quickCare')}</h3>
       <div className="quick-care-grid">
         {QUICK_CARE_ITEMS.map((item) => {
-          const def = ITEMS[item.type]
           const qty = save.inventory.find((i) => i.type === item.type)?.quantity ?? 0
           return (
             <button
               key={item.type}
               className="quick-care-btn"
               disabled={qty <= 0}
-              title={`${def.label} — ${def.description} · x${qty}`}
+              title={`${tItemLabel(item.type)} - ${tItemDescription(item.type)} x${qty}`}
               onClick={() => use(item.type)}
             >
               <span className="quick-care-emoji">{item.emoji}</span>
-              <span className="quick-care-label">{def.label}</span>
+              <span className="quick-care-label">{tItemLabel(item.type)}</span>
               <span className="quick-care-qty">x{qty}</span>
             </button>
           )

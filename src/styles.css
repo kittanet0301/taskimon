@@ -338,6 +338,21 @@ input, select {
   font-size: 0.9rem;
 }
 
+.birth-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 8px;
+}
+
+.birth-date-row select {
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 0.95rem;
+  background: white;
+}
+
 /* ── Phase 1: Home Dashboard ── */
 
 .cover-screen {
@@ -406,6 +421,61 @@ input, select {
 .header-sub {
   font-size: 0.85rem;
   opacity: 0.9;
+}
+
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.lang-switcher button {
+  border: 0;
+  min-width: 38px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: transparent;
+  color: #f8fafc;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.lang-switcher button.active {
+  background: #ffffff;
+  color: #4338ca;
+}
+
+.lang-switcher-compact {
+  transform: scale(0.95);
+}
+
+.login-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.login-card-top .cover-logo {
+  margin-bottom: 0;
+}
+
+.login-card-top .lang-switcher {
+  background: #eef2ff;
+}
+
+.login-card-top .lang-switcher button {
+  color: #4338ca;
+}
+
+.login-card-top .lang-switcher button.active {
+  background: #4338ca;
+  color: #fff;
 }
 
 .tab-icon {

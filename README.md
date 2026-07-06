@@ -16,7 +16,6 @@ Tamagotchi-style desktop pet game with elemental RPG — desktop (Electron) + we
 - Friends, chat, profile viewing (with Supabase)
 - **ต่อสู้ (PvP แบบ async):**
   - ห้องต่อสู้ — สร้าง/เข้าร่วมด้วยรหัส, 1v1 ในห้อง
-  - ท้าเพื่อนโดยตรง (challenge)
   - การกระทำ: โจมตี, ป้องกัน, หลบหนี, ท่าไม้ตาย
   - **พลังท่าไม้ตาย** 0–100% — สะสมจากโจมตี/ป้องกัน (สุ่ม), ใช้ได้เมื่อครบ 100% แล้วรีเซ็ต
   - ธาตุ: ไฟ → ดิน → ลม → น้ำ → ไฟ (×2 / ×0.5), กลาง = ×1.0 ทุกคู่

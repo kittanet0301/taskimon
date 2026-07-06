@@ -1,13 +1,14 @@
 import type { ActivityCounters, Stage } from './types'
+import { tStage } from '../i18n/labels'
 
 export function getActivityScore(activity: ActivityCounters): number {
   return activity.clicks + Math.floor(activity.keystrokes / 10)
 }
 
 export function getStageLabel(stage: Stage): string {
-  if (stage === 'egg') return 'Egg'
-  if (stage === 'baby') return 'Teen'
-  return 'Adult'
+  if (stage === 'egg') return tStage('egg')
+  if (stage === 'baby') return tStage('teen')
+  return tStage('adult')
 }
 
 export function getPetLevel(stage: Stage, devPoints: number): number {

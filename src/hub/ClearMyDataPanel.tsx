@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatApiError } from '../shared/formatError'
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function ClearMyDataPanel({ username, onCleared }: Props) {
+  const { t } = useTranslation()
   const [showConfirm, setShowConfirm] = useState(false)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,7 +19,7 @@ export function ClearMyDataPanel({ username, onCleared }: Props) {
     try {
       await window.electronAPI.clearMyGameData()
       setShowConfirm(false)
-      setMessage('ล้างข้อมูลของคุณแล้ว — เริ่มต้นใหม่')
+      setMessage(t('clearMyData.done'))
       onCleared()
     } catch (e) {
       setMessage(formatApiError(e))
@@ -28,25 +30,29 @@ export function ClearMyDataPanel({ username, onCleared }: Props) {
 
   return (
     <div className="clear-my-data">
-      <h3>ล้างข้อมูลของฉัน</h3>
+      <h3>{t('clearMyData.title')}</h3>
       <p className="clear-my-data-desc">
-        ลบเฉพาะข้อมูลเกมของบัญชี{username ? ` ${username}` : ' นี้'} — ไม่กระทบผู้เล่นคนอื่น
+        {t('clearMyData.description', {
+          usernameSuffix: username
+            ? t('clearMyData.descriptionWithUsernameSuffix', { username })
+            : t('clearMyData.descriptionWithoutUsernameSuffix')
+        })}
       </p>
       <ul className="clear-my-data-list">
-        <li>ลบ: สัตว์เลี้ยง, ไอเทม, ภารกิจ, activity, ประวัติต่อสู้ ของคนกด</li>
-        <li>เก็บไว้: บัญชี login, เพื่อน, แชท ของคนกด</li>
+        <li>{t('clearMyData.deleteList')}</li>
+        <li>{t('clearMyData.keepList')}</li>
       </ul>
       {message && <p className="clear-my-data-message">{message}</p>}
       {!showConfirm ? (
         <button className="danger-btn" type="button" onClick={() => setShowConfirm(true)}>
-          Clear ข้อมูลของฉัน
+          {t('clearMyData.button')}
         </button>
       ) : (
         <div className="reset-confirm">
-          <p>แน่ใจหรือไม่ว่าต้องการล้างข้อมูลเกมทั้งหมดของคุณ?</p>
+          <p>{t('clearMyData.confirm')}</p>
           <div className="reset-confirm-actions">
             <button className="danger-btn" type="button" onClick={confirmClear} disabled={loading}>
-              {loading ? 'กำลังล้าง...' : 'ตกลง'}
+              {loading ? t('clearMyData.loading') : t('common.confirm')}
             </button>
             <button
               className="secondary"
@@ -57,7 +63,7 @@ export function ClearMyDataPanel({ username, onCleared }: Props) {
               }}
               disabled={loading}
             >
-              ยกเลิก
+              {t('common.cancel')}
             </button>
           </div>
         </div>

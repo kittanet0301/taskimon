@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatApiError } from '../shared/formatError'
 
 interface FriendRow {
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function Friends({ onViewProfile }: Props) {
+  const { t } = useTranslation()
   const [friendCode, setFriendCode] = useState('')
   const [friends, setFriends] = useState<FriendRow[]>([])
   const [pending, setPending] = useState<PendingRow[]>([])
@@ -38,37 +40,37 @@ export function Friends({ onViewProfile }: Props) {
 
   const addFriend = async () => {
     if (!userId) {
-      setMessage('กรุณาเข้าสู่ระบบก่อน')
+      setMessage(t('friends.loginFirst'))
       return
     }
     try {
       const profile = (await window.electronAPI.searchFriend(friendCode)) as { id: string; username: string } | null
       if (!profile) {
-        setMessage('ไม่พบรหัสเพื่อน')
+        setMessage(t('friends.friendCodeNotFound'))
         return
       }
       if (profile.id === userId) {
-        setMessage('ไม่สามารถเพิ่มตัวเองเป็นเพื่อนได้')
+        setMessage(t('friends.cannotAddSelf'))
         return
       }
       const result = (await window.electronAPI.sendFriendRequest(userId, profile.id)) as { status: string }
       setFriendCode('')
       setMessage(
         result.status === 'accepted'
-          ? `เพิ่ม ${profile.username} เป็นเพื่อนแล้ว (ยอมรับคำขออัตโนมัติ)`
-          : `ส่งคำขอเป็นเพื่อนไปยัง ${profile.username} แล้ว — รออีกฝ่ายยอมรับ`
+          ? t('friends.requestAccepted', { username: profile.username })
+          : t('friends.requestSent', { username: profile.username })
       )
       load()
     } catch (e) {
       const text = formatApiError(e)
       if (text.includes('Already friends')) {
-        setMessage('เป็นเพื่อนกันอยู่แล้ว')
+        setMessage(t('friends.alreadyFriends'))
       } else if (text.includes('Request already sent')) {
-        setMessage('ส่งคำขอไปแล้ว — รออีกฝ่ายยอมรับ')
+        setMessage(t('friends.requestAlreadySent'))
       } else if (text.includes('duplicate') || text.includes('unique')) {
-        setMessage('ส่งคำขอไปแล้ว หรือเป็นเพื่อนกันอยู่แล้ว')
+        setMessage(t('friends.requestSentOrAlreadyFriends'))
       } else if (text.includes('violates') || text.includes('foreign key')) {
-        setMessage('ไม่สามารถส่งคำขอได้ — ตรวจสอบรหัสเพื่อน')
+        setMessage(t('friends.requestCannotSendCheckCode'))
       } else {
         setMessage(text)
       }
@@ -77,41 +79,45 @@ export function Friends({ onViewProfile }: Props) {
 
   const respond = async (requestId: string, accept: boolean) => {
     await window.electronAPI.respondFriend(requestId, accept)
-    setMessage(accept ? 'ยอมรับคำขอแล้ว' : 'ปฏิเสธคำขอแล้ว')
+    setMessage(accept ? t('friends.respondAccepted') : t('friends.respondDeclined'))
     load()
   }
 
   return (
     <div className="card">
-      <h2>เพื่อน</h2>
+      <h2>{t('friends.title')}</h2>
       <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: 0 }}>
-        ใส่รหัสเพื่อนแล้วส่งคำขอ — ถ้าอีกฝ่ายเคยขอมาก่อน จะยอมรับอัตโนมัติ
+        {t('friends.hint')}
       </p>
       {message && <p>{message}</p>}
       <div className="form-row">
-        <label>เพิ่มเพื่อนด้วยรหัส</label>
-        <input value={friendCode} onChange={(e) => setFriendCode(e.target.value.toUpperCase())} placeholder="ABC123" />
+        <label>{t('friends.addByCode')}</label>
+        <input
+          value={friendCode}
+          onChange={(e) => setFriendCode(e.target.value.toUpperCase())}
+          placeholder={t('common.placeholderFriendCode')}
+        />
       </div>
-      <button className="primary" onClick={addFriend}>ส่งคำขอ</button>
+      <button className="primary" onClick={addFriend}>{t('friends.sendRequest')}</button>
 
-      <h3 style={{ marginTop: 24 }}>คำขอที่รอ</h3>
-      {pending.length === 0 && <p>ไม่มีคำขอ</p>}
+      <h3 style={{ marginTop: 24 }}>{t('friends.pendingTitle')}</h3>
+      {pending.length === 0 && <p>{t('friends.nonePending')}</p>}
       {pending.map((p) => (
         <div key={p.id} className="friend-item">
           <span>{p.profiles?.username ?? p.user_id}</span>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="primary" onClick={() => respond(p.id, true)}>ยอมรับ</button>
-            <button className="secondary" onClick={() => respond(p.id, false)}>ปฏิเสธ</button>
+            <button className="primary" onClick={() => respond(p.id, true)}>{t('friends.accept')}</button>
+            <button className="secondary" onClick={() => respond(p.id, false)}>{t('friends.decline')}</button>
           </div>
         </div>
       ))}
 
-      <h3 style={{ marginTop: 24 }}>รายชื่อเพื่อน</h3>
-      {friends.length === 0 && <p>ยังไม่มีเพื่อน</p>}
+      <h3 style={{ marginTop: 24 }}>{t('friends.friendListTitle')}</h3>
+      {friends.length === 0 && <p>{t('friends.noneFriends')}</p>}
       {friends.map((f) => (
         <div key={f.id} className="friend-item">
           <span>{f.profiles?.username ?? f.friend_id}</span>
-          <button className="secondary" onClick={() => onViewProfile(f.friend_id)}>ดูโปรไฟล์</button>
+          <button className="secondary" onClick={() => onViewProfile(f.friend_id)}>{t('friends.viewProfile')}</button>
         </div>
       ))}
     </div>

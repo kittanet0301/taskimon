@@ -33,13 +33,13 @@ function generateFriendCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase()
 }
 
-export async function signUp(email: string, password: string, username: string) {
+export async function signUp(email: string, password: string, username: string, birthDate: string) {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { username } }
+    options: { data: { username, birth_date: birthDate } }
   })
   if (error) throw error
   if (!data.user) throw new Error('No user returned')
@@ -47,7 +47,8 @@ export async function signUp(email: string, password: string, username: string) 
   const { error: profileError } = await supabase.from('profiles').upsert({
     id: data.user.id,
     username,
-    friend_code: generateFriendCode()
+    friend_code: generateFriendCode(),
+    birth_date: birthDate
   })
   if (profileError) console.warn('[auth] profile upsert:', profileError.message)
   return data
@@ -67,28 +68,18 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
-function passwordResetRedirectUrl(): string {
-  return (
-    process.env.PASSWORD_RESET_REDIRECT_URL ??
-    process.env.VITE_PASSWORD_RESET_REDIRECT_URL ??
-    'https://taskimon.vercel.app/'
-  )
-}
-
-export async function requestPasswordReset(email: string) {
-  const supabase = getSupabase()
-  if (!supabase) throw new Error('Supabase not configured')
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: passwordResetRedirectUrl()
-  })
-  if (error) throw error
-}
-
 export async function updatePassword(password: string) {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
   const { error } = await supabase.auth.updateUser({ password })
   if (error) throw error
+}
+
+export async function resetPasswordByBirthdate(email: string) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.rpc('reset_password_by_birthdate', { p_email: email.trim() })
+  if (error) rpcError(error)
 }
 
 export async function getSession() {
@@ -327,27 +318,6 @@ export async function startRoomDuel(roomId: string, opponentUserId: string) {
   const { data, error } = await supabase.rpc('room_start_duel', {
     p_room_id: roomId,
     p_opponent_user_id: opponentUserId
-  })
-  if (error) rpcError(error)
-  return data
-}
-
-export async function createBattleChallenge(defenderUserId: string) {
-  const supabase = getSupabase()
-  if (!supabase) throw new Error('Supabase not configured')
-  const { data, error } = await supabase.rpc('battle_create_challenge', {
-    p_defender_user_id: defenderUserId
-  })
-  if (error) rpcError(error)
-  return data
-}
-
-export async function respondBattle(sessionId: string, accept: boolean) {
-  const supabase = getSupabase()
-  if (!supabase) throw new Error('Supabase not configured')
-  const { data, error } = await supabase.rpc('battle_respond', {
-    p_session_id: sessionId,
-    p_accept: accept
   })
   if (error) rpcError(error)
   return data

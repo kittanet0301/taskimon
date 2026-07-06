@@ -1,12 +1,9 @@
-import type { CyclicalElement, Element, Species } from './types'
-
-export const ELEMENT_NAMES: Record<Element, string> = {
-  fire: 'ไฟ',
-  water: 'น้ำ',
-  earth: 'ดิน',
-  wind: 'ลม',
-  neutral: 'กลาง'
-}
+import type { CyclicalElement, Element } from './types'
+export {
+  tElement as ELEMENT_NAMES,
+  tSpecies as SPECIES_NAMES,
+  tItemLabel as ITEM_LABELS
+} from '../i18n/labels'
 
 export const ELEMENT_COLORS: Record<Element, string> = {
   fire: '#e74c3c',
@@ -16,12 +13,6 @@ export const ELEMENT_COLORS: Record<Element, string> = {
   neutral: '#7f8c8d'
 }
 
-export const SPECIES_NAMES: Record<Species, string> = {
-  mamono: 'มาโมโน',
-  avian: 'อเวี่ยน',
-  aquatic: 'อะควาติก',
-  mythic: 'มิธิค'
-}
 
 /** Fire → Earth → Wind → Water → Fire (neutral excluded) */
 export const ELEMENT_STRONG_AGAINST: Record<CyclicalElement, CyclicalElement> = {
@@ -46,12 +37,3 @@ export const KEYS_PER_DEV = 500
 export const MAX_DEV_PER_HOUR = 10
 export const RESET_SYSTEM_PIN = '1234'
 
-export const ITEM_LABELS: Record<string, string> = {
-  food_basic: 'ผัก',
-  food_premium: 'อาหารกระป๋อง',
-  medicine: 'ยา',
-  water: 'น้ำ',
-  toy: 'ของเล่น',
-  dev_vitamin: 'วิตามินพัฒนาร่าง',
-  element_shield: 'โล่ธาตุ'
-}

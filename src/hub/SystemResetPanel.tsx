@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { RESET_SYSTEM_PIN } from '../shared/constants'
 import { formatApiError } from '../shared/formatError'
 
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function SystemResetPanel({ onReset }: Props) {
+  const { t } = useTranslation()
   const [showConfirm, setShowConfirm] = useState(false)
   const [pin, setPin] = useState('')
   const [message, setMessage] = useState('')
@@ -14,7 +16,7 @@ export function SystemResetPanel({ onReset }: Props) {
 
   const confirmReset = async () => {
     if (pin !== RESET_SYSTEM_PIN) {
-      setMessage('รหัสยืนยันไม่ถูกต้อง')
+      setMessage(t('systemReset.invalidPin'))
       return
     }
     setLoading(true)
@@ -23,7 +25,7 @@ export function SystemResetPanel({ onReset }: Props) {
       await window.electronAPI.resetSystemGameData()
       setShowConfirm(false)
       setPin('')
-      setMessage('ล้างระบบแล้ว — ข้อมูลเกมของทุกคนถูกรีเซ็ต')
+      setMessage(t('systemReset.done'))
       onReset()
     } catch (e) {
       setMessage(formatApiError(e))
@@ -34,36 +36,36 @@ export function SystemResetPanel({ onReset }: Props) {
 
   return (
     <div className="danger-zone">
-      <h3>ล้างระบบ</h3>
+      <h3>{t('systemReset.title')}</h3>
       <p className="danger-zone-desc">
-        ล้างข้อมูลเกมของผู้เล่นทุกคนในระบบ — ไม่กระทบบัญชี login, เพื่อน, แชท
+        {t('systemReset.description')}
       </p>
       <ul className="clear-my-data-list">
-        <li>ลบ: สัตว์เลี้ยง, ไอเทม, ภารกิจ, activity, ประวัติต่อสู้, ห้องต่อสู้ ของทุกคน</li>
-        <li>เก็บไว้: บัญชี login, เพื่อน, แชท ของทุกคน</li>
+        <li>{t('systemReset.deleteList')}</li>
+        <li>{t('systemReset.keepList')}</li>
       </ul>
       {message && <p className="clear-my-data-message">{message}</p>}
       {!showConfirm ? (
         <button className="danger-btn" type="button" onClick={() => setShowConfirm(true)}>
-          ล้างระบบ
+          {t('systemReset.button')}
         </button>
       ) : (
         <div className="reset-confirm">
-          <p>แน่ใจหรือไม่ว่าต้องการล้างข้อมูลเกมของทุกคน?</p>
-          <label htmlFor="system-reset-pin">ใส่รหัสยืนยัน</label>
+          <p>{t('systemReset.confirm')}</p>
+          <label htmlFor="system-reset-pin">{t('systemReset.pinLabel')}</label>
           <input
             id="system-reset-pin"
             type="password"
             inputMode="numeric"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            placeholder="รหัส 4 หลัก"
+            placeholder={t('systemReset.pinPlaceholder')}
             disabled={loading}
             autoComplete="off"
           />
           <div className="reset-confirm-actions">
             <button className="danger-btn" type="button" onClick={confirmReset} disabled={loading}>
-              {loading ? 'กำลังล้าง...' : 'ตกลง'}
+              {loading ? t('systemReset.loading') : t('common.confirm')}
             </button>
             <button
               className="secondary"
@@ -75,7 +77,7 @@ export function SystemResetPanel({ onReset }: Props) {
               }}
               disabled={loading}
             >
-              ยกเลิก
+              {t('common.cancel')}
             </button>
           </div>
         </div>
