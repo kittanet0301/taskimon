@@ -1,4 +1,4 @@
-# Taskimon
+# Taskino
 
 Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron) + web.
 
@@ -100,7 +100,7 @@ npm run build:win
 npm run build:mac
 ```
 
-Output: `dist/Taskimon Setup 0.1.0.exe` (Windows) or `.dmg` (macOS).
+Output: `dist/Taskino Setup 0.1.0.exe` (Windows) or `.dmg` (macOS).
 
 Installer อ่าน Supabase จาก `resources/.env` (bundle จาก `.env.production` ตอน build)
 

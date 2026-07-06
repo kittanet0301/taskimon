@@ -3,7 +3,19 @@ import { createDefaultSave, migrateSave } from '@shared/growth'
 import { applyMoodDecay } from '@shared/stats'
 import { applyDailyResets } from '@shared/missions'
 
-const STORAGE_KEY = 'taskimon-save'
+const STORAGE_KEY = 'taskino-save'
+const LEGACY_STORAGE_KEY = 'taskimon-save'
+
+function readStoredSave(): string | null {
+  const current = localStorage.getItem(STORAGE_KEY)
+  if (current) return current
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY)
+  if (legacy) {
+    localStorage.setItem(STORAGE_KEY, legacy)
+    return legacy
+  }
+  return null
+}
 
 function applyOfflineDecay(save: GameSave): GameSave {
   const lastSaved = new Date(save.lastSaved).getTime()
@@ -20,7 +32,7 @@ function applyOfflineDecay(save: GameSave): GameSave {
 
 export function loadSave(): GameSave {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = readStoredSave()
     if (!raw) {
       const save = createDefaultSave()
       writeSave(save)

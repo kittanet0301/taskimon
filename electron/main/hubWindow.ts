@@ -24,7 +24,7 @@ export function createHubWindow(): BrowserWindow {
     minWidth: 800,
     minHeight: 600,
     show: false,
-    title: 'Taskimon',
+    title: 'Taskino',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

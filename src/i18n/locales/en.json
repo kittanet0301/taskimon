@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Taskimon",
+    "appName": "Taskino",
     "loading": "Loading...",
     "connectingApp": "Connecting to app...",
     "saveNow": "Save now",
@@ -30,7 +30,7 @@
     "collection": "Collection"
   },
   "app": {
-    "title": "Taskimon",
+    "title": "Taskino",
     "webSuffix": "Web",
     "supabaseRequiredTitle": "Supabase setup required",
     "supabaseRequiredSubtitle": "Set up Supabase before using the app",
@@ -78,7 +78,7 @@
     "switchNoAccount": "Don't have an account?",
     "switchHaveAccount": "Already have an account?",
     "taglineLogin": "Log in to start raising your pet",
-    "taglineSignup": "Create an account and begin your Taskimon adventure",
+    "taglineSignup": "Create an account and begin your Taskino adventure",
     "taglineForgot": "Recover your account access",
     "loadingLogin": "Signing in...",
     "loadingSignUp": "Signing up...",
@@ -353,7 +353,7 @@
     "loading": "Resetting..."
   },
   "tray": {
-    "title": "Taskimon",
+    "title": "Taskino",
     "loginToSeePetStatus": "Log in to view pet status",
     "openHub": "Open Hub",
     "showPet": "Show Pet",
@@ -362,7 +362,7 @@
     "petStatsLabel": "{{name}} | HP {{hp}} | Mood {{mood}} | Evolution {{devPoints}}",
     "activityLabel": "Clicks: {{clicks}} | Typing: {{keystrokes}}",
     "tooltipLoggedIn": "{{name}} - Clicks {{clicks}} · Typing {{keystrokes}}",
-    "tooltipLoggedOut": "Taskimon - Log in to play"
+    "tooltipLoggedOut": "Taskino - Log in to play"
   },
   "characters": {
     "cole": "Cole",

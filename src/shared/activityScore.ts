@@ -18,4 +18,15 @@ export function getPetLevel(stage: Stage, devPoints: number): number {
   return 5 + Math.floor(devPoints / 100)
 }
 
-export const ONBOARDING_KEY = 'taskimon-onboarded'
+export const ONBOARDING_KEY = 'taskino-onboarded'
+const LEGACY_ONBOARDING_KEY = 'taskimon-onboarded'
+
+export function isOnboardingComplete(): boolean {
+  if (typeof localStorage === 'undefined') return false
+  if (localStorage.getItem(ONBOARDING_KEY)) return true
+  if (localStorage.getItem(LEGACY_ONBOARDING_KEY)) {
+    localStorage.setItem(ONBOARDING_KEY, '1')
+    return true
+  }
+  return false
+}

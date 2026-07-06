@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Taskimon",
+    "appName": "Taskino",
     "loading": "กำลังโหลด...",
     "connectingApp": "กำลังเชื่อมต่อแอป...",
     "saveNow": "บันทึกทันที",
@@ -30,7 +30,7 @@
     "collection": "คลังไข่"
   },
   "app": {
-    "title": "Taskimon",
+    "title": "Taskino",
     "webSuffix": "เว็บ",
     "supabaseRequiredTitle": "ต้องตั้งค่า Supabase",
     "supabaseRequiredSubtitle": "ต้องตั้งค่า Supabase ก่อนใช้งานแอป",
@@ -78,7 +78,7 @@
     "switchNoAccount": "ยังไม่มีบัญชี?",
     "switchHaveAccount": "มีบัญชีแล้ว?",
     "taglineLogin": "เข้าสู่ระบบเพื่อเริ่มเลี้ยงสัตว์ของคุณ",
-    "taglineSignup": "สร้างบัญชีใหม่เพื่อเริ่มผจญภัยกับ Taskimon",
+    "taglineSignup": "สร้างบัญชีใหม่เพื่อเริ่มผจญภัยกับ Taskino",
     "taglineForgot": "กู้การเข้าถึงบัญชีของคุณ",
     "loadingLogin": "กำลังเข้าสู่ระบบ...",
     "loadingSignUp": "กำลังสมัคร...",
@@ -353,7 +353,7 @@
     "loading": "กำลังล้าง..."
   },
   "tray": {
-    "title": "Taskimon",
+    "title": "Taskino",
     "loginToSeePetStatus": "เข้าสู่ระบบเพื่อดูสถานะสัตว์เลี้ยง",
     "openHub": "เปิด Hub",
     "showPet": "แสดงสัตว์",
@@ -362,7 +362,7 @@
     "petStatsLabel": "{{name}} | HP {{hp}} | อารมณ์ {{mood}} | พัฒนา {{devPoints}}",
     "activityLabel": "คลิก: {{clicks}} | พิมพ์: {{keystrokes}}",
     "tooltipLoggedIn": "{{name}} - คลิก {{clicks}} · พิมพ์ {{keystrokes}}",
-    "tooltipLoggedOut": "Taskimon - เข้าสู่ระบบเพื่อเล่น"
+    "tooltipLoggedOut": "Taskino - เข้าสู่ระบบเพื่อเล่น"
   },
   "characters": {
     "cole": "โคล",

@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave } from './shared/types'
-import { ONBOARDING_KEY } from './shared/activityScore'
+import { isOnboardingComplete, ONBOARDING_KEY } from './shared/activityScore'
 import './i18n'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
@@ -44,7 +44,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [tab, setTab] = useState<Tab>('home')
   const [cloudReady, setCloudReady] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
-  const [showCover, setShowCover] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
+  const [showCover, setShowCover] = useState(() => !isOnboardingComplete())
   const [session, setSession] = useState<Session>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [authLoading, setAuthLoading] = useState(true)

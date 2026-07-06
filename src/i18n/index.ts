@@ -3,13 +3,18 @@ import { initReactI18next } from 'react-i18next'
 import en from './locales/en.json'
 import th from './locales/th.json'
 
-export const LOCALE_STORAGE_KEY = 'taskimon-lang'
+export const LOCALE_STORAGE_KEY = 'taskino-lang'
+const LEGACY_LOCALE_KEY = 'taskimon-lang'
 
 export type AppLocale = 'en' | 'th'
 
 export function getStoredLocale(): AppLocale {
   if (typeof localStorage === 'undefined') return 'en'
-  const stored = localStorage.getItem(LOCALE_STORAGE_KEY)
+  let stored = localStorage.getItem(LOCALE_STORAGE_KEY)
+  if (!stored) {
+    stored = localStorage.getItem(LEGACY_LOCALE_KEY)
+    if (stored) localStorage.setItem(LOCALE_STORAGE_KEY, stored)
+  }
   if (stored === 'th' || stored === 'en') return stored
   return 'en'
 }

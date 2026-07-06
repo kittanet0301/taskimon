@@ -1,7 +1,7 @@
 {
-  "name": "taskimon",
+  "name": "taskino",
   "version": "0.1.0",
-  "description": "Taskimon — Tamagotchi desktop pet with 12 dino characters",
+  "description": "Taskino — Tamagotchi desktop pet with 12 dino characters",
   "main": "./out/main/index.js",
   "author": "kittanet0301",
   "license": "MIT",
@@ -40,8 +40,8 @@
     "vite": "^5.4.11"
   },
   "build": {
-    "appId": "com.taskimon.app",
-    "productName": "Taskimon",
+    "appId": "com.taskino.app",
+    "productName": "Taskino",
     "directories": {
       "output": "dist"
     },
