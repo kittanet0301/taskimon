@@ -84,24 +84,13 @@ export async function bootstrapGameSaveInDb(userId: string, save?: GameSave): Pr
   return initial
 }
 
-/** Wipe game progress for one user (keeps profile, friends, chat). */
+/** Wipe game progress for one user (keeps profile, friends). */
 export async function resetGameDataInDb(userId: string): Promise<GameSave> {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
 
-  const { data: pets, error: petsQueryError } = await supabase
-    .from('pets')
-    .select('id')
-    .eq('owner_id', userId)
-  if (petsQueryError) throw petsQueryError
-
-  for (const pet of pets ?? []) {
-    const { error } = await supabase
-      .from('battles')
-      .delete()
-      .or(`challenger_pet_id.eq.${pet.id},defender_pet_id.eq.${pet.id},winner_pet_id.eq.${pet.id}`)
-    if (error) throw error
-  }
+  const { error: chatLeaveError } = await supabase.rpc('chat_room_leave_all')
+  if (chatLeaveError) throw chatLeaveError
 
   const { error: deletePetsError } = await supabase.from('pets').delete().eq('owner_id', userId)
   if (deletePetsError) throw deletePetsError
@@ -120,7 +109,7 @@ export async function resetGameDataInDb(userId: string): Promise<GameSave> {
   return fresh
 }
 
-/** Wipe game progress for all users (keeps profiles, friendships, messages). */
+/** Wipe game progress for all users (keeps profiles, friendships). */
 export async function resetSystemDataInDb(userId: string): Promise<GameSave> {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')

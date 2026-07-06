@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChatRoomView } from './ChatRoomView'
 import type { ChatRoomRow } from './types'
@@ -16,22 +16,48 @@ export function ChatRoomHub() {
   const [userId, setUserId] = useState<string | null>(null)
   const [activeRoom, setActiveRoom] = useState<ChatRoomRow | null>(null)
   const [error, setError] = useState('')
+  const activeRoomRef = useRef<ChatRoomRow | null>(null)
+
+  activeRoomRef.current = activeRoom
+
+  const refreshRooms = useCallback(async () => {
+    try {
+      setRooms((await window.electronAPI.listChatRooms()) as ChatRoomRow[])
+      setError('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
+  }, [])
 
   useEffect(() => {
-    ;(async () => {
+    void (async () => {
       try {
         const session = (await window.electronAPI.getSession()) as { user: { id: string } } | null
         setUserId(session?.user?.id ?? null)
-        setRooms((await window.electronAPI.listChatRooms()) as ChatRoomRow[])
+        await refreshRooms()
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))
       }
     })()
+  }, [refreshRooms])
+
+  useEffect(() => {
+    return () => {
+      const room = activeRoomRef.current
+      if (room) {
+        void window.electronAPI.leaveChatRoom(room.id)
+      }
+    }
   }, [])
 
   const join = (room: ChatRoomRow) => {
     setError('')
     setActiveRoom(room)
+  }
+
+  const handleLeaveRoom = () => {
+    setActiveRoom(null)
+    void refreshRooms()
   }
 
   if (!userId) {
@@ -48,7 +74,7 @@ export function ChatRoomHub() {
         roomId={activeRoom.id}
         roomName={t(`chatLobby.rooms.${activeRoom.slug}`, { defaultValue: activeRoom.name })}
         userId={userId}
-        onLeave={() => setActiveRoom(null)}
+        onLeave={handleLeaveRoom}
       />
     )
   }
@@ -81,3 +107,4 @@ export function ChatRoomHub() {
     </div>
   )
 }
+

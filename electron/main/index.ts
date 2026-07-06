@@ -56,9 +56,6 @@ import {
   getBattleTurns,
   subscribeToBattles,
   subscribeToBattleRoom,
-  sendChatMessage,
-  getChatMessages,
-  subscribeToChat,
   listChatRooms,
   joinChatRoom,
   leaveChatRoom,
@@ -230,23 +227,15 @@ function setupIpc(): void {
     activeBattleRoomId = roomId
   })
 
-  ipcMain.handle('chat:send', async (_e, senderId: string, receiverId: string, content: string) =>
-    sendChatMessage(senderId, receiverId, content)
-  )
-  ipcMain.handle('chat:history', async (_e, userId: string, friendId: string) =>
-    getChatMessages(userId, friendId)
-  )
-  ipcMain.handle('chat:subscribe', (event, userId: string) => {
-    const wc = event.sender
-    const unsubscribe = subscribeToChat(userId, (payload) => {
-      wc.send('chat:message', payload)
-    })
-    return true
-  })
-
   ipcMain.handle('chatRoom:list', async () => listChatRooms())
   ipcMain.handle('chatRoom:join', async (_e, roomId: string) => joinChatRoom(roomId))
-  ipcMain.handle('chatRoom:leave', async (_e, roomId: string) => leaveChatRoom(roomId))
+  ipcMain.handle('chatRoom:leave', async (_e, roomId: string) => {
+    await leaveChatRoom(roomId)
+    if (chatRoomUnsubscribe) {
+      chatRoomUnsubscribe()
+      chatRoomUnsubscribe = null
+    }
+  })
   ipcMain.handle('chatRoom:members', async (_e, roomId: string) => getChatRoomMembers(roomId))
   ipcMain.handle('chatRoom:send', async (_e, roomId: string, content: string) =>
     sendChatRoomMessage(roomId, content)

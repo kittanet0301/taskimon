@@ -51,15 +51,6 @@ const api: GameAPI = {
     ipcRenderer.on('battle:update', handler)
     return () => ipcRenderer.removeListener('battle:update', handler)
   },
-  sendChat: (senderId, receiverId, content) =>
-    ipcRenderer.invoke('chat:send', senderId, receiverId, content),
-  chatHistory: (userId, friendId) => ipcRenderer.invoke('chat:history', userId, friendId),
-  subscribeChat: (userId) => ipcRenderer.invoke('chat:subscribe', userId),
-  onChatMessage: (callback) => {
-    const handler = (_: unknown, payload: unknown) => callback(payload)
-    ipcRenderer.on('chat:message', handler)
-    return () => ipcRenderer.removeListener('chat:message', handler)
-  },
   listChatRooms: () => ipcRenderer.invoke('chatRoom:list'),
   joinChatRoom: (roomId) => ipcRenderer.invoke('chatRoom:join', roomId),
   leaveChatRoom: (roomId) => ipcRenderer.invoke('chatRoom:leave', roomId),

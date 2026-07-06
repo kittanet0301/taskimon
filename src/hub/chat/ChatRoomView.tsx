@@ -149,9 +149,16 @@ export function ChatRoomView({ roomId, roomName, userId, onLeave }: Props) {
   }, [roomId, refreshMembers])
 
   const handleLeave = async () => {
+    if (leftRef.current) return
     leftRef.current = true
-    await window.electronAPI.leaveChatRoom(roomId)
-    onLeave()
+    setError('')
+    try {
+      await window.electronAPI.leaveChatRoom(roomId)
+      onLeave()
+    } catch (e) {
+      leftRef.current = false
+      setError(e instanceof Error ? e.message : String(e))
+    }
   }
 
   const handleSend = async () => {
@@ -172,6 +179,7 @@ export function ChatRoomView({ roomId, roomName, userId, onLeave }: Props) {
 
   const handlePositionSync = useCallback(
     (pos: { x: number; y: number; facing: string; anim: string }) => {
+      if (leftRef.current) return
       void window.electronAPI.updateChatRoomPosition(roomId, pos)
     },
     [roomId]

@@ -243,14 +243,6 @@ export async function getFriendPet(ownerId: string) {
   return data
 }
 
-export async function saveBattleLog(battle: Record<string, unknown>) {
-  const supabase = getSupabase()
-  if (!supabase) throw new Error('Supabase not configured')
-  const { data, error } = await supabase.from('battles').insert(battle).select().single()
-  if (error) throw new Error(error.message)
-  return data
-}
-
 export async function createBattleRoom(name?: string) {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')
@@ -378,48 +370,6 @@ export function subscribeToBattleRoom(roomId: string, onUpdate: (payload: unknow
       'postgres_changes',
       { event: '*', schema: 'public', table: 'battle_sessions', filter: `room_id=eq.${roomId}` },
       onUpdate
-    )
-    .subscribe()
-  return () => {
-    supabase.removeChannel(channel)
-  }
-}
-
-export async function sendChatMessage(senderId: string, receiverId: string, content: string) {
-  const supabase = getSupabase()
-  if (!supabase) throw new Error('Supabase not configured')
-  const { data, error } = await supabase
-    .from('messages')
-    .insert({ sender_id: senderId, receiver_id: receiverId, content })
-    .select()
-    .single()
-  if (error) throw new Error(error.message)
-  return data
-}
-
-export async function getChatMessages(userId: string, friendId: string) {
-  const supabase = getSupabase()
-  if (!supabase) return []
-  const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .or(
-      `and(sender_id.eq.${userId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${userId})`
-    )
-    .order('created_at', { ascending: true })
-  if (error) throw new Error(error.message)
-  return data ?? []
-}
-
-export function subscribeToChat(userId: string, onMessage: (payload: unknown) => void) {
-  const supabase = getSupabase()
-  if (!supabase) return () => undefined
-  const channel = supabase
-    .channel(`chat:${userId}`)
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userId}` },
-      onMessage
     )
     .subscribe()
   return () => {

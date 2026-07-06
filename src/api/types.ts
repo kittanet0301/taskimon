@@ -41,10 +41,6 @@ export interface GameAPI {
   subscribeBattles: (userId: string) => Promise<boolean>
   subscribeBattleRoom: (roomId: string) => Promise<boolean>
   onBattleUpdate: (callback: (payload: unknown) => void) => () => void
-  sendChat: (senderId: string, receiverId: string, content: string) => Promise<unknown>
-  chatHistory: (userId: string, friendId: string) => Promise<unknown>
-  subscribeChat: (userId: string) => Promise<boolean>
-  onChatMessage: (callback: (payload: unknown) => void) => () => void
   listChatRooms: () => Promise<unknown>
   joinChatRoom: (roomId: string) => Promise<unknown>
   leaveChatRoom: (roomId: string) => Promise<void>

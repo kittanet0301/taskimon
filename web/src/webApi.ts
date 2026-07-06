@@ -40,9 +40,6 @@ import {
   getBattleTurns,
   subscribeToBattles,
   subscribeToBattleRoom,
-  sendChatMessage,
-  getChatMessages,
-  subscribeToChat,
   listChatRooms,
   joinChatRoom,
   leaveChatRoom,
@@ -54,10 +51,8 @@ import {
   syncMissions
 } from './supabase'
 
-const chatListeners = new Set<(payload: unknown) => void>()
 const chatRoomListeners = new Set<(payload: unknown) => void>()
 const battleListeners = new Set<(payload: unknown) => void>()
-let chatUnsubscribe: (() => void) | null = null
 let chatRoomUnsubscribe: (() => void) | null = null
 let battleUnsubscribe: (() => void) | null = null
 let roomUnsubscribe: (() => void) | null = null
@@ -147,22 +142,15 @@ export function createWebApi(): GameAPI {
       battleListeners.add(callback)
       return () => battleListeners.delete(callback)
     },
-    sendChat: async (senderId, receiverId, content) => sendChatMessage(senderId, receiverId, content),
-    chatHistory: async (userId, friendId) => getChatMessages(userId, friendId),
-    subscribeChat: async (userId) => {
-      if (chatUnsubscribe) chatUnsubscribe()
-      chatUnsubscribe = subscribeToChat(userId, (payload) => {
-        for (const cb of chatListeners) cb(payload)
-      })
-      return true
-    },
-    onChatMessage: (callback) => {
-      chatListeners.add(callback)
-      return () => chatListeners.delete(callback)
-    },
     listChatRooms: async () => listChatRooms(),
     joinChatRoom: async (roomId) => joinChatRoom(roomId),
-    leaveChatRoom: async (roomId) => leaveChatRoom(roomId),
+    leaveChatRoom: async (roomId) => {
+      await leaveChatRoom(roomId)
+      if (chatRoomUnsubscribe) {
+        chatRoomUnsubscribe()
+        chatRoomUnsubscribe = null
+      }
+    },
     getChatRoomMembers: async (roomId) => getChatRoomMembers(roomId),
     sendChatRoomMessage: async (roomId, content) => sendChatRoomMessage(roomId, content),
     updateChatRoomPosition: async (roomId, pos) => updateChatRoomPosition(roomId, pos),
