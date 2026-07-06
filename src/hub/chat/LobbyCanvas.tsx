@@ -15,14 +15,16 @@ import {
   setupCrispCanvas,
   type DinoSpriteFolder
 } from '../../shared/dinoSprites'
+import { drawLobbyBackground } from './lobbyBackgrounds'
 import { createPhysicsState, tickPhysics, type LobbyInput, type PhysicsState } from './lobbyPhysics'
 import { pruneBubbles, upsertBubble } from './speechBubbles'
 import type { ChatRoomMember, ChatRoomMessage, LobbyEntity } from './types'
 
-const CANVAS_W = 640
-const CANVAS_H = 320
+const CANVAS_W = 960
+const CANVAS_H = 480
 const LERP = 0.18
 const SYNC_MS = 150
+const LOBBY_PET_BASE = 96
 
 const PET_CLIPS = [
   { folder: 'base' as const, clip: 'idle' },
@@ -32,6 +34,7 @@ const PET_CLIPS = [
 
 interface Props {
   roomId: string
+  roomSlug: string
   userId: string
   members: ChatRoomMember[]
   onPositionSync: (pos: { x: number; y: number; facing: string; anim: string }) => void
@@ -95,50 +98,89 @@ function drawBubble(
   text: string,
   username: string
 ): void {
-  ctx.font = '11px sans-serif'
-  const lines = wrapText(ctx, text, 120)
-  const lineH = 14
-  const padX = 10
-  const padY = 8
-  const nameH = 14
-  const w = Math.min(
-    140,
-    Math.max(60, ...lines.map((l) => ctx.measureText(l).width)) + padX * 2
-  )
-  const h = padY * 2 + nameH + lines.length * lineH
-  const left = x - w / 2
-  const top = y - h - 12
+  const padX = 14
+  const padY = 10
+  const nameH = 18
+  const lineH = 18
+  const maxTextW = 210
+  const radius = 14
+  const tailH = 10
 
-  ctx.fillStyle = 'rgba(255,255,255,0.95)'
-  ctx.strokeStyle = 'rgba(15,23,42,0.12)'
-  ctx.lineWidth = 1
+  ctx.font = '14px "Mali", "Noto Sans Thai", sans-serif'
+  const lines = wrapText(ctx, text, maxTextW)
+  ctx.font = 'bold 13px "Mali", "Noto Sans Thai", sans-serif'
+  const nameW = ctx.measureText(username).width
+  ctx.font = '14px "Mali", "Noto Sans Thai", sans-serif'
+  const textW = Math.max(...lines.map((l) => ctx.measureText(l).width), 0)
+
+  const w = Math.min(240, Math.max(100, nameW, textW) + padX * 2)
+  const bodyH = padY + nameH + 6 + lines.length * lineH + padY
+  const h = bodyH
+  const left = Math.round(x - w / 2)
+  const top = Math.round(y - h - tailH - 6)
+
+  // shadow
+  ctx.save()
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.14)'
   ctx.beginPath()
-  ctx.roundRect(left, top, w, h, 10)
+  ctx.roundRect(left + 2, top + 3, w, h, radius)
+  ctx.fill()
+  ctx.restore()
+
+  // bubble body
+  ctx.fillStyle = '#ffffff'
+  ctx.strokeStyle = 'rgba(99, 102, 241, 0.35)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.roundRect(left, top, w, h, radius)
   ctx.fill()
   ctx.stroke()
 
+  // username pill
+  const pillPadX = 8
+  const pillH = 18
+  const pillW = Math.min(w - padX * 2, nameW + pillPadX * 2)
+  const pillX = left + (w - pillW) / 2
+  const pillY = top + padY
+  ctx.fillStyle = 'rgba(99, 102, 241, 0.12)'
   ctx.beginPath()
-  ctx.moveTo(x - 6, top + h)
-  ctx.lineTo(x, top + h + 8)
-  ctx.lineTo(x + 6, top + h)
+  ctx.roundRect(pillX, pillY, pillW, pillH, 9)
+  ctx.fill()
+
+  // tail
+  const tailTop = top + h
+  ctx.fillStyle = '#ffffff'
+  ctx.strokeStyle = 'rgba(99, 102, 241, 0.35)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(x - 7, tailTop - 1)
+  ctx.lineTo(x, tailTop + tailH)
+  ctx.lineTo(x + 7, tailTop - 1)
   ctx.closePath()
-  ctx.fillStyle = 'rgba(255,255,255,0.95)'
   ctx.fill()
   ctx.stroke()
+  // cover top edge of tail so it blends with bubble
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(x - 6, tailTop - 2, 12, 3)
 
-  ctx.fillStyle = '#6366f1'
-  ctx.font = 'bold 10px sans-serif'
+  // username
+  ctx.fillStyle = '#4f46e5'
+  ctx.font = 'bold 13px "Mali", "Noto Sans Thai", sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText(username, x, top + padY + 10)
+  ctx.textBaseline = 'middle'
+  ctx.fillText(username, x, pillY + pillH / 2)
 
+  // message
   ctx.fillStyle = '#1f2937'
-  ctx.font = '11px sans-serif'
+  ctx.font = '14px "Mali", "Noto Sans Thai", sans-serif'
+  ctx.textBaseline = 'top'
+  const textTop = top + padY + nameH + 8
   lines.forEach((line, i) => {
-    ctx.fillText(line, x, top + padY + nameH + 12 + i * lineH)
+    ctx.fillText(line, x, textTop + i * lineH)
   })
 }
 
-export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingMessage }: Props) {
+export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync, incomingMessage }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const frameRef = useRef(0)
   const physicsRef = useRef<PhysicsState>(createPhysicsState(userId))
@@ -240,7 +282,7 @@ export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingM
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = setupCrispCanvas(canvas, CANVAS_W)
+    const ctx = setupCrispCanvas(canvas, CANVAS_W, CANVAS_H, false)
     ctx.imageSmoothingEnabled = false
 
     let raf = 0
@@ -271,15 +313,7 @@ export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingM
       bubblesRef.current = pruneBubbles(bubblesRef.current)
 
       ctx.clearRect(0, 0, CANVAS_W, CANVAS_H)
-
-      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_H)
-      gradient.addColorStop(0, '#e0f2fe')
-      gradient.addColorStop(1, '#f0fdf4')
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
-
-      ctx.fillStyle = '#86efac'
-      ctx.fillRect(0, CANVAS_H * 0.72, CANVAS_W, CANVAS_H * 0.28)
+      drawLobbyBackground(ctx, roomSlug, CANVAS_W, CANVAS_H, frame)
 
       const entities: LobbyEntity[] = membersRef.current.map((m) => {
         if (m.user_id !== userId) return memberToEntity(m, false)
@@ -320,13 +354,13 @@ export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingM
 
         const bob = Math.round(Math.sin(frame / DINO_BOB_PERIOD) * 2)
         const scale = pixelScaleForStage(entity.stage)
-        const displaySize = 48 * (scale / 4)
+        const displaySize = LOBBY_PET_BASE * (scale / 4)
 
         if (img) {
           drawDinoSpriteFrame(ctx, img, Math.floor(frame / DINO_FRAMES_PER_SPRITE_FRAME), {
             x: Math.round(px),
             y: Math.round(py + bob),
-            pixelScale: Math.max(2, Math.round(displaySize / 24)),
+            pixelScale: Math.max(3, Math.round(displaySize / 24)),
             flipX: clip.flipX
           })
         } else {
@@ -338,7 +372,7 @@ export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingM
 
         const bubble = bubblesRef.current.get(entity.userId)
         if (bubble) {
-          drawBubble(ctx, px, py - displaySize / 2 - 8, bubble.content, entity.username)
+          drawBubble(ctx, px, py - displaySize / 2 - 12, bubble.content, entity.username)
         }
       }
 
@@ -347,7 +381,7 @@ export function LobbyCanvas({ roomId, userId, members, onPositionSync, incomingM
 
     tick()
     return () => cancelAnimationFrame(raf)
-  }, [roomId, userId])
+  }, [roomId, roomSlug, userId])
 
   return (
     <canvas

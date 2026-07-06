@@ -35,5 +35,12 @@ export function formatAuthError(error: unknown): string {
   if (text.includes('บัญชีนี้ยังไม่มีวันเกิด') || text.toLowerCase().includes('no birth date')) {
     return i18n.t('errors.noBirthDateOnAccount')
   }
+  if (
+    text.includes('profiles_username_key') ||
+    text.includes('duplicate key') ||
+    text.toLowerCase().includes('username') && text.toLowerCase().includes('unique')
+  ) {
+    return i18n.t('errors.usernameTaken')
+  }
   return text.replace(/^Error:\s*Error invoking remote method '[^']+':\s*(AuthApiError:\s*)?/i, '')
 }

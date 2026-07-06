@@ -6,6 +6,7 @@ import { isAtLeast18, isValidBirthDate, toBirthDateIso } from '../shared/birthDa
 import { ClearMyDataPanel } from './ClearMyDataPanel'
 import { SystemResetPanel } from './SystemResetPanel'
 import { ChangePasswordForm } from './ChangePasswordForm'
+import { ChangeUsernameForm } from './ChangeUsernameForm'
 import { BirthDateFields } from './BirthDateFields'
 
 interface Props {
@@ -26,6 +27,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
   const [message, setMessage] = useState('')
   const [dbMode, setDbMode] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [usernameSuccess, setUsernameSuccess] = useState(false)
   const [birthDay, setBirthDay] = useState(0)
   const [birthMonth, setBirthMonth] = useState(0)
   const [birthYear, setBirthYear] = useState(0)
@@ -148,6 +150,28 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="primary" onClick={forceSave}>{t('auth.saveDbNow')}</button>
             <button className="secondary" onClick={signOut}>{t('common.logout')}</button>
+          </div>
+
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>{t('auth.changeUsername')}</h3>
+            {usernameSuccess ? (
+              <p style={{ color: '#16a34a', margin: 0 }}>{t('auth.usernameUpdated')}</p>
+            ) : (
+              profile && (
+                <ChangeUsernameForm
+                  initialUsername={profile.username}
+                  submitLabel={t('auth.saveUsername')}
+                  onSubmit={async (nextUsername) => {
+                    if (!session?.user?.id) return
+                    const updated = (await window.electronAPI.updateProfile(session.user.id, {
+                      username: nextUsername
+                    })) as { username: string; friend_code: string }
+                    setProfile(updated)
+                    setUsernameSuccess(true)
+                  }}
+                />
+              )
+            )}
           </div>
 
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>

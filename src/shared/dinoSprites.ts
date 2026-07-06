@@ -31,13 +31,21 @@ export function displaySizeFromPixelScale(pixelScale: number): number {
 
 export function setupCrispCanvas(
   canvas: HTMLCanvasElement,
-  logicalSize: number
+  logicalWidth: number,
+  logicalHeight?: number,
+  cssSized = true
 ): CanvasRenderingContext2D {
+  const logicalH = logicalHeight ?? logicalWidth
   const dpr = window.devicePixelRatio || 1
-  canvas.width = Math.round(logicalSize * dpr)
-  canvas.height = Math.round(logicalSize * dpr)
-  canvas.style.width = `${logicalSize}px`
-  canvas.style.height = `${logicalSize}px`
+  canvas.width = Math.round(logicalWidth * dpr)
+  canvas.height = Math.round(logicalH * dpr)
+  if (cssSized) {
+    canvas.style.width = `${logicalWidth}px`
+    canvas.style.height = `${logicalH}px`
+  } else {
+    canvas.style.width = ''
+    canvas.style.height = ''
+  }
 
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('2d context unavailable')

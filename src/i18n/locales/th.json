@@ -26,7 +26,8 @@
     "battle": "ต่อสู้",
     "chat": "แชท",
     "profile": "โปรไฟล์",
-    "settings": "ตั้งค่า"
+    "settings": "ตั้งค่า",
+    "collection": "คลังไข่"
   },
   "app": {
     "title": "Taskimon",
@@ -78,7 +79,12 @@
     "taglineForgot": "กู้การเข้าถึงบัญชีของคุณ",
     "loadingLogin": "กำลังเข้าสู่ระบบ...",
     "loadingSignUp": "กำลังสมัคร...",
-    "saveDbNow": "บันทึกลงฐานข้อมูลทันที"
+    "saveDbNow": "บันทึกลงฐานข้อมูลทันที",
+    "changeUsername": "เปลี่ยนชื่อผู้ใช้",
+    "saveUsername": "บันทึกชื่อผู้ใช้",
+    "usernameUpdated": "เปลี่ยนชื่อผู้ใช้สำเร็จแล้ว",
+    "usernameUnchanged": "ชื่อผู้ใช้ไม่เปลี่ยนแปลง",
+    "usernameTaken": "ชื่อผู้ใช้นี้ถูกใช้แล้ว"
   },
   "birthDate": {
     "label": "วันเกิด (ต้องอายุ 18 ปีขึ้นไป)",
@@ -129,7 +135,30 @@
     "daily_play_1h": "ให้สัตว์เดินบนจอครบ 1 ชั่วโมง",
     "weekly_dev_100": "สะสมพัฒนาร่าง +100",
     "weekly_daily_5": "ทำภารกิจรายวันครบ 5 วัน",
-    "weekly_hatch_1": "ฟักไข่ใหม่ 1 ครั้ง"
+    "weekly_hatch_1": "ฟักไข่ที่กำลังเล่น 1 ครั้ง",
+    "weekly_slots_5": "ทำภารกิจรายวันครบ 5 วัน (+5 ช่อง)",
+    "weekly_egg_1": "สะสมพัฒนาร่าง +50 (รางวัลไข่)",
+    "rewardEgg": "ไข่ลึกลับ",
+    "rewardSlots": "+{{count}} ช่องเก็บ",
+    "rewardLabel": "รางวัล: {{reward}}",
+    "rewardItem": "{{item}} x{{count}}",
+    "rewardMood": "อารมณ์ +{{mood}}",
+    "rewardDevPoints": "พัฒนาร่าง +{{points}}",
+    "claimSuccess": "รับรางวัลแล้ว!",
+    "claimSuccessEgg": "ได้รับไข่ลึกลับแล้ว! ดูที่แท็บคลังไข่",
+    "claimSuccessSlots": "ปลดล็อกช่องเก็บ +{{count}} ช่องแล้ว!",
+    "claimFailed": "รับรางวัลไม่สำเร็จ ตรวจสอบช่องว่างหรือลองใหม่"
+  },
+  "collection": {
+    "title": "คลังสะสมไข่",
+    "slots": "{{used}} / {{limit}} ช่อง",
+    "empty": "ว่าง",
+    "select": "เลือกมาเล่น",
+    "delete": "ปล่อยทิ้ง",
+    "deleteConfirm": "ปล่อย {{name}} ออกจากคลัง? ไม่สามารถกู้คืนได้",
+    "noSlots": "ไม่มีช่องว่าง",
+    "page": "หน้า {{current}} / {{total}}",
+    "active": "กำลังเล่น"
   },
   "friends": {
     "title": "เพื่อน",
@@ -417,6 +446,7 @@
     "passwordTooShort": "รหัสผ่านต้องมีอย่างน้อย 6 ตัว",
     "newPasswordSameAsOld": "รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม",
     "rateLimited": "ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่",
-    "noBirthDateOnAccount": "บัญชีนี้ยังไม่มีวันเกิด — ติดต่อผู้ดูแลระบบ"
+    "noBirthDateOnAccount": "บัญชีนี้ยังไม่มีวันเกิด — ติดต่อผู้ดูแลระบบ",
+    "usernameTaken": "ชื่อผู้ใช้นี้ถูกใช้แล้ว"
   }
 }

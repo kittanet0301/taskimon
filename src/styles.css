@@ -290,6 +290,15 @@ input, select {
   border-bottom: 1px solid #f3f4f6;
 }
 
+.mission-claim-toast {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 2px solid #22c55e;
+  color: #166534;
+  font-size: 0.9rem;
+}
+
 .pet-preview {
   width: 96px;
   height: 96px;
@@ -320,7 +329,7 @@ input, select {
 }
 
 .chat-room-hub {
-  max-width: 720px;
+  max-width: 1000px;
 }
 
 .chat-room-grid {
@@ -370,7 +379,10 @@ input, select {
 .chat-room-view {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .chat-room-toolbar {
@@ -388,7 +400,7 @@ input, select {
 
 .chat-lobby-canvas {
   width: 100%;
-  max-width: 640px;
+  max-width: 960px;
   height: auto;
   aspect-ratio: 2 / 1;
   border-radius: 16px;
@@ -400,9 +412,16 @@ input, select {
 .chat-room-input-row {
   display: flex;
   gap: 8px;
-  max-width: 640px;
+  max-width: 960px;
   margin: 0 auto;
   width: 100%;
+}
+
+.chat-room-controls {
+  text-align: center;
+  width: 100%;
+  max-width: 960px;
+  margin: 4px auto 0;
 }
 
 .chat-room-input-row input {
@@ -1324,6 +1343,177 @@ input, select {
 
 .pixel-hub .content {
   background: linear-gradient(180deg, var(--pixel-content-bg) 0%, var(--pixel-content-bg-bottom) 100%);
+}
+
+.collection-card {
+  max-width: 720px;
+}
+
+.collection-active-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 3px solid var(--pixel-accent);
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+  position: relative;
+}
+
+.collection-active-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--pixel-accent);
+  color: var(--pixel-text);
+  border: 2px solid var(--pixel-border);
+}
+
+.collection-active-preview {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  overflow: visible;
+}
+
+.collection-active-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 72px;
+}
+
+.collection-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.collection-slots {
+  font-size: 0.85rem;
+  color: var(--pixel-muted);
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.collection-slot {
+  position: relative;
+  min-height: 140px;
+  border: 3px solid var(--pixel-border);
+  background: var(--pixel-card-bg);
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+}
+
+.collection-slot-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+}
+
+.collection-empty-label {
+  font-size: 0.8rem;
+  color: var(--pixel-muted);
+}
+
+.collection-slot-btn {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.collection-slot-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.collection-slot-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  margin-bottom: 6px;
+  overflow: visible;
+}
+
+.collection-slot-name {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.collection-slot-info {
+  font-size: 0.72rem;
+  color: var(--pixel-muted);
+}
+
+.collection-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid var(--pixel-border);
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+}
+
+.collection-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.collection-page-label {
+  font-size: 0.85rem;
+  color: var(--pixel-muted);
+}
+
+.collection-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.collection-dialog {
+  max-width: 360px;
+  margin: 16px;
+}
+
+.collection-dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
 .pixel-hub .card {

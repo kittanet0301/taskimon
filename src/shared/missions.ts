@@ -8,7 +8,12 @@ export interface MissionDefinition {
   id: string
   kind: MissionKind
   target: number
-  reward: { type: ItemType; quantity: number } | { mood: number } | { devPoints: number }
+  reward:
+    | { type: ItemType; quantity: number }
+    | { mood: number }
+    | { devPoints: number }
+    | { newEgg: true }
+    | { slots: number }
 }
 
 export const MISSIONS: MissionDefinition[] = [
@@ -52,7 +57,19 @@ export const MISSIONS: MissionDefinition[] = [
     id: 'weekly_hatch_1',
     kind: 'weekly',
     target: 1,
-    reward: { type: 'dev_vitamin', quantity: 1 }
+    reward: { newEgg: true }
+  },
+  {
+    id: 'weekly_slots_5',
+    kind: 'weekly',
+    target: 5,
+    reward: { slots: 5 }
+  },
+  {
+    id: 'weekly_egg_1',
+    kind: 'weekly',
+    target: 50,
+    reward: { newEgg: true }
   }
 ]
 
@@ -88,6 +105,21 @@ export function createDefaultMissions(now = new Date()): MissionProgress[] {
     completed: false,
     resetAt: getMissionResetAt(mission.kind, now)
   }))
+}
+
+/** Add any mission definitions missing from a loaded save. */
+export function ensureAllMissions(missions: MissionProgress[], now = new Date()): MissionProgress[] {
+  const byId = new Map(missions.map((m) => [m.missionId, m]))
+  return MISSIONS.map((def) => {
+    const existing = byId.get(def.id)
+    if (existing) return existing
+    return {
+      missionId: def.id,
+      progress: 0,
+      completed: false,
+      resetAt: getMissionResetAt(def.kind, now)
+    }
+  })
 }
 
 export function resetExpiredMissions(missions: MissionProgress[], now = new Date()): MissionProgress[] {
@@ -175,6 +207,16 @@ export function getMissionDefinition(missionId: string): MissionDefinition | und
   return MISSIONS.find((m) => m.id === missionId)
 }
 
+export function isEggRewardMission(missionId: string): boolean {
+  const def = getMissionDefinition(missionId)
+  return Boolean(def?.reward && 'newEgg' in def.reward)
+}
+
+export function isSlotRewardMission(missionId: string): boolean {
+  const def = getMissionDefinition(missionId)
+  return Boolean(def?.reward && 'slots' in def.reward)
+}
+
 export function localDayKey(now = new Date()): string {
   const y = now.getFullYear()
   const m = String(now.getMonth() + 1).padStart(2, '0')
@@ -190,6 +232,10 @@ export function recordDailyMissionClaim(save: GameSave, now = new Date()): GameS
     ...save,
     lastDailyMissionDay: today,
     dailyMissionsCompletedDays: save.dailyMissionsCompletedDays + 1,
-    missions: updateMissionProgress(save.missions, 'weekly_daily_5', 1)
+    missions: updateMissionProgress(
+      updateMissionProgress(save.missions, 'weekly_daily_5', 1),
+      'weekly_slots_5',
+      1
+    )
   }
 }

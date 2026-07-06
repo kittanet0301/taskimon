@@ -35,6 +35,7 @@ import {
   resetPasswordByBirthdate,
   updatePassword,
   getProfile,
+  updateProfile,
   syncPetToCloud,
   getActivePet,
   isSupabaseConfigured,
@@ -141,6 +142,9 @@ function setupIpc(): void {
   })
   ipcMain.handle('auth:session', async () => getSession())
   ipcMain.handle('auth:profile', async (_e, userId: string) => getProfile(userId))
+  ipcMain.handle('auth:updateProfile', async (_e, userId: string, fields: { username?: string }) =>
+    updateProfile(userId, fields)
+  )
   ipcMain.handle('locale:set', (_e, locale: 'en' | 'th') => {
     setMainLocale(locale)
     refreshTray(getGameSave)

@@ -189,6 +189,7 @@ function grantDevPoint(save: GameSave): GameSave {
     }
   }
   next.missions = updateMissionProgress(next.missions, 'weekly_dev_100', 1)
+  next.missions = updateMissionProgress(next.missions, 'weekly_egg_1', 1)
   return next
 }
 

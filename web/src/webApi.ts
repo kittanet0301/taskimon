@@ -19,6 +19,7 @@ import {
   resetPasswordByBirthdate,
   updatePassword,
   getProfile,
+  updateProfile,
   syncPetToCloud,
   getActivePet,
   isSupabaseConfigured,
@@ -89,6 +90,7 @@ export function createWebApi(): GameAPI {
     setLocale: async () => {},
     resetPasswordByBirthdate: async (email) => resetPasswordByBirthdate(email),
     updatePassword: async (password) => updatePassword(password),
+    updateProfile: async (userId, fields) => updateProfile(userId, fields),
     getSession: async () => getSession(),
     getProfile: async (userId) => getProfile(userId),
     syncPet: async (userId, pet) => {

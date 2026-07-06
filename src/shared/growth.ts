@@ -1,6 +1,7 @@
 import type { GameSave, PetData } from './types'
-import { SAVE_VERSION, TEST_FAST_EVO } from './constants'
-import { createDefaultMissions } from './missions'
+import { SAVE_VERSION, TEST_FAST_EVO, PET_SLOT_BASE } from './constants'
+import { createDefaultMissions, ensureAllMissions } from './missions'
+import { clampSlotLimit } from './petCollection'
 import { getDefaultInventory } from './items'
 import { hatchEgg, defaultPetName } from './dinoCharacters'
 import { normalizeDinoCharacter } from './dinoCharacters'
@@ -66,11 +67,27 @@ function migratePet(pet: PetData & { species?: string; element?: string }): PetD
   return { ...rest, character }
 }
 
-/** One-time save upgrades (test mode egg rewind on v2; dino characters on v3). */
-export function migrateSave(save: GameSave): GameSave {
-  if (save.version >= SAVE_VERSION) return save
+function normalizeCollectionFields(save: GameSave): GameSave {
+  return {
+    ...save,
+    collection: save.collection ?? [],
+    petSlotLimit: clampSlotLimit(
+      typeof save.petSlotLimit === 'number' ? save.petSlotLimit : PET_SLOT_BASE
+    ),
+    missions: ensureAllMissions(save.missions)
+  }
+}
 
-  let next: GameSave = { ...save, version: SAVE_VERSION }
+/** One-time save upgrades (test mode egg rewind on v2; dino characters on v3; collection on v4). */
+export function migrateSave(save: GameSave): GameSave {
+  let next = normalizeCollectionFields(save)
+  if (next.version >= SAVE_VERSION) return next
+
+  if (next.version < 4) {
+    next = { ...next, collection: next.collection ?? [], petSlotLimit: PET_SLOT_BASE }
+  }
+
+  next = { ...next, version: SAVE_VERSION }
   if (next.pet) {
     next = { ...next, pet: migratePet(next.pet) }
     if (TEST_FAST_EVO && save.version < 2 && next.pet.stage !== 'egg') {
@@ -85,6 +102,8 @@ export function createDefaultSave(): GameSave {
   return {
     version: SAVE_VERSION,
     pet: createEggPet(),
+    collection: [],
+    petSlotLimit: PET_SLOT_BASE,
     inventory: getDefaultInventory(),
     missions: createDefaultMissions(),
     activity: {

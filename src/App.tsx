@@ -14,9 +14,10 @@ import { BattleHub } from './hub/battle/BattleHub'
 import { useBattleGuard } from './hub/battle/useBattleGuard'
 import { Chat } from './hub/Chat'
 import { UserProfile } from './hub/UserProfile'
+import { PetCollection } from './hub/PetCollection'
 import { LanguageSwitcher } from './hub/LanguageSwitcher'
 
-type Tab = 'home' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
+type Tab = 'home' | 'collection' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
 
 type Session = { user: { id: string; email?: string } } | null
 
@@ -187,6 +188,7 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'home', label: t('tabs.home'), icon: '🏠' },
+    { id: 'collection', label: t('tabs.collection'), icon: '🥚' },
     { id: 'missions', label: t('tabs.missions'), icon: '📋' },
     { id: 'friends', label: t('tabs.friends'), icon: '👥' },
     { id: 'battle', label: t('tabs.battle'), icon: '⚔️' },
@@ -225,6 +227,9 @@ function AppContent({ variant = 'desktop' }: Props) {
 
       <main className="content">
         {tab === 'home' && <HomeDashboard save={save} onUpdated={refresh} />}
+        {tab === 'collection' && (
+          <PetCollection save={save} onUpdated={refresh} onSelect={() => setTab('home')} />
+        )}
         {tab === 'missions' && <Missions save={save} onUpdated={refresh} />}
         {tab === 'friends' && (
           <Friends

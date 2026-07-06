@@ -1,3 +1,4 @@
+import type { MissionDefinition } from '../shared/missions'
 import type { DinoCharacter, ItemType, Stage } from '../shared/types'
 import i18n from './index'
 
@@ -15,6 +16,21 @@ export function tItemDescription(type: ItemType): string {
 
 export function tMissionTitle(missionId: string): string {
   return i18n.t(`missions.${missionId}`)
+}
+
+export function tMissionReward(def: MissionDefinition): string {
+  const reward = def.reward
+  if ('type' in reward) {
+    return i18n.t('missions.rewardItem', {
+      item: tItemLabel(reward.type),
+      count: reward.quantity
+    })
+  }
+  if ('mood' in reward) return i18n.t('missions.rewardMood', { mood: reward.mood })
+  if ('devPoints' in reward) return i18n.t('missions.rewardDevPoints', { points: reward.devPoints })
+  if ('newEgg' in reward) return i18n.t('missions.rewardEgg')
+  if ('slots' in reward) return i18n.t('missions.rewardSlots', { count: reward.slots })
+  return ''
 }
 
 export function tStage(stage: Stage | 'teen'): string {

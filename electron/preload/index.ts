@@ -22,6 +22,7 @@ const api: GameAPI = {
   setLocale: (locale) => ipcRenderer.invoke('locale:set', locale),
   resetPasswordByBirthdate: (email) => ipcRenderer.invoke('auth:resetPasswordByBirthdate', email),
   updatePassword: (password) => ipcRenderer.invoke('auth:updatePassword', password),
+  updateProfile: (userId, fields) => ipcRenderer.invoke('auth:updateProfile', userId, fields),
   getSession: () => ipcRenderer.invoke('auth:session'),
   getProfile: (userId) => ipcRenderer.invoke('auth:profile', userId),
   syncPet: (userId, pet) => ipcRenderer.invoke('cloud:syncPet', userId, pet),

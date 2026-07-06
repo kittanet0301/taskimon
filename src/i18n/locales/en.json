@@ -26,7 +26,8 @@
     "battle": "Battle",
     "chat": "Chat",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "collection": "Collection"
   },
   "app": {
     "title": "Taskimon",
@@ -78,7 +79,12 @@
     "taglineForgot": "Recover your account access",
     "loadingLogin": "Signing in...",
     "loadingSignUp": "Signing up...",
-    "saveDbNow": "Save to DB now"
+    "saveDbNow": "Save to DB now",
+    "changeUsername": "Change username",
+    "saveUsername": "Save username",
+    "usernameUpdated": "Username updated successfully",
+    "usernameUnchanged": "Username is unchanged",
+    "usernameTaken": "This username is already taken"
   },
   "birthDate": {
     "label": "Birth date (18+ required)",
@@ -129,7 +135,30 @@
     "daily_play_1h": "Keep your pet active on-screen for 1 hour",
     "weekly_dev_100": "Gain +100 evolution points",
     "weekly_daily_5": "Complete daily missions on 5 days",
-    "weekly_hatch_1": "Hatch 1 new egg"
+    "weekly_hatch_1": "Hatch your active egg once",
+    "weekly_slots_5": "Complete daily missions on 5 days (+5 slots)",
+    "weekly_egg_1": "Gain +50 evolution points (egg reward)",
+    "rewardEgg": "Mystery egg",
+    "rewardSlots": "+{{count}} collection slots",
+    "rewardLabel": "Reward: {{reward}}",
+    "rewardItem": "{{item}} x{{count}}",
+    "rewardMood": "+{{mood}} mood",
+    "rewardDevPoints": "+{{points}} evolution",
+    "claimSuccess": "Reward claimed!",
+    "claimSuccessEgg": "You got a mystery egg! Check the Collection tab.",
+    "claimSuccessSlots": "+{{count}} collection slots unlocked!",
+    "claimFailed": "Could not claim reward. Check free slots or try again."
+  },
+  "collection": {
+    "title": "Egg Collection",
+    "slots": "{{used}} / {{limit}} slots",
+    "empty": "Empty",
+    "select": "Select to play",
+    "delete": "Release",
+    "deleteConfirm": "Release {{name}} from your collection? This cannot be undone.",
+    "noSlots": "No free slots",
+    "page": "Page {{current}} / {{total}}",
+    "active": "Playing"
   },
   "friends": {
     "title": "Friends",
@@ -417,6 +446,7 @@
     "passwordTooShort": "Password must be at least 6 characters.",
     "newPasswordSameAsOld": "New password must be different from the old password.",
     "rateLimited": "Too many requests. Please wait and try again.",
-    "noBirthDateOnAccount": "This account has no birth date on file. Contact support."
+    "noBirthDateOnAccount": "This account has no birth date on file. Contact support.",
+    "usernameTaken": "This username is already taken."
   }
 }

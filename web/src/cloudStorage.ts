@@ -2,39 +2,44 @@ import type { GameSave } from '@shared/types'
 import { createDefaultSave } from '@shared/growth'
 import { gameSaveFromDbParts, gameSaveToDbPayload } from '@shared/dbMapper'
 import { applyMoodDecay } from '@shared/stats'
-import { applyDailyResets } from '@shared/missions'
+import { applyDailyResets, ensureAllMissions } from '@shared/missions'
 import { getSupabase, isSupabaseConfigured } from './supabase'
 
 export async function loadGameSaveFromDb(userId: string): Promise<GameSave | null> {
   const supabase = getSupabase()
   if (!supabase) return null
 
-  const [petRes, invRes, missionRes, activityRes] = await Promise.all([
-    supabase.from('pets').select('*').eq('owner_id', userId).eq('is_active', true).maybeSingle(),
+  const [petsRes, invRes, missionRes, activityRes] = await Promise.all([
+    supabase.from('pets').select('*').eq('owner_id', userId),
     supabase.from('inventory').select('item_type, quantity').eq('user_id', userId),
     supabase.from('mission_progress').select('mission_id, progress, completed, reset_at').eq('user_id', userId),
     supabase.from('player_activity').select('*').eq('user_id', userId).maybeSingle()
   ])
 
-  if (petRes.error) throw petRes.error
+  if (petsRes.error) throw petsRes.error
   if (invRes.error) throw invRes.error
   if (missionRes.error) throw missionRes.error
   if (activityRes.error) throw activityRes.error
 
   const hasData =
-    petRes.data || (invRes.data?.length ?? 0) > 0 || (missionRes.data?.length ?? 0) > 0 || activityRes.data
+    (petsRes.data?.length ?? 0) > 0 ||
+    (invRes.data?.length ?? 0) > 0 ||
+    (missionRes.data?.length ?? 0) > 0 ||
+    activityRes.data
 
   if (!hasData) return null
 
   let save = gameSaveFromDbParts(
-    petRes.data,
+    petsRes.data ?? [],
     invRes.data ?? [],
     missionRes.data ?? [],
     activityRes.data
   )
 
-  if (save.missions.length === 0) save.missions = createDefaultSave().missions
-  if (save.inventory.length === 0) save.inventory = createDefaultSave().inventory
+  save.missions = ensureAllMissions(save.missions)
+  if (save.inventory.length === 0) {
+    save.inventory = createDefaultSave().inventory
+  }
 
   return applyOfflineDecay(save)
 }
@@ -48,8 +53,23 @@ export async function saveGameSaveToDb(userId: string, save: GameSave): Promise<
     lastSaved: new Date().toISOString()
   })
 
-  if (payload.pet) {
-    const { error } = await supabase.from('pets').upsert(payload.pet, { onConflict: 'id' })
+  const keptIds = new Set(payload.pets.map((p) => p.id))
+
+  const { data: existingPets, error: listError } = await supabase
+    .from('pets')
+    .select('id')
+    .eq('owner_id', userId)
+  if (listError) throw listError
+
+  for (const row of existingPets ?? []) {
+    if (!keptIds.has(row.id)) {
+      const { error } = await supabase.from('pets').delete().eq('id', row.id)
+      if (error) throw error
+    }
+  }
+
+  if (payload.pets.length > 0) {
+    const { error } = await supabase.from('pets').upsert(payload.pets, { onConflict: 'id' })
     if (error) throw error
   }
 

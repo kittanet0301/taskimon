@@ -9,9 +9,10 @@ import type {
   PetData,
   Stage
 } from './types'
-import { SAVE_VERSION } from './constants'
+import { SAVE_VERSION, PET_SLOT_BASE } from './constants'
 import { createDefaultSave } from './growth'
 import { normalizeDinoCharacter } from './dinoCharacters'
+import { clampSlotLimit } from './petCollection'
 
 type DbPet = {
   id: string
@@ -54,6 +55,7 @@ type DbActivity = {
   session_started_at: string
   last_saved: string
   save_version: number
+  pet_slot_limit?: number
 }
 
 function normalizeItemType(type: string): ItemType {
@@ -61,7 +63,7 @@ function normalizeItemType(type: string): ItemType {
   return type as ItemType
 }
 
-export function petToDbRow(pet: PetData, ownerId: string) {
+export function petToDbRow(pet: PetData, ownerId: string, isActive: boolean) {
   return {
     id: pet.id,
     owner_id: ownerId,
@@ -75,7 +77,7 @@ export function petToDbRow(pet: PetData, ownerId: string) {
     dev_points: pet.stats.devPoints,
     feed_count: pet.feedCount,
     animation_state: pet.animationState,
-    is_active: true,
+    is_active: isActive,
     hatched_at: pet.hatchedAt,
     created_at: pet.createdAt
   }
@@ -101,8 +103,13 @@ export function petFromDbRow(row: DbPet): PetData {
 }
 
 export function gameSaveToDbPayload(userId: string, save: GameSave) {
+  const pets = [
+    ...(save.pet ? [petToDbRow(save.pet, userId, true)] : []),
+    ...save.collection.map((pet) => petToDbRow(pet, userId, false))
+  ]
+
   return {
-    pet: save.pet ? petToDbRow(save.pet, userId) : null,
+    pets,
     inventory: save.inventory.map((item) => ({
       user_id: userId,
       item_type: item.type,
@@ -126,21 +133,27 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       last_daily_mission_day: save.lastDailyMissionDay,
       session_started_at: save.sessionStartedAt,
       last_saved: save.lastSaved,
-      save_version: save.version
+      save_version: save.version,
+      pet_slot_limit: save.petSlotLimit
     }
   }
 }
 
 export function gameSaveFromDbParts(
-  pet: DbPet | null,
+  pets: DbPet[],
   inventory: DbInventory[],
   missions: DbMission[],
   activity: DbActivity | null
 ): GameSave {
   const base = createDefaultSave()
+  const activeRow = pets.find((p) => p.is_active) ?? null
+  const collectionRows = pets.filter((p) => !p.is_active)
+
   return {
     version: activity?.save_version ?? SAVE_VERSION,
-    pet: pet ? petFromDbRow(pet) : null,
+    pet: activeRow ? petFromDbRow(activeRow) : null,
+    collection: collectionRows.map(petFromDbRow),
+    petSlotLimit: clampSlotLimit(activity?.pet_slot_limit ?? PET_SLOT_BASE),
     inventory: inventory.map(
       (row): InventoryItem => ({
         type: normalizeItemType(row.item_type),

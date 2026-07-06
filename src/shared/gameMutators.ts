@@ -3,6 +3,7 @@ import { hatchPet, evolvePet, createEggPet } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { useItem } from './items'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
+import { canAddPet, clampSlotLimit } from './petCollection'
 
 export function applyGamePatch(save: GameSave, mutatorName: string, args: unknown[] = []): GameSave {
   if (mutatorName === 'hatch') {
@@ -19,7 +20,23 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     return { ...save, pet: evolvePet(save.pet) }
   }
   if (mutatorName === 'newEgg') {
-    return { ...save, pet: createEggPet() }
+    if (!canAddPet(save)) return save
+    return { ...save, collection: [...save.collection, createEggPet()] }
+  }
+  if (mutatorName === 'setActivePet' && typeof args[0] === 'string') {
+    const petId = args[0] as string
+    const idx = save.collection.findIndex((p) => p.id === petId)
+    if (idx < 0) return save
+    const selected = save.collection[idx]
+    const newCollection = [...save.collection]
+    newCollection.splice(idx, 1)
+    if (save.pet) newCollection.push(save.pet)
+    return { ...save, pet: selected, collection: newCollection }
+  }
+  if (mutatorName === 'releasePet' && typeof args[0] === 'string') {
+    const petId = args[0] as string
+    if (save.pet?.id === petId) return save
+    return { ...save, collection: save.collection.filter((p) => p.id !== petId) }
   }
   if (mutatorName === 'rename' && typeof args[0] === 'string') {
     if (!save.pet) return save
@@ -65,9 +82,15 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     const mission = save.missions.find((m) => m.missionId === missionId)
     const def = getMissionDefinition(missionId)
     if (!mission || !def || !mission.completed) return save
+
+    const reward = def.reward
+    if ('newEgg' in reward && !canAddPet(save)) return save
+
     let inventory = [...save.inventory]
     let pet = save.pet
-    const reward = def.reward
+    let collection = [...save.collection]
+    let petSlotLimit = save.petSlotLimit
+
     if ('type' in reward) {
       const existing = inventory.find((i) => i.type === reward.type)
       if (existing) existing.quantity += reward.quantity
@@ -76,11 +99,16 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       pet = { ...pet, stats: { ...pet.stats, mood: Math.min(100, pet.stats.mood + reward.mood) } }
     } else if ('devPoints' in reward && pet) {
       pet = { ...pet, stats: { ...pet.stats, devPoints: Math.min(999, pet.stats.devPoints + reward.devPoints) } }
+    } else if ('newEgg' in reward) {
+      collection = [...collection, createEggPet()]
+    } else if ('slots' in reward) {
+      petSlotLimit = clampSlotLimit(petSlotLimit + reward.slots)
     }
+
     const missions = save.missions.map((m) =>
       m.missionId === missionId ? { ...m, completed: false, progress: 0 } : m
     )
-    let next: GameSave = { ...save, inventory, pet, missions }
+    let next: GameSave = { ...save, inventory, pet, collection, petSlotLimit, missions }
     if (def.kind === 'daily') next = recordDailyMissionClaim(next)
     return next
   }

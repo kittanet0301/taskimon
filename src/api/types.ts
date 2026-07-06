@@ -18,6 +18,7 @@ export interface GameAPI {
   setLocale: (locale: 'en' | 'th') => Promise<void>
   resetPasswordByBirthdate: (email: string) => Promise<void>
   updatePassword: (password: string) => Promise<void>
+  updateProfile: (userId: string, fields: { username?: string }) => Promise<unknown>
   getSession: () => Promise<unknown>
   getProfile: (userId: string) => Promise<unknown>
   syncPet: (userId: string, pet: PetData) => Promise<unknown>

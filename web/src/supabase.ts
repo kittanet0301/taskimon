@@ -84,6 +84,25 @@ export async function getProfile(userId: string) {
   return data
 }
 
+export async function updateProfile(userId: string, fields: { username?: string }) {
+  const supabase = getSupabase()
+  if (!supabase) throw new Error('Supabase not configured')
+  const patch: { username?: string } = {}
+  if (fields.username !== undefined) {
+    const trimmed = fields.username.trim()
+    if (!trimmed) throw new Error('Username required')
+    patch.username = trimmed
+  }
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(patch)
+    .eq('id', userId)
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function syncPetToCloud(userId: string, pet: Record<string, unknown>) {
   const supabase = getSupabase()
   if (!supabase) throw new Error('Supabase not configured')

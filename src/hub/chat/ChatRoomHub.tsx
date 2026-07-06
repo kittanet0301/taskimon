@@ -72,6 +72,7 @@ export function ChatRoomHub() {
     return (
       <ChatRoomView
         roomId={activeRoom.id}
+        roomSlug={activeRoom.slug}
         roomName={t(`chatLobby.rooms.${activeRoom.slug}`, { defaultValue: activeRoom.name })}
         userId={userId}
         onLeave={handleLeaveRoom}

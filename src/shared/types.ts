@@ -70,6 +70,10 @@ export interface ActivityCounters {
 export interface GameSave {
   version: number
   pet: PetData | null
+  /** Inactive pets/eggs stored in collection slots. */
+  collection: PetData[]
+  /** Max pet slots (base 5, up to 27 via weekly missions). */
+  petSlotLimit: number
   inventory: InventoryItem[]
   missions: MissionProgress[]
   activity: ActivityCounters

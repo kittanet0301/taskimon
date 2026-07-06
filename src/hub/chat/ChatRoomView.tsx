@@ -5,6 +5,7 @@ import type { ChatRoomMember, ChatRoomMessage } from './types'
 
 interface Props {
   roomId: string
+  roomSlug: string
   roomName: string
   userId: string
   onLeave: () => void
@@ -23,7 +24,7 @@ function parseRealtimePayload(payload: unknown): {
   return { table: p.table, row }
 }
 
-export function ChatRoomView({ roomId, roomName, userId, onLeave }: Props) {
+export function ChatRoomView({ roomId, roomSlug, roomName, userId, onLeave }: Props) {
   const { t } = useTranslation()
   const [members, setMembers] = useState<ChatRoomMember[]>([])
   const [text, setText] = useState('')
@@ -50,32 +51,26 @@ export function ChatRoomView({ roomId, roomName, userId, onLeave }: Props) {
   }, [roomId])
 
   useEffect(() => {
-    void window.electronAPI.getGame().then((save) => {
-      const pet = save.pet
-      if (!pet) return
-      setFallbackMember({
-        user_id: userId,
-        username: pet.name,
-        pet_character: pet.character,
-        gender: pet.gender,
-        stage: pet.stage,
-        x: 0.5,
-        y: 0.62,
-        facing: 'right',
-        anim: 'walk'
-      })
-      fallbackRef.current = {
-        user_id: userId,
-        username: pet.name,
-        pet_character: pet.character,
-        gender: pet.gender,
-        stage: pet.stage,
-        x: 0.5,
-        y: 0.62,
-        facing: 'right',
-        anim: 'walk'
+    void Promise.all([window.electronAPI.getGame(), window.electronAPI.getProfile(userId)]).then(
+      ([save, profile]) => {
+        const pet = save.pet
+        const row = profile as { username?: string } | null
+        if (!pet || !row?.username) return
+        const member: ChatRoomMember = {
+          user_id: userId,
+          username: row.username,
+          pet_character: pet.character,
+          gender: pet.gender,
+          stage: pet.stage,
+          x: 0.5,
+          y: 0.62,
+          facing: 'right',
+          anim: 'walk'
+        }
+        setFallbackMember(member)
+        fallbackRef.current = member
       }
-    })
+    )
   }, [userId])
 
   useEffect(() => {
@@ -107,6 +102,7 @@ export function ChatRoomView({ roomId, roomName, userId, onLeave }: Props) {
           content: String(row.content),
           created_at: String(row.created_at ?? new Date().toISOString())
         })
+        void refreshMembers()
       }
 
       if (table === 'chat_room_positions' && row.room_id === roomIdRef.current && row.user_id) {
@@ -208,6 +204,7 @@ export function ChatRoomView({ roomId, roomName, userId, onLeave }: Props) {
 
       <LobbyCanvas
         roomId={roomId}
+        roomSlug={roomSlug}
         userId={userId}
         members={displayMembers}
         onPositionSync={handlePositionSync}
