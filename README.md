@@ -23,14 +23,19 @@ Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron)
 
 ## UI
 
-หน้า **Login / Sign up / Forgot password** และ **Get Started** ใช้ธีม **retro pixel art dino**:
+ธีม **retro pixel art dino** ใช้ทั้งแอปหลังเปิด:
 
-- พื้นหลังท้องฟ้า + หญ้า + เมฆ pixel (scoped class `.pixel-cover` — ไม่กระทบ hub หลัก)
-- โลโก้เป็น **animated egg sprite** (`male/doux/egg`) จาก `assets/dino/`
-- ฟอนต์: **Press Start 2P** (title/ปุ่ม) + **Mali** (ข้อความไทย/ฟอร์ม)
+**Auth (ก่อนเข้า Hub)** — `.pixel-cover` บน Login / Sign up / Forgot password / Get Started:
+- พื้นหลังท้องฟ้า + หญ้า + เมฆ pixel
+- โลโก้ **animated egg sprite** (`male/doux/egg`) จาก `assets/dino/`
 - ปุ่ม blocky 3D, input มุมคม, สลับภาษา EN/TH มุมขวาบนการ์ด
 
-Hub หลัก (แท็บ Home, Battle, Chat ฯลฯ) ยังใช้สไตล์เดิม — ขยายธีม pixel ในรอบถัดไปได้ผ่าน CSS variables ใน `styles.css`
+**Hub (หลัง login)** — `.pixel-hub` บน shell หลัก ครอบคลุมทุกแท็บ (Home, Missions, Friends, Battle, Chat, Settings, Profile):
+- Header ท้องฟ้า + tabs สี่เหลี่ยม, พื้น content gradient อ่อน
+- การ์ด cream + ขอบ pixel, ปุ่ม 3D blocky, stat bar มุมคม
+- ฟอนต์: **Press Start 2P** (title/tab สั้นๆ) + **Mali** (ข้อความไทย/ฟอร์ม)
+
+Palette ร่วมกันผ่าน CSS variables (`--pixel-*`) ใน `styles.css` — desktop pet overlay ไม่ได้รับผลกระทบ
 
 ## Quick Start
 
@@ -120,7 +125,7 @@ Global input tracking requires **Accessibility** permission in System Settings.
 - `src/pet/` — Desktop pet canvas renderer
 - `src/shared/` — Game logic shared across processes
 - `src/shared/battle/` — Battle engine, damage, rewards, mappers
-- `src/styles.css` — Global styles + `.pixel-cover` auth theme
+- `src/styles.css` — Global styles + `.pixel-cover` auth + `.pixel-hub` hub theme
 - `web/` — Vite config สำหรับเวอร์ชันเบราว์เซอร์
 - `assets/dino/` — Dino Family pixel sprites (see [assets/CREDITS.md](assets/CREDITS.md))
 - `supabase/migrations/` — SQL schema + RLS + battle RPCs

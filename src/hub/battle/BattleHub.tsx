@@ -200,48 +200,52 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
         )}
       </div>
 
-      <nav className="tabs" style={{ marginBottom: 12 }}>
-        {hubTabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`tab ${hubTab === t.id ? 'active' : ''}`}
-            onClick={() => setHubTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+      <div className="card battle-hub-panel">
+        <nav className="battle-hub-tabs" aria-label={t('battle.title')}>
+          {hubTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`tab ${hubTab === t.id ? 'active' : ''}`}
+              onClick={() => setHubTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
 
-      {hubTab === 'room' && (
-        <>
-          {ctx?.roomId ? (
-            <BattleRoom onDuelStarted={goToActiveBattle} />
-          ) : (
-            <RoomLobby />
+        <div className="battle-hub-body">
+          {hubTab === 'room' && (
+            <>
+              {ctx?.roomId ? (
+                <BattleRoom onDuelStarted={goToActiveBattle} />
+              ) : (
+                <RoomLobby />
+              )}
+            </>
           )}
-        </>
-      )}
-      {hubTab === 'active' && (
-        session && session.status === 'active' && userId ? (
-          <BattleArena
-            session={session}
-            turns={turns}
-            userId={userId}
-            onAction={submitAction}
-          />
-        ) : (
-          <div className="card">
-            <p>{t('battle.activeNone')}</p>
-            {ctx?.memberStatus === 'in_battle' && (
-              <button type="button" className="primary" onClick={() => void discoverRoomSession()}>
-                {t('battle.reloadBattle')}
-              </button>
-            )}
-          </div>
-        )
-      )}
-      {hubTab === 'history' && <BattleHistory />}
+          {hubTab === 'active' && (
+            session && session.status === 'active' && userId ? (
+              <BattleArena
+                session={session}
+                turns={turns}
+                userId={userId}
+                onAction={submitAction}
+              />
+            ) : (
+              <div className="battle-active-empty">
+                <p>{t('battle.activeNone')}</p>
+                {ctx?.memberStatus === 'in_battle' && (
+                  <button type="button" className="primary" onClick={() => void discoverRoomSession()}>
+                    {t('battle.reloadBattle')}
+                  </button>
+                )}
+              </div>
+            )
+          )}
+          {hubTab === 'history' && <BattleHistory />}
+        </div>
+      </div>
 
       {endedBattle && userId && (
         <BattleEndModal

@@ -61,7 +61,7 @@ export function EggHatch({ pet, onHatched }: Props) {
       <h2>{t('pet.mysteriousEgg')}</h2>
       <div
         className="pet-preview dash-pet-sprite"
-        style={{ background: DINO_PREVIEW_COLORS[pet.character], marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ background: DINO_PREVIEW_COLORS[pet.character] }}
       >
         <DinoSprite pet={pet} size={96} hatching={hatching} />
       </div>
@@ -78,16 +78,15 @@ export function EggHatch({ pet, onHatched }: Props) {
         max={DEV_POINTS_HATCH}
         color="#f59e0b"
       />
-      <p className="dash-activity-hint" style={{ marginTop: 12 }}>
+      <p className="dash-activity-hint dash-hint-spaced">
         {ready ? t('pet.hatchReadyHint') : t('pet.hatchEvolutionHint', { points: DEV_POINTS_HATCH })}
       </p>
-      <div className="form-row" style={{ marginTop: 12 }}>
+      <div className="form-row dash-form-spaced">
         <label>{t('pet.setHatchName')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} disabled={hatching} />
       </div>
       <button
-        className="primary"
-        style={{ width: '100%', marginTop: 12 }}
+        className="primary dash-full-btn"
         onClick={hatch}
         disabled={hatching || !name.trim() || !ready}
       >

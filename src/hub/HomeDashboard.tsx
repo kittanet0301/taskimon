@@ -52,7 +52,7 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
     <div className="card dash-pet-card">
       <div className="dash-pet-header">
         <div>
-          <h2 style={{ margin: 0 }}>{pet.name}</h2>
+          <h2 className="dash-pet-name">{pet.name}</h2>
           <p className="dash-pet-meta">
             Lv.{getPetLevel(pet.stage, pet.stats.devPoints)} · {getStageLabel(pet.stage)} ·{' '}
             {tCharacter(pet.character)}
@@ -62,7 +62,7 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
       </div>
       <div
         className="pet-preview dash-pet-sprite"
-        style={{ background: DINO_PREVIEW_COLORS[pet.character], display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ background: DINO_PREVIEW_COLORS[pet.character] }}
       >
         <DinoSprite pet={pet} size={96} />
       </div>
@@ -76,8 +76,7 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
       />
       {pet.stage === 'baby' && (
         <button
-          className="primary"
-          style={{ width: '100%', marginTop: 12 }}
+          className="primary dash-evolve-btn"
           onClick={evolve}
           disabled={!canEvolveToAdult(pet)}
         >
@@ -156,7 +155,7 @@ function DailyMissionsPanel({ save, onUpdated }: { save: GameSave; onUpdated: ()
           <div key={mission.missionId} className="dash-mission-row">
             <div className="dash-mission-info">
               <strong>{tMissionTitle(def.id)}</strong>
-              <div className="bar" style={{ marginTop: 6 }}>
+              <div className="bar dash-mission-bar">
                 <span
                   style={{
                     width: `${pct}%`,

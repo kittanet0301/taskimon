@@ -35,7 +35,7 @@ export function Missions({ save, onUpdated }: Props) {
           <div key={mission.missionId} className="mission-item">
             <div>
               <strong>{tMissionTitle(def.id)}</strong>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+              <div className="pixel-muted-text">
                 {def.kind === 'daily' ? t('missions.kindDaily') : t('missions.kindWeekly')} · {mission.progress}/{def.target}
               </div>
             </div>

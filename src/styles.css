@@ -1,6 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Press+Start+2P&display=swap');
 
 :root {
+  --pixel-sky-top: #38bdf8;
+  --pixel-sky-bottom: #bae6fd;
+  --pixel-grass: #86efac;
+  --pixel-grass-dark: #4ade80;
+  --pixel-border: #1e293b;
+  --pixel-shadow: #0f172a;
+  --pixel-card-bg: #fffbeb;
+  --pixel-accent: #f59e0b;
+  --pixel-accent-dark: #d97706;
+  --pixel-text: #1e293b;
+  --pixel-muted: #475569;
+  --pixel-link: #b45309;
+  --pixel-content-bg: #e0f2fe;
+  --pixel-content-bg-bottom: #f0fdf4;
+  --pixel-header-bg: #38bdf8;
+
   font-family: 'Segoe UI', Tahoma, sans-serif;
   color: #1f2937;
   background: #f3f4f6;
@@ -759,6 +775,32 @@ input, select {
 
 /* ── Battle hub ── */
 
+.battle-hub-panel {
+  margin-bottom: 16px;
+}
+
+.battle-hub-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--pixel-border, #1e293b);
+}
+
+.battle-hub-body > :first-child > h3,
+.battle-hub-body > h3,
+.battle-hub-body .battle-history > h3,
+.battle-hub-body .room-lobby > h3,
+.battle-hub-body .battle-room > h3,
+.battle-hub-body .battle-arena > h3 {
+  margin-top: 0;
+}
+
+.battle-active-empty {
+  padding: 4px 0;
+}
+
 .battle-arena {
   display: flex;
   flex-direction: column;
@@ -920,19 +962,6 @@ input, select {
 /* ── Pixel Auth Theme ── */
 
 .pixel-cover {
-  --pixel-sky-top: #38bdf8;
-  --pixel-sky-bottom: #bae6fd;
-  --pixel-grass: #86efac;
-  --pixel-grass-dark: #4ade80;
-  --pixel-border: #1e293b;
-  --pixel-shadow: #0f172a;
-  --pixel-card-bg: #fffbeb;
-  --pixel-accent: #f59e0b;
-  --pixel-accent-dark: #d97706;
-  --pixel-text: #1e293b;
-  --pixel-muted: #475569;
-  --pixel-link: #b45309;
-
   position: relative;
   overflow: hidden;
   background: linear-gradient(180deg, var(--pixel-sky-top) 0%, var(--pixel-sky-bottom) 72%, var(--pixel-grass) 72%, var(--pixel-grass-dark) 100%);
@@ -1183,7 +1212,8 @@ input, select {
   border-radius: 0;
 }
 
-.pixel-cover .lang-switcher-pixel {
+.pixel-cover .lang-switcher-pixel,
+.lang-switcher-pixel {
   display: inline-flex;
   gap: 4px;
   padding: 0;
@@ -1191,7 +1221,8 @@ input, select {
   background: transparent;
 }
 
-.pixel-cover .lang-switcher-pixel button {
+.pixel-cover .lang-switcher-pixel button,
+.lang-switcher-pixel button {
   min-width: 40px;
   padding: 6px 10px;
   border: 3px solid var(--pixel-border);
@@ -1205,12 +1236,14 @@ input, select {
   box-shadow: 2px 2px 0 var(--pixel-shadow);
 }
 
-.pixel-cover .lang-switcher-pixel button.active {
+.pixel-cover .lang-switcher-pixel button.active,
+.lang-switcher-pixel button.active {
   background: var(--pixel-accent);
   color: var(--pixel-text);
 }
 
-.pixel-cover .lang-switcher-pixel button:active {
+.pixel-cover .lang-switcher-pixel button:active,
+.lang-switcher-pixel button:active {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 var(--pixel-shadow);
 }
@@ -1229,5 +1262,442 @@ input, select {
   .pixel-cover button.primary.cover-btn {
     font-size: 0.55rem;
     padding: 12px 10px;
+  }
+}
+
+/* ── Pixel Hub Theme ── */
+
+.pixel-hub {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  color: var(--pixel-text);
+}
+
+.pixel-hub .header {
+  background: var(--pixel-header-bg);
+  color: var(--pixel-text);
+  border-bottom: 4px solid var(--pixel-border);
+  padding: 14px 24px;
+}
+
+.pixel-hub .header h1 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+}
+
+.pixel-hub .header-sub {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  color: var(--pixel-muted);
+  opacity: 1;
+}
+
+.pixel-hub .tabs {
+  background: var(--pixel-card-bg);
+  border-bottom: 4px solid var(--pixel-border);
+  padding: 10px 24px;
+  gap: 6px;
+}
+
+.pixel-hub .tab {
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  background: #fff;
+  color: var(--pixel-text);
+  padding: 8px 12px;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.pixel-hub .tab.active {
+  background: var(--pixel-accent);
+  color: var(--pixel-text);
+}
+
+.pixel-hub .tab:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .content {
+  background: linear-gradient(180deg, var(--pixel-content-bg) 0%, var(--pixel-content-bg-bottom) 100%);
+}
+
+.pixel-hub .card {
+  background: var(--pixel-card-bg);
+  border: 4px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--pixel-shadow);
+  margin-bottom: 16px;
+}
+
+.pixel-hub h2,
+.pixel-hub h3 {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  color: var(--pixel-text);
+}
+
+.pixel-hub .dash-section-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem;
+  color: var(--pixel-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pixel-hub .pixel-muted-text {
+  font-size: 0.85rem;
+  color: var(--pixel-muted);
+}
+
+.pixel-hub button.primary,
+.pixel-hub button.secondary,
+.pixel-hub button.danger-btn {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-weight: 700;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.pixel-hub button.primary {
+  background: var(--pixel-accent);
+  color: var(--pixel-text);
+}
+
+.pixel-hub button.primary:hover:not(:disabled) {
+  background: #fbbf24;
+}
+
+.pixel-hub button.secondary {
+  background: #fff;
+  color: var(--pixel-text);
+}
+
+.pixel-hub button.secondary:hover:not(:disabled) {
+  background: #fef3c7;
+}
+
+.pixel-hub button.danger-btn {
+  background: #dc2626;
+  color: #fff;
+}
+
+.pixel-hub button.danger-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.pixel-hub button.primary:active:not(:disabled),
+.pixel-hub button.secondary:active:not(:disabled),
+.pixel-hub button.danger-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--pixel-shadow);
+}
+
+.pixel-hub input,
+.pixel-hub select,
+.pixel-hub textarea {
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  background: #fff;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  box-shadow: inset 2px 2px 0 #e2e8f0;
+}
+
+.pixel-hub input:focus,
+.pixel-hub select:focus,
+.pixel-hub textarea:focus {
+  outline: 2px solid var(--pixel-accent);
+  outline-offset: 1px;
+}
+
+.pixel-hub .form-row label {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-weight: 700;
+  color: var(--pixel-text);
+}
+
+.pixel-hub .bar,
+.pixel-hub .hp-bar-track,
+.pixel-hub .energy-bar-track {
+  height: 12px;
+  background: #e2e8f0;
+  border: 2px solid var(--pixel-border);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.pixel-hub .bar > span,
+.pixel-hub .hp-bar-fill,
+.pixel-hub .energy-bar-fill {
+  border-radius: 0;
+}
+
+.pixel-hub .tag,
+.pixel-hub .gender-tag {
+  border-radius: 0;
+  border: 2px solid var(--pixel-border);
+  box-shadow: 1px 1px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .notice,
+.pixel-hub .notice-info {
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+}
+
+.pixel-hub .notice {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pixel-hub .notice-info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.pixel-hub .mission-item,
+.pixel-hub .friend-item,
+.pixel-hub .inventory-item,
+.pixel-hub .room-list-item,
+.pixel-hub .dash-mission-row {
+  border-bottom: 3px solid var(--pixel-border);
+}
+
+.pixel-hub .mission-item:last-child,
+.pixel-hub .friend-item:last-child,
+.pixel-hub .inventory-item:last-child,
+.pixel-hub .room-list-item:last-child,
+.pixel-hub .dash-mission-row:last-child {
+  border-bottom: none;
+}
+
+/* Dashboard */
+
+.pixel-hub .dash-pet-name {
+  margin: 0;
+}
+
+.pixel-hub .dash-pet-meta,
+.pixel-hub .dash-activity-hint,
+.pixel-hub .dash-mission-progress,
+.pixel-hub .dash-reset-hint {
+  color: var(--pixel-muted);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+}
+
+.pixel-hub .dash-reset-hint {
+  color: var(--pixel-accent-dark);
+}
+
+.pixel-hub .dash-pet-sprite {
+  border-radius: 0;
+  border: 3px solid var(--pixel-border);
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixel-hub .dash-activity-stat,
+.pixel-hub .dash-activity-score {
+  background: #fff;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .dash-activity-score {
+  background: #fef3c7;
+}
+
+.pixel-hub .dash-activity-value {
+  color: var(--pixel-text);
+}
+
+.pixel-hub .dash-activity-label {
+  color: var(--pixel-muted);
+}
+
+.pixel-hub .dash-evolve-btn,
+.pixel-hub .dash-full-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.pixel-hub .dash-hint-spaced {
+  margin-top: 12px;
+}
+
+.pixel-hub .dash-form-spaced {
+  margin-top: 12px;
+}
+
+.pixel-hub .dash-mission-bar {
+  margin-top: 6px;
+}
+
+.pixel-hub .quick-care-btn {
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.pixel-hub .quick-care-btn:hover:not(:disabled) {
+  background: #fef3c7;
+}
+
+.pixel-hub .quick-care-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .quick-care-label {
+  color: var(--pixel-text);
+  font-weight: 700;
+}
+
+.pixel-hub .quick-care-qty {
+  color: var(--pixel-muted);
+}
+
+/* Battle */
+
+.pixel-hub .battle-room-duel {
+  background: #fff;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: inset 2px 2px 0 #e2e8f0;
+}
+
+.pixel-hub .battle-log {
+  border: 4px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .battle-actions button.ultimate-ready:not(:disabled) {
+  background: var(--pixel-accent);
+  border-color: var(--pixel-border);
+  box-shadow: 3px 3px 0 var(--pixel-shadow), 0 0 8px #f59e0b80;
+}
+
+.pixel-hub .battle-end-overlay,
+.pixel-hub .leave-dialog-overlay {
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.pixel-hub .battle-end-title.win {
+  color: #16a34a;
+}
+
+.pixel-hub .battle-end-title.lose {
+  color: #dc2626;
+}
+
+.pixel-hub .battle-end-subtitle {
+  color: var(--pixel-muted);
+}
+
+/* Chat */
+
+.pixel-hub .chat-room-card {
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--pixel-shadow);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.pixel-hub .chat-room-card:hover:not(:disabled) {
+  border-color: var(--pixel-border);
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .chat-room-card-count,
+.pixel-hub .chat-room-meta {
+  color: var(--pixel-muted);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+}
+
+.pixel-hub .chat-lobby-canvas {
+  border: 4px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--pixel-shadow);
+}
+
+.pixel-hub .chat-box {
+  background: #fff;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: inset 2px 2px 0 #e2e8f0;
+}
+
+.pixel-hub .chat-line {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+}
+
+.pixel-hub .chat-line.me {
+  color: var(--pixel-accent-dark);
+  font-weight: 700;
+}
+
+.pixel-hub .chat-room-input-row input {
+  margin-top: 0;
+}
+
+/* Settings / danger */
+
+.pixel-hub .danger-zone {
+  border-top: 4px solid #dc2626;
+  padding-top: 20px;
+}
+
+.pixel-hub .danger-zone h3 {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+}
+
+.pixel-hub .danger-zone-desc,
+.pixel-hub .clear-my-data-list {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  color: var(--pixel-muted);
+}
+
+.pixel-hub .auth-link {
+  color: var(--pixel-link);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-weight: 700;
+}
+
+.pixel-hub .auth-switch {
+  color: var(--pixel-muted);
+}
+
+.pixel-hub .login-message {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 3px solid var(--pixel-border);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+}
+
+@media (max-width: 600px) {
+  .pixel-hub .header h1 {
+    font-size: 0.7rem;
+  }
+
+  .pixel-hub .tab {
+    font-size: 0.78rem;
+    padding: 6px 10px;
   }
 }

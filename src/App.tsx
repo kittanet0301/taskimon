@@ -195,7 +195,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   ]
 
   return (
-    <div className="app">
+    <div className="app pixel-hub">
       <header className="header">
         <div>
           <h1>
@@ -206,7 +206,7 @@ function AppContent({ variant = 'desktop' }: Props) {
             {session.user.email} · {tabSyncing ? t('app.syncing') : t('app.autoSync')}
           </span>
         </div>
-        <LanguageSwitcher />
+        <LanguageSwitcher variant="pixel" />
       </header>
 
       <nav className="tabs">

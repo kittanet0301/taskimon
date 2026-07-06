@@ -70,7 +70,7 @@ export function RoomLobby() {
   }
 
   return (
-    <div className="room-lobby card">
+    <div className="room-lobby">
       <h3>{t('battle.roomLobbyTitle')}</h3>
       {message && <p className="notice">{message}</p>}
 

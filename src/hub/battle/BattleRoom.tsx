@@ -189,7 +189,7 @@ export function BattleRoom({ onDuelStarted }: Props) {
   )
 
   return (
-    <div className="card">
+    <div className="battle-room">
       <h3>{t('battle.roomTitle')}</h3>
       {message && <p className="notice">{message}</p>}
       {room && (

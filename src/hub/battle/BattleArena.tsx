@@ -79,7 +79,7 @@ export function BattleArena({ session, turns, userId, challengerName, defenderNa
           : session.status
 
   return (
-    <div className="battle-arena card">
+    <div className="battle-arena">
       <h3>{t('battle.arenaTitle')}</h3>
       <p><strong>{statusLabel}</strong></p>
 

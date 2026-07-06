@@ -25,7 +25,7 @@ export function BattleHistory() {
   if (!userId) return null
 
   return (
-    <div className="card">
+    <div className="battle-history">
       <h3>{t('battle.historyTitle')}</h3>
       {battles.length === 0 ? (
         <p>{t('battle.historyEmpty')}</p>
