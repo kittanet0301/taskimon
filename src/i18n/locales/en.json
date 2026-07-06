@@ -107,7 +107,7 @@
     "claim": "Claim",
     "quickCare": "Quick Care",
     "evolveAdult": "Evolve -> Adult",
-    "evolveLocked": "Evolve (requires 500+ evolution)"
+    "evolveLocked": "Evolve (requires {{points}}+ evolution)"
   },
   "inventory": {
     "title": "Item Bag",
@@ -188,6 +188,9 @@
     "setHatchName": "Set name after hatching",
     "hatching": "Hatching...",
     "hatch": "Hatch Egg",
+    "hatchLocked": "Hatch (needs {{points}}+ evolution)",
+    "hatchEvolutionHint": "Evolution starts in the egg — click and type on your desktop to reach {{points}} points.",
+    "hatchReadyHint": "The egg is ready to hatch!",
     "needRaiseBeforeBattle": "Hatch and raise your pet before battling.",
     "needRaiseBeforeBattleHp": "Hatch and raise your pet (HP >= 10) before battling.",
     "yourPet": "Your pet",
@@ -195,7 +198,7 @@
     "rename": "Rename",
     "saveName": "Save name",
     "evolveToAdult": "Evolve to Adult",
-    "evolveRequirementHint": "Requires evolution >= 500 and at least 48 hours raised.",
+    "evolveRequirementHint": "Requires evolution >= {{points}} and at least {{hours}} hours raised.",
     "noCloudPetForFriend": "Friend has no pet in cloud."
   },
   "battle": {

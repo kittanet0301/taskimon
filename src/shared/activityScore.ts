@@ -1,4 +1,5 @@
 import type { ActivityCounters, Stage } from './types'
+import { DEV_POINTS_HATCH } from './constants'
 import { tStage } from '../i18n/labels'
 
 export function getActivityScore(activity: ActivityCounters): number {
@@ -12,7 +13,7 @@ export function getStageLabel(stage: Stage): string {
 }
 
 export function getPetLevel(stage: Stage, devPoints: number): number {
-  if (stage === 'egg') return 1
+  if (stage === 'egg') return 1 + Math.floor(devPoints / Math.max(1, DEV_POINTS_HATCH))
   if (stage === 'baby') return 2 + Math.floor(devPoints / 200)
   return 5 + Math.floor(devPoints / 100)
 }

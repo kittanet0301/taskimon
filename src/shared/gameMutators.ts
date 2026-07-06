@@ -1,12 +1,12 @@
 import type { GameSave, ItemType } from './types'
 import { hatchPet, evolvePet, createEggPet } from './growth'
-import { canEvolveToAdult } from './stats'
+import { canEvolveToAdult, canHatchEgg } from './stats'
 import { useItem } from './items'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
 
 export function applyGamePatch(save: GameSave, mutatorName: string, args: unknown[] = []): GameSave {
   if (mutatorName === 'hatch') {
-    if (!save.pet) return save
+    if (!save.pet || !canHatchEgg(save.pet)) return save
     let next = { ...save, pet: hatchPet(save.pet) }
     next = applyDailyResets(next)
     next.missions = next.missions.map((m) =>

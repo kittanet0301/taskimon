@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { ELEMENT_COLORS } from '../shared/constants'
+import { ELEMENT_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
 import { tElement, tSpecies, tStage } from '../i18n/labels'
 import { canEvolveToAdult } from '../shared/stats'
 
@@ -57,7 +57,7 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
       </div>
       {!canEvolveToAdult(pet) && pet.stage === 'baby' && (
         <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-          {t('pet.evolveRequirementHint')}
+          {t('pet.evolveRequirementHint', { points: DEV_POINTS_ADULT, hours: ADULT_MIN_HOURS })}
         </p>
       )}
     </div>

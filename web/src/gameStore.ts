@@ -1,9 +1,10 @@
 import type { GameSave } from '@shared/types'
-import { CLICKS_PER_DEV, KEYS_PER_DEV, MAX_DEV_PER_HOUR } from '@shared/constants'
+import { CLICKS_PER_DEV, KEYS_PER_DEV, MAX_DEV_PER_HOUR, SAVE_VERSION } from '@shared/constants'
 import { addDevPoints } from '@shared/stats'
 import { updateMissionProgress } from '@shared/missions'
 import { applyGamePatch } from '@shared/gameMutators'
 import { applyDailyResets } from '@shared/missions'
+import { createDefaultSave, migrateSave } from '@shared/growth'
 import { loadSave, writeSave } from './storage'
 import {
   bootstrapGameSaveInDb,
@@ -165,10 +166,14 @@ export async function setCurrentUser(userId: string | null): Promise<GameSave> {
   try {
     const cloudSave = await loadGameSaveFromDb(userId)
     if (cloudSave) {
-      saveRef = cloudSave
+      const priorVersion = cloudSave.version
+      saveRef = migrateSave(cloudSave)
       writeSave(saveRef)
+      if (priorVersion < SAVE_VERSION) {
+        await saveGameSaveToDb(userId, saveRef)
+      }
     } else {
-      saveRef = await bootstrapGameSaveInDb(userId, saveRef)
+      saveRef = await bootstrapGameSaveInDb(userId, createDefaultSave())
       writeSave(saveRef)
     }
   } catch (error) {

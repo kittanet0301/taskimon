@@ -1,5 +1,5 @@
 import type { GameSave } from '@shared/types'
-import { createDefaultSave } from '@shared/growth'
+import { createDefaultSave, migrateSave } from '@shared/growth'
 import { applyMoodDecay } from '@shared/stats'
 import { applyDailyResets } from '@shared/missions'
 
@@ -26,7 +26,7 @@ export function loadSave(): GameSave {
       writeSave(save)
       return save
     }
-    return applyOfflineDecay(JSON.parse(raw) as GameSave)
+    return applyOfflineDecay(migrateSave(JSON.parse(raw) as GameSave))
   } catch {
     const save = createDefaultSave()
     writeSave(save)

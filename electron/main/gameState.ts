@@ -1,10 +1,7 @@
 import type { BrowserWindow } from 'electron'
 import type { GameSave } from '../../src/shared/types'
-import {
-  CLICKS_PER_DEV,
-  KEYS_PER_DEV,
-  MAX_DEV_PER_HOUR
-} from '../../src/shared/constants'
+import { SAVE_VERSION, CLICKS_PER_DEV, KEYS_PER_DEV, MAX_DEV_PER_HOUR } from '../../src/shared/constants'
+import { createDefaultSave, migrateSave } from '../../src/shared/growth'
 import { addDevPoints } from '../../src/shared/stats'
 import { updateMissionProgress, applyDailyResets } from '../../src/shared/missions'
 import { loadSave, writeSave } from './storage'
@@ -75,10 +72,14 @@ export async function setCurrentUser(userId: string | null): Promise<GameSave> {
   try {
     const cloudSave = await loadGameSaveFromDb(userId)
     if (cloudSave) {
-      saveRef = cloudSave
+      const priorVersion = cloudSave.version
+      saveRef = migrateSave(cloudSave)
       writeSave(saveRef)
+      if (priorVersion < SAVE_VERSION) {
+        await saveGameSaveToDb(userId, saveRef)
+      }
     } else {
-      saveRef = await bootstrapGameSaveInDb(userId, saveRef)
+      saveRef = await bootstrapGameSaveInDb(userId, createDefaultSave())
       writeSave(saveRef)
     }
   } catch (error) {

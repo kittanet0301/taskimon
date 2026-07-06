@@ -1,5 +1,5 @@
 import type { PetData, PetStats, Stage } from './types'
-import { ADULT_MIN_HOURS, DEV_POINTS_ADULT } from './constants'
+import { ADULT_MIN_HOURS, DEV_POINTS_ADULT, DEV_POINTS_HATCH } from './constants'
 
 export function clampStat(value: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, value))
@@ -23,6 +23,10 @@ export function getMoodLabel(mood: number): 'happy' | 'neutral' | 'sad' {
 
 export function shouldBeSick(stats: PetStats): boolean {
   return stats.hp < 30
+}
+
+export function canHatchEgg(pet: PetData): boolean {
+  return pet.stage === 'egg' && pet.stats.devPoints >= DEV_POINTS_HATCH
 }
 
 export function canEvolveToAdult(pet: PetData): boolean {

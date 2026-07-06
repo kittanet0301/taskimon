@@ -107,7 +107,7 @@
     "claim": "รับรางวัล",
     "quickCare": "ดูแลด่วน",
     "evolveAdult": "วิวัฒนาการ -> Adult",
-    "evolveLocked": "วิวัฒนาการ (ต้องการพัฒนาร่าง 500+)"
+    "evolveLocked": "วิวัฒนาการ (ต้องการพัฒนาร่าง {{points}}+)"
   },
   "inventory": {
     "title": "กระเป๋าไอเทม",
@@ -188,6 +188,9 @@
     "setHatchName": "ตั้งชื่อหลังฟัก",
     "hatching": "กำลังฟัก...",
     "hatch": "ฟักไข่",
+    "hatchLocked": "ฟักไข่ (ต้องการพัฒนาร่าง {{points}}+)",
+    "hatchEvolutionHint": "สะสมพัฒนาร่างตั้งแต่ไข่ — คลิกและพิมพ์บนเดสก์ท็อปให้ครบ {{points}} แต้ม",
+    "hatchReadyHint": "ไข่พร้อมฟักแล้ว!",
     "needRaiseBeforeBattle": "ฟักไข่และเลี้ยงสัตว์ก่อนต่อสู้",
     "needRaiseBeforeBattleHp": "ฟักไข่และเลี้ยงสัตว์ (HP >= 10) ก่อนต่อสู้",
     "yourPet": "สัตว์ของคุณ",
@@ -195,7 +198,7 @@
     "rename": "เปลี่ยนชื่อ",
     "saveName": "บันทึกชื่อ",
     "evolveToAdult": "วิวัฒนาการเป็น Adult",
-    "evolveRequirementHint": "ต้องมีพัฒนาร่าง >= 500 และเลี้ยงมาอย่างน้อย 48 ชั่วโมง",
+    "evolveRequirementHint": "ต้องมีพัฒนาร่าง >= {{points}} และเลี้ยงมาอย่างน้อย {{hours}} ชั่วโมง",
     "noCloudPetForFriend": "เพื่อนยังไม่มีสัตว์เลี้ยงในคลาวด์"
   },
   "battle": {

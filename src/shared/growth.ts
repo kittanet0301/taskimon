@@ -1,5 +1,5 @@
 import type { GameSave, PetData } from './types'
-import { SAVE_VERSION } from './constants'
+import { SAVE_VERSION, TEST_FAST_EVO } from './constants'
 import { createDefaultMissions } from './missions'
 import { getDefaultInventory } from './items'
 import { hatchEgg, defaultPetName } from './species'
@@ -38,12 +38,32 @@ export function hatchPet(pet: PetData): PetData {
   }
 }
 
+/** Keep species/stats; rewind to egg (e.g. after clear-data / test bootstrap). */
+export function resetPetToEggStage(pet: PetData): PetData {
+  return {
+    ...pet,
+    stage: 'egg',
+    hatchedAt: null,
+    animationState: 'egg_idle'
+  }
+}
+
 export function evolvePet(pet: PetData): PetData {
   return {
     ...pet,
     stage: 'adult',
     animationState: 'evolve'
   }
+}
+
+/** One-time save upgrades (e.g. test mode: rewind hatched pets to egg on v2). */
+export function migrateSave(save: GameSave): GameSave {
+  if (save.version >= SAVE_VERSION) return save
+  let next = { ...save, version: SAVE_VERSION }
+  if (TEST_FAST_EVO && next.pet && next.pet.stage !== 'egg') {
+    next = { ...next, pet: resetPetToEggStage(next.pet) }
+  }
+  return next
 }
 
 export function createDefaultSave(): GameSave {

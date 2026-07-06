@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import type { GameSave } from '../../src/shared/types'
-import { createDefaultSave } from '../../src/shared/growth'
+import { createDefaultSave, migrateSave } from '../../src/shared/growth'
 import { applyMoodDecay } from '../../src/shared/stats'
 import { applyDailyResets } from '../../src/shared/missions'
 
@@ -21,7 +21,7 @@ export function loadSave(): GameSave {
   }
   try {
     const raw = readFileSync(path, 'utf-8')
-    const save = JSON.parse(raw) as GameSave
+    const save = migrateSave(JSON.parse(raw) as GameSave)
     return applyOfflineDecay(save)
   } catch {
     const save = createDefaultSave()

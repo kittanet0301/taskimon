@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, ItemType, PetData } from '../shared/types'
-import { ELEMENT_COLORS } from '../shared/constants'
+import { ELEMENT_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
 import { getActivityScore, getPetLevel, getStageLabel } from '../shared/activityScore'
 import { canEvolveToAdult } from '../shared/stats'
 import { formatDailyResetCountdown, getMissionDefinition } from '../shared/missions'
@@ -71,7 +71,7 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
       <StatBar
         label={t('home.evolution')}
         value={pet.stats.devPoints}
-        max={500}
+        max={DEV_POINTS_ADULT}
         color="#f59e0b"
       />
       {pet.stage === 'baby' && (
@@ -81,7 +81,9 @@ function PetStatusCard({ pet, onUpdated }: { pet: PetData; onUpdated: () => void
           onClick={evolve}
           disabled={!canEvolveToAdult(pet)}
         >
-          {canEvolveToAdult(pet) ? t('home.evolveAdult') : t('home.evolveLocked')}
+          {canEvolveToAdult(pet)
+            ? t('home.evolveAdult')
+            : t('home.evolveLocked', { points: DEV_POINTS_ADULT, hours: ADULT_MIN_HOURS })}
         </button>
       )}
     </div>
@@ -220,7 +222,15 @@ export function HomeDashboard({ save, onUpdated }: Props) {
   if (!save.pet) return null
 
   if (save.pet.stage === 'egg') {
-    return <EggHatch pet={save.pet} onHatched={onUpdated} />
+    return (
+      <div className="dashboard">
+        <div className="dashboard-top">
+          <EggHatch pet={save.pet} onHatched={onUpdated} />
+          <ActivityCard save={save} />
+        </div>
+        <DailyMissionsPanel save={save} onUpdated={onUpdated} />
+      </div>
+    )
   }
 
   return (
