@@ -21,6 +21,17 @@ Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron)
   - ไม่มีระบบธาตุ — ดาเมจตามสถิติและท่าไม้ตายเท่านั้น
   - จบดวล → popup ผลชนะ/แพ้ + กลับแท็บห้องอัตโนมัติ
 
+## UI
+
+หน้า **Login / Sign up / Forgot password** และ **Get Started** ใช้ธีม **retro pixel art dino**:
+
+- พื้นหลังท้องฟ้า + หญ้า + เมฆ pixel (scoped class `.pixel-cover` — ไม่กระทบ hub หลัก)
+- โลโก้เป็น **animated egg sprite** (`male/doux/egg`) จาก `assets/dino/`
+- ฟอนต์: **Press Start 2P** (title/ปุ่ม) + **Mali** (ข้อความไทย/ฟอร์ม)
+- ปุ่ม blocky 3D, input มุมคม, สลับภาษา EN/TH มุมขวาบนการ์ด
+
+Hub หลัก (แท็บ Home, Battle, Chat ฯลฯ) ยังใช้สไตล์เดิม — ขยายธีม pixel ในรอบถัดไปได้ผ่าน CSS variables ใน `styles.css`
+
 ## Quick Start
 
 ```bash
@@ -28,7 +39,10 @@ pnpm install
 pnpm dev
 ```
 
-เปิด Hub → แท็บ **บัญชี** → สมัคร/เข้าสู่ระบบ (หรือเล่น offline ก่อนได้ — สัตว์บนจอยังเป็นไข่จนกว่าจะ login)
+เปิดแอป → หน้า **Login** (หรือสมัคร/ลืมรหัส) → หลัง login ครั้งแรกจะเจอ **Get Started** → เข้า Hub
+
+- สมัคร/เข้าสู่ระบบได้จากหน้า gate ก่อนเข้า Hub (หรือเล่น offline ก่อนได้ — สัตว์บนจอยังเป็นไข่จนกว่าจะ login)
+- จัดการบัญชีเพิ่มเติมได้ที่แท็บ **บัญชี** ใน Settings หลัง login
 
 ## Environment (Database)
 
@@ -98,10 +112,15 @@ Global input tracking requires **Accessibility** permission in System Settings.
 
 - `electron/main/` — Main process, windows, tray, activity tracker, Supabase
 - `src/hub/` — Hub UI (React)
+- `src/hub/LoginGate.tsx` — Login / sign up / forgot password (pixel theme)
+- `src/hub/PixelCoverShell.tsx` — Shared pixel cover layout (auth + Get Started)
+- `src/hub/GetStarted.tsx` — Post-login onboarding (pixel theme)
+- `src/components/AuthEggSprite.tsx` — Animated egg sprite for auth screens
 - `src/hub/battle/` — ห้องต่อสู้, สนามดวล, ประวัติ, guard ออกจากห้อง
 - `src/pet/` — Desktop pet canvas renderer
 - `src/shared/` — Game logic shared across processes
 - `src/shared/battle/` — Battle engine, damage, rewards, mappers
+- `src/styles.css` — Global styles + `.pixel-cover` auth theme
 - `web/` — Vite config สำหรับเวอร์ชันเบราว์เซอร์
 - `assets/dino/` — Dino Family pixel sprites (see [assets/CREDITS.md](assets/CREDITS.md))
 - `supabase/migrations/` — SQL schema + RLS + battle RPCs

@@ -88,7 +88,7 @@ npm run preview:web   # เปิด http://localhost:4173
 | Deploy ได้ | ไม่รวม (desktop only) |
 |---|---|
 | Hub UI ทุกแท็บ (รวมห้องต่อสู้ / ดวล async) | Pet ลอยบนจอ (ก่อน login แสดงเป็นไข่) |
-| Login + DB sync | Global click tracker (หลัง login) |
+| Login / Sign up / Get Started (ธีม pixel dino) + DB sync | Global click tracker (หลัง login) |
 | เพื่อน / แชท / ต่อสู้ | System tray + สถิติใน tray |
 
 ข้อมูลเกมใช้ Supabase ร่วมกับแอป desktop — login บัญชีเดียวกัน เห็นสัตว์เดียวกัน
