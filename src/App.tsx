@@ -227,7 +227,7 @@ function AppContent({ variant = 'desktop' }: Props) {
     profile?.username ?? session?.user?.email?.split('@')[0] ?? ''
 
   return (
-    <div className="app pixel-hub">
+    <div className={`app pixel-hub${tab === 'home' ? ' app--dash-full' : ''}`}>
       <header className="header">
         <div className="header-brand">
           <img
@@ -243,24 +243,23 @@ function AppContent({ variant = 'desktop' }: Props) {
             </span>
           </div>
         </div>
+        <nav className="tabs">
+          {tabs.map((tTab) => (
+            <button
+              key={tTab.id}
+              className={`tab ${tab === tTab.id ? 'active' : ''}`}
+              onClick={() => handleTabChange(tTab.id)}
+              disabled={tabSyncing}
+            >
+              <span className="tab-icon">{tTab.icon}</span>
+              {tTab.label}
+            </button>
+          ))}
+        </nav>
         <LanguageSwitcher variant="pixel" />
       </header>
 
-      <nav className="tabs">
-        {tabs.map((tTab) => (
-          <button
-            key={tTab.id}
-            className={`tab ${tab === tTab.id ? 'active' : ''}`}
-            onClick={() => handleTabChange(tTab.id)}
-            disabled={tabSyncing}
-          >
-            <span className="tab-icon">{tTab.icon}</span>
-            {tTab.label}
-          </button>
-        ))}
-      </nav>
-
-      <main className="content">
+      <main className={`content${tab === 'home' ? ' content--dash-full' : ''}`}>
         {tab === 'home' && <HomeDashboard save={save} onUpdated={refresh} />}
         {tab === 'collection' && (
           <PetCollection save={save} onUpdated={refresh} onSelect={() => setTab('home')} />

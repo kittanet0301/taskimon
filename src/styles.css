@@ -39,6 +39,16 @@ body {
   flex-direction: column;
 }
 
+.app.app--dash-full {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app.app--dash-full .content {
+  flex: 1;
+  min-height: 0;
+}
+
 .header {
   background: var(--pixel-header-bg);
   color: white;
@@ -639,6 +649,54 @@ input, select {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Dashboard scene preview — egg in nest / pet on pedestal */
+.content.content--dash-full {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dash-scene-wrap {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+}
+
+.dash-scene {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dash-scene-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.dash-scene-pet {
+  position: absolute;
+  pointer-events: none;
+}
+
+.dash-scene-pet--egg {
+  transform: translate(-100%, -75%);
+}
+
+.dash-scene-pet--pedestal {
+  transform: translate(-75%, -50%);
 }
 
 .dashboard-top {
@@ -1383,7 +1441,9 @@ input, select {
   background: var(--pixel-header-bg);
   color: #fff;
   border-bottom: 4px solid var(--pixel-border);
-  padding: 14px 24px;
+  padding: 10px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .pixel-hub .header h1 {
@@ -1405,6 +1465,24 @@ input, select {
   border-bottom: 4px solid var(--pixel-border);
   padding: 10px 24px;
   gap: 6px;
+}
+
+.pixel-hub .header .tabs {
+  flex: 1;
+  justify-content: center;
+  background: transparent;
+  border-bottom: none;
+  padding: 0;
+  min-width: 0;
+}
+
+.pixel-hub .header .tab {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.pixel-hub .header-brand {
+  flex-shrink: 0;
 }
 
 .pixel-hub .tab {
