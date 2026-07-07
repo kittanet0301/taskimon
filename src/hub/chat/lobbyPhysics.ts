@@ -6,42 +6,75 @@ export interface PhysicsState {
   facing: 'left' | 'right'
   anim: LobbyAnim
   jumpUntil: number
+  emoteUntil: number
+  emote: boolean
   groundY: number
 }
 
 export interface LobbyInput {
   move: -1 | 0 | 1
   jump: boolean
+  dash: boolean
+  greet: boolean
 }
 
 const WALK_SPEED = 0.0022
+const DASH_SPEED = 0.0048
 const MIN_X = 0.06
 const MAX_X = 0.94
-const GROUND_Y = 0.62
+export const LOBBY_GROUND_Y = 0.62
 const JUMP_FRAMES = 36
+const EMOTE_FRAMES = 48
 
-export function createPhysicsState(seed: string): PhysicsState {
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) hash = (hash + seed.charCodeAt(i) * (i + 1)) % 1000
-  const x = MIN_X + (hash % 700) / 1000
+export function createRandomSpawn(): Pick<PhysicsState, 'x' | 'y' | 'facing'> {
   return {
-    x,
-    y: GROUND_Y,
-    facing: 'right',
+    x: MIN_X + Math.random() * (MAX_X - MIN_X),
+    y: LOBBY_GROUND_Y,
+    facing: Math.random() < 0.5 ? 'left' : 'right'
+  }
+}
+
+export function createPhysicsState(): PhysicsState {
+  const spawn = createRandomSpawn()
+  return {
+    ...spawn,
     anim: 'idle',
     jumpUntil: 0,
-    groundY: GROUND_Y
+    emoteUntil: 0,
+    emote: false,
+    groundY: LOBBY_GROUND_Y
+  }
+}
+
+export function resetPhysicsSpawn(state: PhysicsState): PhysicsState {
+  const spawn = createRandomSpawn()
+  return {
+    ...state,
+    ...spawn,
+    anim: 'idle',
+    jumpUntil: 0,
+    emoteUntil: 0,
+    emote: false,
+    y: LOBBY_GROUND_Y
   }
 }
 
 export function tickPhysics(state: PhysicsState, frame: number, input: LobbyInput): PhysicsState {
   const next = { ...state }
 
+  if (input.greet && frame >= next.emoteUntil && frame >= next.jumpUntil) {
+    next.emote = true
+    next.emoteUntil = frame + EMOTE_FRAMES
+  }
+
   if (frame >= next.jumpUntil && input.jump) {
     next.jumpUntil = frame + JUMP_FRAMES
+    next.emote = false
+    next.emoteUntil = 0
   }
 
   const jumping = frame < next.jumpUntil
+  const emoting = !jumping && next.emote && frame < next.emoteUntil
 
   if (jumping) {
     const t = (frame - (next.jumpUntil - JUMP_FRAMES)) / JUMP_FRAMES
@@ -49,14 +82,24 @@ export function tickPhysics(state: PhysicsState, frame: number, input: LobbyInpu
     next.anim = 'jump'
   } else {
     next.y = next.groundY
+    if (!emoting) {
+      next.emote = false
+    }
   }
 
-  if (input.move !== 0) {
-    const speed = jumping ? WALK_SPEED * 0.65 : WALK_SPEED
+  if (!jumping && emoting) {
+    next.anim = 'bite'
+  } else if (!jumping && input.move !== 0) {
+    const dashing = input.dash && !emoting
+    const speed = jumping
+      ? WALK_SPEED * 0.65
+      : dashing
+        ? DASH_SPEED
+        : WALK_SPEED
     next.x += input.move * speed
     next.facing = input.move < 0 ? 'left' : 'right'
-    if (!jumping) next.anim = 'walk'
-  } else if (!jumping) {
+    if (!jumping) next.anim = dashing ? 'dash' : 'walk'
+  } else if (!jumping && !emoting) {
     next.anim = 'idle'
   }
 

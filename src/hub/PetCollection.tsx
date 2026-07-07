@@ -32,6 +32,11 @@ export function PetCollection({ save, onUpdated, onSelect }: Props) {
 
   const selectPet = async (petId: string) => {
     await window.electronAPI.patchGame('setActivePet', [petId])
+    try {
+      await window.electronAPI.forceCloudSave()
+    } catch {
+      // local save is still updated; chat uses local active pet for self
+    }
     onUpdated()
     onSelect()
   }

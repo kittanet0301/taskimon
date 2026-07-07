@@ -203,7 +203,7 @@
     "subtitle": "Join a room and chat with your dino character walking around.",
     "loginRequired": "Log in to join chat rooms.",
     "joining": "Joining room…",
-    "controls": "← → walk · Space jump · Enter to type",
+    "controls": "A D walk · Shift+dash · Space jump · E wave · Enter to type",
     "memberCount": "{{count}} online",
     "leave": "Leave room",
     "send": "Send",

@@ -203,7 +203,7 @@
     "subtitle": "เข้าห้องแล้วแชทได้ ตัวละครจะเดินไปมาในห้อง",
     "loginRequired": "เข้าสู่ระบบก่อนเข้าห้องแชท",
     "joining": "กำลังเข้าห้อง…",
-    "controls": "← → เดิน · Space กระโดด · Enter พิมพ์ข้อความ",
+    "controls": "A D เดิน · Shift วิ่ง · Space กระโดด · E ทักทาย · Enter พิมพ์",
     "memberCount": "{{count}} คน",
     "leave": "ออกจากห้อง",
     "send": "ส่ง",

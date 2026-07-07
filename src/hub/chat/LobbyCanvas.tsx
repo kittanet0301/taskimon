@@ -16,9 +16,16 @@ import {
   type DinoSpriteFolder
 } from '../../shared/dinoSprites'
 import { drawLobbyBackground } from './lobbyBackgrounds'
-import { createPhysicsState, tickPhysics, type LobbyInput, type PhysicsState } from './lobbyPhysics'
+import {
+  createPhysicsState,
+  resetPhysicsSpawn,
+  tickPhysics,
+  type LobbyInput,
+  type PhysicsState
+} from './lobbyPhysics'
 import { pruneBubbles, upsertBubble } from './speechBubbles'
 import type { ChatRoomMember, ChatRoomMessage, LobbyEntity } from './types'
+import { parseLobbyAnim } from './types'
 
 const CANVAS_W = 960
 const CANVAS_H = 480
@@ -29,7 +36,9 @@ const LOBBY_PET_BASE = 96
 const PET_CLIPS = [
   { folder: 'base' as const, clip: 'idle' },
   { folder: 'base' as const, clip: 'move' },
-  { folder: 'base' as const, clip: 'jump' }
+  { folder: 'base' as const, clip: 'jump' },
+  { folder: 'base' as const, clip: 'dash' },
+  { folder: 'base' as const, clip: 'bite' }
 ]
 
 interface Props {
@@ -51,7 +60,7 @@ function memberToEntity(m: ChatRoomMember, isSelf: boolean): LobbyEntity {
     x: m.x,
     y: m.y,
     facing: m.facing === 'left' ? 'left' : 'right',
-    anim: m.anim === 'jump' ? 'jump' : m.anim === 'walk' ? 'walk' : 'idle',
+    anim: parseLobbyAnim(m.anim),
     isSelf
   }
 }
@@ -65,12 +74,10 @@ function resolveLobbyClip(entity: LobbyEntity): {
   if (entity.stage === 'egg') {
     return { folder: 'egg', clip: 'move', flipX: false }
   }
-  if (entity.anim === 'jump') {
-    return { folder: 'base', clip: 'jump', flipX }
-  }
-  if (entity.anim === 'walk') {
-    return { folder: 'base', clip: 'move', flipX }
-  }
+  if (entity.anim === 'jump') return { folder: 'base', clip: 'jump', flipX }
+  if (entity.anim === 'dash') return { folder: 'base', clip: 'dash', flipX }
+  if (entity.anim === 'bite') return { folder: 'base', clip: 'bite', flipX }
+  if (entity.anim === 'walk') return { folder: 'base', clip: 'move', flipX }
   return { folder: 'base', clip: 'idle', flipX }
 }
 
@@ -183,9 +190,10 @@ function drawBubble(
 export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync, incomingMessage }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const frameRef = useRef(0)
-  const physicsRef = useRef<PhysicsState>(createPhysicsState(userId))
-  const inputRef = useRef<LobbyInput>({ move: 0, jump: false })
+  const physicsRef = useRef<PhysicsState>(createPhysicsState())
+  const inputRef = useRef<LobbyInput>({ move: 0, jump: false, dash: false, greet: false })
   const jumpQueuedRef = useRef(false)
+  const greetQueuedRef = useRef(false)
   const displayRef = useRef<Map<string, { x: number; y: number }>>(new Map())
   const bubblesRef = useRef<Map<string, import('./types').SpeechBubble>>(new Map())
   const spriteCacheRef = useRef<Map<string, HTMLImageElement>>(new Map())
@@ -195,6 +203,19 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
 
   membersRef.current = members
   onSyncRef.current = onPositionSync
+
+  useEffect(() => {
+    physicsRef.current = resetPhysicsSpawn(createPhysicsState())
+    displayRef.current.clear()
+    frameRef.current = 0
+    const phys = physicsRef.current
+    onSyncRef.current({
+      x: phys.x,
+      y: phys.y,
+      facing: phys.facing,
+      anim: phys.anim
+    })
+  }, [roomId, userId])
 
   useEffect(() => {
     if (!incomingMessage) return
@@ -226,37 +247,50 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
       return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
     }
 
-    const held = { left: false, right: false }
+    const held = { left: false, right: false, shift: false }
 
     const syncInput = () => {
       inputRef.current.move = held.left && !held.right ? -1 : held.right && !held.left ? 1 : 0
+      inputRef.current.dash = held.shift
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (isTyping()) return
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'a' || e.key === 'A') {
         held.left = true
         syncInput()
         e.preventDefault()
       }
-      if (e.key === 'ArrowRight') {
+      if (e.key === 'd' || e.key === 'D') {
         held.right = true
         syncInput()
         e.preventDefault()
+      }
+      if (e.key === 'Shift') {
+        held.shift = true
+        syncInput()
       }
       if (e.key === ' ' && !e.repeat) {
         jumpQueuedRef.current = true
         e.preventDefault()
       }
+      if ((e.key === 'e' || e.key === 'E') && !e.repeat) {
+        greetQueuedRef.current = true
+        e.preventDefault()
+      }
     }
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'a' || e.key === 'A') {
         held.left = false
         syncInput()
       }
-      if (e.key === 'ArrowRight') {
+      if (e.key === 'd' || e.key === 'D') {
         held.right = false
+        syncInput()
+      }
+      if (e.key === 'Shift') {
+        held.shift = false
         syncInput()
       }
     }
@@ -264,8 +298,10 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
     const resetInput = () => {
       held.left = false
       held.right = false
-      inputRef.current = { move: 0, jump: false }
+      held.shift = false
+      inputRef.current = { move: 0, jump: false, dash: false, greet: false }
       jumpQueuedRef.current = false
+      greetQueuedRef.current = false
     }
 
     window.addEventListener('keydown', onKeyDown)
@@ -293,9 +329,12 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
 
       const input: LobbyInput = {
         move: inputRef.current.move,
-        jump: jumpQueuedRef.current
+        jump: jumpQueuedRef.current,
+        dash: inputRef.current.dash,
+        greet: greetQueuedRef.current
       }
       jumpQueuedRef.current = false
+      greetQueuedRef.current = false
 
       physicsRef.current = tickPhysics(physicsRef.current, frame, input)
       const phys = physicsRef.current

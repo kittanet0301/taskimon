@@ -28,7 +28,14 @@ export interface ChatRoomMessage {
   created_at: string
 }
 
-export type LobbyAnim = 'idle' | 'walk' | 'jump'
+export type LobbyAnim = 'idle' | 'walk' | 'dash' | 'jump' | 'bite'
+
+export function parseLobbyAnim(value: unknown): LobbyAnim {
+  if (value === 'walk' || value === 'dash' || value === 'jump' || value === 'bite') {
+    return value
+  }
+  return 'idle'
+}
 
 export interface LobbyEntity {
   userId: string
