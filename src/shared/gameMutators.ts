@@ -1,7 +1,7 @@
 import type { GameSave, ItemType } from './types'
 import { hatchPet, evolvePet, createEggPet } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
-import { useItem } from './items'
+import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
 
@@ -76,6 +76,15 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
             : save.pet.animationState
       }
     }
+  }
+  if (mutatorName === 'setQuickItemSlot' && typeof args[0] === 'number') {
+    const index = args[0] as number
+    const itemType = args[1] as ItemType | null
+    const quickItemSlots = normalizeQuickItemSlots(save.quickItemSlots)
+    if (index < 0 || index >= quickItemSlots.length) return save
+    if (itemType !== null && !(itemType in ITEMS)) return save
+    quickItemSlots[index] = itemType
+    return { ...save, quickItemSlots }
   }
   if (mutatorName === 'claimMission' && typeof args[0] === 'string') {
     const missionId = args[0] as string

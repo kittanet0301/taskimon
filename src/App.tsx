@@ -10,17 +10,16 @@ import { PixelCoverShell } from './hub/PixelCoverShell'
 import { HomeDashboard } from './hub/HomeDashboard'
 import { Missions } from './hub/Missions'
 import { AuthPanel } from './hub/AuthPanel'
-import { Friends } from './hub/Friends'
+import { Community } from './hub/Community'
 import { BattleProvider, BattleContext } from './hub/battle/BattleContext'
 import { BattleHub } from './hub/battle/BattleHub'
 import { useBattleGuard } from './hub/battle/useBattleGuard'
-import { Chat } from './hub/Chat'
 import { UserProfile } from './hub/UserProfile'
 import { PetCollection } from './hub/PetCollection'
 import { LanguageSwitcher } from './hub/LanguageSwitcher'
 import { ChangePasswordForm } from './hub/ChangePasswordForm'
 
-type Tab = 'home' | 'collection' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
+type Tab = 'home' | 'collection' | 'missions' | 'community' | 'battle' | 'profile' | 'settings'
 
 type Session = { user: { id: string; email?: string } } | null
 type UserProfile = { username: string; friend_code: string }
@@ -249,9 +248,8 @@ function AppContent({ variant = 'desktop' }: Props) {
     { id: 'home', label: t('tabs.home'), icon: '🏠' },
     { id: 'collection', label: t('tabs.collection'), icon: '🥚' },
     { id: 'missions', label: t('tabs.missions'), icon: '📋' },
-    { id: 'friends', label: t('tabs.friends'), icon: '👥' },
+    { id: 'community', label: t('tabs.friends'), icon: '👥' },
     { id: 'battle', label: t('tabs.battle'), icon: '⚔️' },
-    { id: 'chat', label: t('tabs.chat'), icon: '💬' },
     { id: 'settings', label: t('tabs.settings'), icon: '⚙️' }
   ]
 
@@ -292,19 +290,21 @@ function AppContent({ variant = 'desktop' }: Props) {
       </header>
 
       <main className={`content${tab === 'home' ? ' content--dash-full' : ''}`}>
-        {tab === 'home' && <HomeDashboard save={save} onUpdated={refresh} />}
+        {tab === 'home' && (
+          <HomeDashboard
+            save={save}
+            displayName={displayName}
+            syncing={tabSyncing}
+            onNavigate={handleTabChange}
+            onUpdated={refresh}
+          />
+        )}
         {tab === 'collection' && (
           <PetCollection save={save} onUpdated={refresh} onSelect={() => setTab('home')} />
         )}
         {tab === 'missions' && <Missions save={save} onUpdated={refresh} />}
-        {tab === 'friends' && (
-          <Friends
-            key="friends"
-            onViewProfile={handleViewProfile}
-          />
-        )}
+        {tab === 'community' && <Community key="community" onViewProfile={handleViewProfile} />}
         {tab === 'battle' && <BattleHub save={save} variant={variant} />}
-        {tab === 'chat' && <Chat key="chat" />}
         {tab === 'profile' && <UserProfile key={`profile-${viewUserId ?? 'self'}`} userId={viewUserId} />}
         {tab === 'settings' && (
           <AuthPanel

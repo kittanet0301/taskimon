@@ -2,7 +2,7 @@ import type { GameSave, PetData } from './types'
 import { SAVE_VERSION, TEST_FAST_EVO, PET_SLOT_BASE } from './constants'
 import { createDefaultMissions, ensureAllMissions } from './missions'
 import { clampSlotLimit } from './petCollection'
-import { getDefaultInventory } from './items'
+import { getDefaultInventory, getDefaultQuickItemSlots, normalizeQuickItemSlots } from './items'
 import { hatchEgg, defaultPetName } from './dinoCharacters'
 import { normalizeDinoCharacter } from './dinoCharacters'
 
@@ -74,17 +74,21 @@ function normalizeCollectionFields(save: GameSave): GameSave {
     petSlotLimit: clampSlotLimit(
       typeof save.petSlotLimit === 'number' ? save.petSlotLimit : PET_SLOT_BASE
     ),
+    quickItemSlots: normalizeQuickItemSlots(save.quickItemSlots),
     missions: ensureAllMissions(save.missions)
   }
 }
 
-/** One-time save upgrades (test mode egg rewind on v2; dino characters on v3; collection on v4). */
+/** One-time save upgrades (test mode egg rewind on v2; dino characters on v3; collection on v4; quick slots on v5). */
 export function migrateSave(save: GameSave): GameSave {
   let next = normalizeCollectionFields(save)
   if (next.version >= SAVE_VERSION) return next
 
   if (next.version < 4) {
     next = { ...next, collection: next.collection ?? [], petSlotLimit: PET_SLOT_BASE }
+  }
+  if (next.version < 5) {
+    next = { ...next, quickItemSlots: getDefaultQuickItemSlots(next.inventory) }
   }
 
   next = { ...next, version: SAVE_VERSION }
@@ -105,6 +109,7 @@ export function createDefaultSave(): GameSave {
     collection: [],
     petSlotLimit: PET_SLOT_BASE,
     inventory: getDefaultInventory(),
+    quickItemSlots: getDefaultQuickItemSlots(),
     missions: createDefaultMissions(),
     activity: {
       clicks: 0,

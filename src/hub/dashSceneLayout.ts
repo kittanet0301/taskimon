@@ -1,12 +1,12 @@
-export const DASH_BG_WIDTH = 1024
-export const DASH_BG_HEIGHT = 567
+export const DASH_BG_WIDTH = 1672
+export const DASH_BG_HEIGHT = 941
 
-/** Anchor points in source background pixels (1024×567). */
+/** Anchor points in source background pixels (1672x941). */
 export const DASH_SCENE_ANCHORS = {
-  /** Center of the nest bowl. */
-  egg: { x: 475, y: 312 },
-  /** Feet on the flat grassy platform. */
-  pedestal: { x: 428, y: 350 }
+  /** Center of the warm hatch glow. */
+  egg: { x: 836, y: 690 },
+  /** Feet on the warm hatch glow. */
+  pedestal: { x: 836, y: 700 }
 } as const
 
 export function coverImagePointToPercent(

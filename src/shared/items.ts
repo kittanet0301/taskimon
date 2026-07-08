@@ -1,4 +1,5 @@
-import type { ItemType, PetStats } from './types'
+import { QUICK_ITEM_SLOT_COUNT } from './constants'
+import type { InventoryItem, ItemType, PetStats } from './types'
 import { addDevPoints, clampStat, feedPet, healPet } from './stats'
 
 export interface ItemDefinition {
@@ -47,6 +48,17 @@ export function getDefaultInventory(): { type: ItemType; quantity: number }[] {
     { type: 'water', quantity: 2 },
     { type: 'medicine', quantity: 1 }
   ]
+}
+
+export function getDefaultQuickItemSlots(inventory: InventoryItem[] = getDefaultInventory()): Array<ItemType | null> {
+  const types = inventory.map((item) => item.type)
+  return Array.from({ length: QUICK_ITEM_SLOT_COUNT }, (_, idx) => types[idx] ?? null)
+}
+
+export function normalizeQuickItemSlots(slots?: Array<ItemType | null> | null): Array<ItemType | null> {
+  const safeSlots = Array.isArray(slots) ? slots.slice(0, QUICK_ITEM_SLOT_COUNT) : []
+  while (safeSlots.length < QUICK_ITEM_SLOT_COUNT) safeSlots.push(null)
+  return safeSlots.map((slot) => (slot && slot in ITEMS ? slot : null))
 }
 
 /** Quick Care buttons on the home dashboard — one slot per item type. */

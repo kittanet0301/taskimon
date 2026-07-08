@@ -75,6 +75,7 @@ export interface GameSave {
   /** Max pet slots (base 5, up to 27 via weekly missions). */
   petSlotLimit: number
   inventory: InventoryItem[]
+  quickItemSlots: Array<ItemType | null>
   missions: MissionProgress[]
   activity: ActivityCounters
   sessionStartedAt: string

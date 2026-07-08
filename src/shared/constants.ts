@@ -1,9 +1,10 @@
-export const SAVE_VERSION = 4
+export const SAVE_VERSION = 5
 
 export const PET_SLOT_BASE = 5
 export const PET_SLOT_MAX = 27
 export const PET_SLOTS_PER_PAGE = 9
 export const WEEKLY_SLOT_REWARD = 5
+export const QUICK_ITEM_SLOT_COUNT = 6
 
 /** Flip to false before release builds. */
 export const TEST_FAST_EVO = true
