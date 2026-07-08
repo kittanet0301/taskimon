@@ -500,6 +500,32 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     }
   }
 
+  async function submitMinigameScore(gameId: string, score: number) {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('upsert_minigame_score', {
+      p_game_id: gameId,
+      p_score: Math.max(0, Math.floor(score))
+    })
+    if (error) rpcError(error)
+    return data
+  }
+
+  async function getMinigameLeaderboard(gameId: string, limit = 50) {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('get_minigame_leaderboard', {
+      p_game_id: gameId,
+      p_limit: limit
+    })
+    if (error) rpcError(error)
+    return (data ?? []).map((row) => ({
+      rank: Number(row.rank),
+      userId: row.user_id,
+      username: row.username,
+      bestScore: row.best_score,
+      achievedAt: row.achieved_at
+    }))
+  }
+
   return {
     isSupabaseConfigured: () => getSupabase() !== null,
     signUp,
@@ -538,6 +564,8 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     updateChatRoomPosition,
     subscribeToChatRoom,
     syncInventory,
-    syncMissions
+    syncMissions,
+    submitMinigameScore,
+    getMinigameLeaderboard
   }
 }

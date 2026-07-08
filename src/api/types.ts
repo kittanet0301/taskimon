@@ -1,4 +1,5 @@
 import type { GameSave, PetData } from '../shared/types'
+import type { MinigameFinishResult, MinigameLeaderboardRow } from '../shared/minigame'
 
 export interface GameAPI {
   getGame: () => Promise<GameSave>
@@ -59,6 +60,12 @@ export interface GameAPI {
   getActivityStatus: () => Promise<{ global: boolean; fallback: boolean; ready: boolean }>
   reportActivityClick: () => Promise<void>
   reportActivityKey: () => Promise<void>
+  finishMinigame: (
+    gameId: string,
+    score: number
+  ) => Promise<{ save: GameSave; result: MinigameFinishResult }>
+  submitMinigameScore: (gameId: string, score: number) => Promise<unknown>
+  getMinigameLeaderboard: (gameId: string, limit?: number) => Promise<MinigameLeaderboardRow[]>
 }
 
 /** @deprecated use GameAPI — kept for Electron preload compatibility */

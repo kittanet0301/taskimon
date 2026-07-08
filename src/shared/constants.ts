@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 5
+export const SAVE_VERSION = 6
 
 export const PET_SLOT_BASE = 5
 export const PET_SLOT_MAX = 27

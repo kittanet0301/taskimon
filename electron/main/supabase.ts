@@ -63,7 +63,9 @@ export const {
   updateChatRoomPosition,
   subscribeToChatRoom,
   syncInventory,
-  syncMissions
+  syncMissions,
+  submitMinigameScore,
+  getMinigameLeaderboard
 } = createSupabaseService({
   getSupabase,
   formatError: formatApiError

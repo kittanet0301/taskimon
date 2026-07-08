@@ -29,6 +29,15 @@ export type ItemType =
   | 'dev_vitamin'
   | 'battle_shield'
 
+export type MinigameId = 'dino_jump'
+
+export interface MinigameSaveState {
+  /** YYYY-MM-DD local calendar day for daily item reward quota */
+  day: string | null
+  itemsEarnedToday: Partial<Record<MinigameId, number>>
+  bestScores: Partial<Record<MinigameId, number>>
+}
+
 export interface PetStats {
   hp: number
   mood: number
@@ -84,6 +93,7 @@ export interface GameSave {
   dailyMissionsCompletedDays: number
   /** Local calendar day (YYYY-MM-DD) when a daily mission was last claimed. */
   lastDailyMissionDay: string | null
+  minigame: MinigameSaveState
 }
 
 export interface Profile {

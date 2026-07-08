@@ -18,8 +18,10 @@ import { UserProfile } from './hub/UserProfile'
 import { PetCollection } from './hub/PetCollection'
 import { LanguageSwitcher } from './hub/LanguageSwitcher'
 import { ChangePasswordForm } from './hub/ChangePasswordForm'
+import { MiniGameHub } from './hub/minigame/MiniGameHub'
+import { MiniGameRanking } from './hub/minigame/MiniGameRanking'
 
-type Tab = 'home' | 'collection' | 'missions' | 'community' | 'battle' | 'profile' | 'settings'
+type Tab = 'home' | 'collection' | 'missions' | 'community' | 'battle' | 'profile' | 'settings' | 'minigame' | 'ranking'
 
 type Session = { user: { id: string; email?: string } } | null
 type UserProfile = { username: string; friend_code: string }
@@ -248,6 +250,8 @@ function AppContent({ variant = 'desktop' }: Props) {
     { id: 'home', label: t('tabs.home'), icon: '🏠' },
     { id: 'collection', label: t('tabs.collection'), icon: '🥚' },
     { id: 'missions', label: t('tabs.missions'), icon: '📋' },
+    { id: 'minigame', label: t('tabs.minigame'), icon: '🎮' },
+    { id: 'ranking', label: t('tabs.ranking'), icon: '🏆' },
     { id: 'community', label: t('tabs.friends'), icon: '👥' },
     { id: 'battle', label: t('tabs.battle'), icon: '⚔️' },
     { id: 'settings', label: t('tabs.settings'), icon: '⚙️' }
@@ -303,6 +307,14 @@ function AppContent({ variant = 'desktop' }: Props) {
           <PetCollection save={save} onUpdated={refresh} onSelect={() => setTab('home')} />
         )}
         {tab === 'missions' && <Missions save={save} onUpdated={refresh} />}
+        {tab === 'minigame' && (
+          <MiniGameHub
+            save={save}
+            onUpdated={refresh}
+            onOpenRanking={() => void handleTabChange('ranking')}
+          />
+        )}
+        {tab === 'ranking' && <MiniGameRanking />}
         {tab === 'community' && <Community key="community" onViewProfile={handleViewProfile} />}
         {tab === 'battle' && <BattleHub save={save} variant={variant} />}
         {tab === 'profile' && <UserProfile key={`profile-${viewUserId ?? 'self'}`} userId={viewUserId} />}

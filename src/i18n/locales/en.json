@@ -27,7 +27,9 @@
     "chat": "Chat",
     "profile": "Profile",
     "settings": "Settings",
-    "collection": "Collection"
+    "collection": "Collection",
+    "minigame": "Mini Games",
+    "ranking": "Ranking"
   },
   "app": {
     "title": "Taskino",
@@ -154,6 +156,36 @@
     "claimSuccessEgg": "You got a mystery egg! Check the Collection tab.",
     "claimSuccessSlots": "+{{count}} collection slots unlocked!",
     "claimFailed": "Could not claim reward. Check free slots or try again."
+  },
+  "minigame": {
+    "title": "Mini Games",
+    "subtitle": "Run far to earn items and climb the leaderboard.",
+    "start": "Start",
+    "playAgain": "Play again",
+    "backToHub": "Back to game list",
+    "itemsLeft": "Items today: {{left}} / {{total}}",
+    "distance": "Distance: {{score}}",
+    "scoreThreshold1000": "Item reward at {{score}}+ distance",
+    "belowThreshold": "Reach {{score}} distance to earn a random item.",
+    "noRewardsLeft": "No item rewards left today — keep playing for ranking!",
+    "gameOver": "Game Over",
+    "yourBest": "Best: {{score}}",
+    "randomRewardEarned": "You got {{item}} x{{quantity}} (random)",
+    "difficultyHint": "Speed increases every 100 points — like Chrome's offline dino game.",
+    "dinoJump": {
+      "title": "Dino Jump",
+      "description": "Jump over obstacles. Score equals distance traveled."
+    }
+  },
+  "ranking": {
+    "title": "Mini Game Ranking",
+    "game": "Game",
+    "rank": "Rank",
+    "player": "Player",
+    "score": "Distance",
+    "yourRank": "Your rank: #{{rank}} ({{score}})",
+    "loginRequired": "Log in to submit your score to the leaderboard.",
+    "empty": "No scores yet. Be the first!"
   },
   "collection": {
     "title": "Egg Collection",

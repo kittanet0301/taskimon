@@ -49,8 +49,13 @@ import {
   updateChatRoomPosition,
   subscribeToChatRoom,
   syncInventory,
-  syncMissions
+  syncMissions,
+  submitMinigameScore,
+  getMinigameLeaderboard
 } from './supabase'
+import { applyFinishMinigame } from '@shared/minigame'
+import type { MinigameId } from '@shared/types'
+import { updateSave } from './gameStore'
 
 const chatRoomListeners = new Set<(payload: unknown) => void>()
 const battleListeners = new Set<(payload: unknown) => void>()
@@ -185,6 +190,23 @@ export function createWebApi(): GameAPI {
       ),
     getActivityStatus: async () => ({ global: false, fallback: false, ready: true }),
     reportActivityClick: async () => {},
-    reportActivityKey: async () => {}
+    reportActivityKey: async () => {},
+    finishMinigame: async (gameId, score) => {
+      let result: ReturnType<typeof applyFinishMinigame>['result'] | null = null
+      const save = updateSave((current) => {
+        const applied = applyFinishMinigame(current, gameId as MinigameId, score)
+        result = applied.result
+        return applied.save
+      })
+      return { save, result: result! }
+    },
+    submitMinigameScore: async (gameId, score) => {
+      if (!(await isDbMode())) return null
+      return submitMinigameScore(gameId, score)
+    },
+    getMinigameLeaderboard: async (gameId, limit) => {
+      if (!isSupabaseConfigured()) return []
+      return getMinigameLeaderboard(gameId, limit ?? 50)
+    }
   }
 }

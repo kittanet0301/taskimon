@@ -1,9 +1,10 @@
-import type { GameSave, ItemType } from './types'
+import type { GameSave, ItemType, MinigameId } from './types'
 import { hatchPet, evolvePet, createEggPet } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
+import { applyFinishMinigame } from './minigame'
 
 export function applyGamePatch(save: GameSave, mutatorName: string, args: unknown[] = []): GameSave {
   if (mutatorName === 'hatch') {
@@ -120,6 +121,11 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     let next: GameSave = { ...save, inventory, pet, collection, petSlotLimit, missions }
     if (def.kind === 'daily') next = recordDailyMissionClaim(next)
     return next
+  }
+  if (mutatorName === 'finishMinigame' && typeof args[0] === 'string' && typeof args[1] === 'number') {
+    const gameId = args[0] as MinigameId
+    const score = Math.max(0, Math.floor(args[1]))
+    return applyFinishMinigame(save, gameId, score).save
   }
   return save
 }

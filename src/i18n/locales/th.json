@@ -27,7 +27,9 @@
     "chat": "แชท",
     "profile": "โปรไฟล์",
     "settings": "ตั้งค่า",
-    "collection": "คลังไข่"
+    "collection": "คลังไข่",
+    "minigame": "มินิเกม",
+    "ranking": "อันดับ"
   },
   "app": {
     "title": "Taskino",
@@ -154,6 +156,36 @@
     "claimSuccessEgg": "ได้รับไข่ลึกลับแล้ว! ดูที่แท็บคลังไข่",
     "claimSuccessSlots": "ปลดล็อกช่องเก็บ +{{count}} ช่องแล้ว!",
     "claimFailed": "รับรางวัลไม่สำเร็จ ตรวจสอบช่องว่างหรือลองใหม่"
+  },
+  "minigame": {
+    "title": "มินิเกม",
+    "subtitle": "วิ่งให้ไกลเพื่อรับไอเทมและไต่อันดับ",
+    "start": "เริ่มเล่น",
+    "playAgain": "เล่นอีกครั้ง",
+    "backToHub": "กลับหน้าเลือกเกม",
+    "itemsLeft": "ไอเทมวันนี้: {{left}} / {{total}}",
+    "distance": "ระยะทาง: {{score}}",
+    "scoreThreshold1000": "ได้ไอเทมเมื่อระยะทาง {{score}}+",
+    "belowThreshold": "ต้องวิ่งได้ {{score}} ระยะทางขึ้นไปถึงจะได้ไอเทม",
+    "noRewardsLeft": "รางวัลไอเทมหมดแล้ววันนี้ — เล่นต่อเพื่อทำคะแนนอันดับ!",
+    "gameOver": "จบเกม",
+    "yourBest": "สถิติสูงสุด: {{score}}",
+    "randomRewardEarned": "ได้รับ {{item}} x{{quantity}} (สุ่ม)",
+    "difficultyHint": "ความเร็วเพิ่มทุก 100 คะแนน — เหมือนเกมไดโนตอนไม่มีเน็ต",
+    "dinoJump": {
+      "title": "Dino Jump",
+      "description": "กระโดดข้ามสิ่งกีดขวาง คะแนนเท่ากับระยะทางที่วิ่งได้"
+    }
+  },
+  "ranking": {
+    "title": "อันดับมินิเกม",
+    "game": "เกม",
+    "rank": "อันดับ",
+    "player": "ผู้เล่น",
+    "score": "ระยะทาง",
+    "yourRank": "อันดับของคุณ: #{{rank}} ({{score}})",
+    "loginRequired": "เข้าสู่ระบบเพื่อส่งคะแนนขึ้นกระดานอันดับ",
+    "empty": "ยังไม่มีคะแนน มาเป็นคนแรก!"
   },
   "collection": {
     "title": "คลังสะสมไข่",

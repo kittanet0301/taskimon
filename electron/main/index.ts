@@ -25,8 +25,9 @@ import {
   recordActivityKey,
   updateSave
 } from './gameState'
-import type { GameSave, PetData } from '../../src/shared/types'
+import type { GameSave, MinigameId, PetData } from '../../src/shared/types'
 import { applyGamePatch } from '../../src/shared/gameMutators'
+import { applyFinishMinigame } from '../../src/shared/minigame'
 import {
   getSession,
   signIn,
@@ -65,7 +66,9 @@ import {
   updateChatRoomPosition,
   subscribeToChatRoom,
   syncInventory,
-  syncMissions
+  syncMissions,
+  submitMinigameScore,
+  getMinigameLeaderboard
 } from './supabase'
 
 let activeBattleRoomId: string | null = null
@@ -93,6 +96,26 @@ function setupIpc(): void {
 
   ipcMain.handle('game:patch', (_event, mutatorName: string, args: unknown[]) => {
     return updateSave((save) => applyGamePatch(save, mutatorName, args))
+  })
+
+  ipcMain.handle('minigame:finish', (_event, gameId: string, score: number) => {
+    let finishResult: ReturnType<typeof applyFinishMinigame>['result'] | null = null
+    const save = updateSave((current) => {
+      const { save: next, result } = applyFinishMinigame(current, gameId as MinigameId, score)
+      finishResult = result
+      return next
+    })
+    return { save, result: finishResult }
+  })
+
+  ipcMain.handle('minigame:submitScore', async (_event, gameId: string, score: number) => {
+    if (!isDbMode()) return null
+    return submitMinigameScore(gameId, score)
+  })
+
+  ipcMain.handle('minigame:leaderboard', async (_event, gameId: string, limit?: number) => {
+    if (!isSupabaseConfigured()) return []
+    return getMinigameLeaderboard(gameId, limit ?? 50)
   })
 
   ipcMain.handle('activity:status', () => ({

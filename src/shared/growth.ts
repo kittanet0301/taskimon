@@ -3,6 +3,7 @@ import { SAVE_VERSION, TEST_FAST_EVO, PET_SLOT_BASE } from './constants'
 import { createDefaultMissions, ensureAllMissions } from './missions'
 import { clampSlotLimit } from './petCollection'
 import { getDefaultInventory, getDefaultQuickItemSlots, normalizeQuickItemSlots } from './items'
+import { createDefaultMinigameState } from './minigame'
 import { hatchEgg, defaultPetName } from './dinoCharacters'
 import { normalizeDinoCharacter } from './dinoCharacters'
 
@@ -67,8 +68,15 @@ function migratePet(pet: PetData & { species?: string; element?: string }): PetD
   return { ...rest, character }
 }
 
-function normalizeCollectionFields(save: GameSave): GameSave {
+function normalizeMinigameFields(save: GameSave): GameSave {
   return {
+    ...save,
+    minigame: save.minigame ?? createDefaultMinigameState()
+  }
+}
+
+function normalizeCollectionFields(save: GameSave): GameSave {
+  return normalizeMinigameFields({
     ...save,
     collection: save.collection ?? [],
     petSlotLimit: clampSlotLimit(
@@ -76,7 +84,7 @@ function normalizeCollectionFields(save: GameSave): GameSave {
     ),
     quickItemSlots: normalizeQuickItemSlots(save.quickItemSlots),
     missions: ensureAllMissions(save.missions)
-  }
+  })
 }
 
 /** One-time save upgrades (test mode egg rewind on v2; dino characters on v3; collection on v4; quick slots on v5). */
@@ -89,6 +97,9 @@ export function migrateSave(save: GameSave): GameSave {
   }
   if (next.version < 5) {
     next = { ...next, quickItemSlots: getDefaultQuickItemSlots(next.inventory) }
+  }
+  if (next.version < 6) {
+    next = { ...next, minigame: createDefaultMinigameState() }
   }
 
   next = { ...next, version: SAVE_VERSION }
@@ -121,6 +132,7 @@ export function createDefaultSave(): GameSave {
     lastSaved: now,
     totalPlaySeconds: 0,
     dailyMissionsCompletedDays: 0,
-    lastDailyMissionDay: null
+    lastDailyMissionDay: null,
+    minigame: createDefaultMinigameState()
   }
 }

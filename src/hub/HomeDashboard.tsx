@@ -15,7 +15,7 @@ import {
   dashSpriteSize
 } from './dashSceneLayout'
 
-type DashboardNavTarget = 'home' | 'collection' | 'missions' | 'community' | 'battle' | 'settings'
+type DashboardNavTarget = 'home' | 'collection' | 'missions' | 'community' | 'battle' | 'settings' | 'minigame' | 'ranking'
 
 interface Props {
   save: GameSave
@@ -32,7 +32,9 @@ const HUD_ICON_SRC = {
   inventory: '/ui/hud-icon-inventory.png',
   community: '/ui/hud-icon-community.png',
   battle: '/ui/hud-icon-battle.png',
-  settings: '/ui/hud-icon-settings.png'
+  settings: '/ui/hud-icon-settings.png',
+  minigame: '/ui/hud-icon-missions.png',
+  ranking: '/ui/hud-icon-battle.png'
 } as const
 
 const ITEM_ICON_SRC: Record<ItemType, string> = {
@@ -141,6 +143,8 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
   }> = [
     { id: 'home', label: t('tabs.home'), icon: 'dino', action: () => onNavigate('home') },
     { id: 'missions', label: t('tabs.missions'), icon: 'missions', action: () => onNavigate('missions') },
+    { id: 'minigame', label: t('tabs.minigame'), icon: 'minigame', action: () => onNavigate('minigame') },
+    { id: 'ranking', label: t('tabs.ranking'), icon: 'ranking', action: () => onNavigate('ranking') },
     { id: 'collection', label: t('tabs.collection'), icon: 'collection', action: () => onNavigate('collection') },
     { id: 'inventory', label: t('inventory.title'), icon: 'inventory', action: () => setEditingSlot(0) },
     { id: 'community', label: t('tabs.friends'), icon: 'community', action: () => onNavigate('community') },
