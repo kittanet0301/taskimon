@@ -40,14 +40,31 @@ Palette ร่วมกันผ่าน CSS variables (`--pixel-*`) ใน `st
 ## Quick Start
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 เปิดแอป → หน้า **Login** (หรือสมัคร/ลืมรหัส) → หลัง login ครั้งแรกจะเจอ **Get Started** → เข้า Hub
 
 - สมัคร/เข้าสู่ระบบได้จากหน้า gate ก่อนเข้า Hub (หรือเล่น offline ก่อนได้ — สัตว์บนจอยังเป็นไข่จนกว่าจะ login)
 - จัดการบัญชีเพิ่มเติมได้ที่แท็บ **บัญชี** ใน Settings หลัง login
+
+## Asset Setup
+
+Repo นี้ไม่ได้รวม sprite assets ขนาดใหญ่ไว้ใน git ดังนั้น clone ใหม่ต้องเพิ่มไฟล์เองก่อนจึงจะเห็น pet sprite และโลโก้ครบ
+
+1. ดาวน์โหลดแพ็ก [Dino Family](https://demching.itch.io/dino-family)
+2. คัดลอก sprites ไปไว้ตามโครงสร้างนี้:
+
+```text
+assets/dino/{male|female}/{character}/{base|egg|ghost}/{animation}.png
+```
+
+3. ตรวจรายการตัวละครและ animation ที่ต้องมีใน [assets/CREDITS.md](assets/CREDITS.md)
+4. เพิ่มไฟล์ UI ภายใต้ `assets/ui/` เช่น `taskino-logo.png`
+5. ตรวจความครบด้วย `npm run check:assets`
+
+ถ้าไฟล์บางส่วนหาย เกมจะ fallback เป็นวงกลมสีแทน sprite บางตัว
 
 ## Environment (Database)
 
@@ -64,6 +81,13 @@ SUPABASE_ANON_KEY=your-anon-or-publishable-key
 
 รัน SQL ตามลำดับใน `supabase/migrations/` แล้ว login — ข้อมูลจะบันทึกลง DB อัตโนมัติ
 
+### Password reset และ rate limits
+
+- ระบบลืมรหัสผ่านใช้ **Supabase recovery email** แล้ว ไม่รีเซ็ตรหัสผ่านเป็นวันเกิดอีกต่อไป
+- โปรเจกต์ใหม่ควรตั้งค่า **Site URL / Redirect URLs** ใน Supabase Auth ให้ชี้กลับมายังเว็บแอป
+- ผู้ให้บริการอีเมลเริ่มต้นของ Supabase จำกัดอีเมล auth ประมาณ 2 ฉบับต่อชั่วโมง และ endpoint recovery มี cooldown ต่อผู้ใช้
+- ถ้าใช้งานจริง ควรตั้ง **custom SMTP** และตรวจค่าใน **Authentication > Rate Limits**
+
 ## Web Version
 
 เวอร์ชันเบราว์เซอร์ใช้ UI และ game logic ร่วมกับ desktop (`src/hub/`, `src/shared/`) แต่ไม่มี pet overlay บนจอ / global input / system tray
@@ -71,6 +95,7 @@ SUPABASE_ANON_KEY=your-anon-or-publishable-key
 ```bash
 npm run dev:web    # http://localhost:5174
 npm run build:web  # output → dist-web/
+npm run test       # unit tests (Vitest)
 ```
 
 ใช้ env เดียวกัน (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) — login แล้ว sync DB เหมือน desktop

@@ -38,8 +38,25 @@ SUPABASE_ANON_KEY=eyJhbGciOi...
 11. [`012_fix_battle_rls.sql`](migrations/012_fix_battle_rls.sql) — RLS recursion fix, SECURITY DEFINER RPCs
 12. [`013_battle_energy.sql`](migrations/013_battle_energy.sql) — พลังท่าไม้ตาย 0–100%
 13. [`014_reset_battle_rooms.sql`](migrations/014_reset_battle_rooms.sql) — ล้างระบบรวมห้องต่อสู้
+14. [`015_remove_battle_challenge.sql`](migrations/015_remove_battle_challenge.sql)
+15. [`016_birth_date_password_reset.sql`](migrations/016_birth_date_password_reset.sql) — วันเกิดบน profiles (legacy reset RPC)
+16. [`017_delete_accounts_without_birth_date.sql`](migrations/017_delete_accounts_without_birth_date.sql)
+17. [`018_remove_elements_dino_characters.sql`](migrations/018_remove_elements_dino_characters.sql)
+18. [`019_chat_rooms.sql`](migrations/019_chat_rooms.sql) — ห้องแชท lobby
+19. [`020_chat_room_fix_get_members.sql`](migrations/020_chat_room_fix_get_members.sql)
+20. [`021_chat_room_fix_ambiguous_gender.sql`](migrations/021_chat_room_fix_ambiguous_gender.sql)
+21. [`022_db_audit_cleanup.sql`](migrations/022_db_audit_cleanup.sql)
+22. [`023_drop_legacy_rls_cleanup.sql`](migrations/023_drop_legacy_rls_cleanup.sql)
+23. [`024_pet_collection_slots.sql`](migrations/024_pet_collection_slots.sql)
+24. [`025_chat_room_random_spawn.sql`](migrations/025_chat_room_random_spawn.sql)
+25. [`026_disable_birth_date_password_reset.sql`](migrations/026_disable_birth_date_password_reset.sql) — ปิด RPC รีเซ็ตรหัสเป็นวันเกิด
 
-หรือใช้ Supabase CLI: `supabase db push` (ต้อง `supabase link` ก่อน)
+หรือใช้ Supabase CLI:
+
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
 
 ## 4. เปิด Email Auth
 
@@ -59,11 +76,17 @@ Dashboard → **Authentication** → **Providers** → เปิด **Email**
 
 Preview deploy บน Vercel (ถ้าใช้): `https://*-kittanet.vercel.app/**`
 
-จำเป็นสำหรับยืนยันอีเมล / OAuth — `signInWithPassword` มักใช้ได้แม้ยังไม่ตั้ง แต่ควรตั้งให้ครบก่อน deploy
+จำเป็นสำหรับยืนยันอีเมล / OAuth / recovery email — `signInWithPassword` มักใช้ได้แม้ยังไม่ตั้ง แต่ควรตั้งให้ครบก่อน deploy
 
 > **สถานะ:** ตั้งค่าแล้ว — login ที่ [taskimon.vercel.app](https://taskimon.vercel.app) ใช้งานได้
 
-## 6. รันแอป
+## 6. ตั้ง SMTP และ rate limits
+
+- Supabase built-in email provider เหมาะกับการทดลองเท่านั้น
+- ถ้าจะใช้ **Forgot password** หรือ email confirmations จริง ควรตั้ง **Custom SMTP**
+- ตรวจค่าจำกัดการส่งอีเมลและ recovery cooldown ได้ที่ **Authentication → Rate Limits**
+
+## 7. รันแอป
 
 **Desktop:**
 

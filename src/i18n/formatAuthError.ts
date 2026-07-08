@@ -32,6 +32,13 @@ export function formatAuthError(error: unknown): string {
   if (text.includes('For security purposes, you can only request this after')) {
     return i18n.t('errors.rateLimited')
   }
+  if (
+    text.includes('over_email_send_rate_limit') ||
+    text.includes('over_request_rate_limit') ||
+    text.includes('Email rate limit exceeded')
+  ) {
+    return i18n.t('errors.emailRateLimited')
+  }
   if (text.includes('บัญชีนี้ยังไม่มีวันเกิด') || text.toLowerCase().includes('no birth date')) {
     return i18n.t('errors.noBirthDateOnAccount')
   }

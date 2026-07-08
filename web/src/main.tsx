@@ -7,7 +7,12 @@ import { createWebApi } from './webApi'
 import { hydrateFromSession } from './gameStore'
 import { startActivityTracking } from './activity'
 
+const PASSWORD_RECOVERY_FLAG = 'taskino-password-recovery'
+
 async function bootstrap() {
+  if (window.location.href.includes('type=recovery')) {
+    window.sessionStorage.setItem(PASSWORD_RECOVERY_FLAG, '1')
+  }
   window.electronAPI = createWebApi()
   await hydrateFromSession()
   startActivityTracking()

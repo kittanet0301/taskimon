@@ -18,6 +18,7 @@ import { Chat } from './hub/Chat'
 import { UserProfile } from './hub/UserProfile'
 import { PetCollection } from './hub/PetCollection'
 import { LanguageSwitcher } from './hub/LanguageSwitcher'
+import { ChangePasswordForm } from './hub/ChangePasswordForm'
 
 type Tab = 'home' | 'collection' | 'missions' | 'friends' | 'battle' | 'chat' | 'profile' | 'settings'
 
@@ -26,6 +27,13 @@ type UserProfile = { username: string; friend_code: string }
 
 interface Props {
   variant?: 'desktop' | 'web'
+}
+
+const PASSWORD_RECOVERY_FLAG = 'taskino-password-recovery'
+
+function isPasswordRecoveryPending(): boolean {
+  if (typeof window === 'undefined' || !window.sessionStorage) return false
+  return window.sessionStorage.getItem(PASSWORD_RECOVERY_FLAG) === '1'
 }
 
 export default function App({ variant = 'desktop' }: Props) {
@@ -49,6 +57,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [showTitle, setShowTitle] = useState(true)
+  const [passwordRecovery, setPasswordRecovery] = useState(() => isPasswordRecoveryPending())
 
   const refresh = useCallback(async () => {
     if (!window.electronAPI) return
@@ -178,6 +187,14 @@ function AppContent({ variant = 'desktop' }: Props) {
     refresh()
   }
 
+  const finishPasswordRecovery = useCallback(() => {
+    window.sessionStorage.removeItem(PASSWORD_RECOVERY_FLAG)
+    setPasswordRecovery(false)
+    setSession(null)
+    setProfile(null)
+    setShowTitle(false)
+  }, [])
+
   if (!window.electronAPI) {
     return <div className="content">{t('common.connectingApp')}</div>
   }
@@ -207,6 +224,21 @@ function AppContent({ variant = 'desktop' }: Props) {
   if (!session?.user?.id) {
     if (showTitle) return <TitleScreen onContinue={() => setShowTitle(false)} />
     return <LoginGate onLoggedIn={checkSession} />
+  }
+
+  if (variant === 'web' && passwordRecovery) {
+    return (
+      <PixelCoverShell tagline={t('auth.passwordRecoveryTitle')} message={t('auth.passwordRecoveryHint')}>
+        <ChangePasswordForm
+          submitLabel={t('auth.passwordRecoverySubmit')}
+          onSubmit={async (password) => {
+            await window.electronAPI.updatePassword(password)
+            await window.electronAPI.signOut()
+            finishPasswordRecovery()
+          }}
+        />
+      </PixelCoverShell>
+    )
   }
 
   if (showCover) {
