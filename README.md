@@ -113,7 +113,7 @@ npm run test       # unit tests (Vitest)
 
 ## Build (Desktop)
 
-Requires **Node.js 18+**. Use the system Node binary if nvm shims conflict with npm.
+Requires **Node.js 24+**. Use the system Node binary if nvm shims conflict with npm.
 
 ```bash
 npm install

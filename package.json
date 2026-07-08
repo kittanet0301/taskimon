@@ -6,7 +6,7 @@
   "author": "kittanet0301",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "electron-vite dev",
