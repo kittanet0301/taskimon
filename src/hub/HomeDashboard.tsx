@@ -247,7 +247,7 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
                   title={type ? `${tItemLabel(type)} · ${tItemDescription(type)}` : t('inventory.empty')}
                 >
                   {type ? <img className="hud-icon" src={ITEM_ICON_SRC[type]} alt="" draggable={false} /> : <span className="dash-hud-empty-slot" />}
-                  <strong>{quantity > 0 ? quantity : ''}</strong>
+                  {quantity > 0 && <strong>{quantity}</strong>}
                 </button>
                 <button
                   type="button"

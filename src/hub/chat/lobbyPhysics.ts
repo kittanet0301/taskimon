@@ -79,7 +79,6 @@ export function tickPhysics(state: PhysicsState, frame: number, input: LobbyInpu
   if (jumping) {
     const t = (frame - (next.jumpUntil - JUMP_FRAMES)) / JUMP_FRAMES
     next.y = next.groundY - Math.sin(Math.PI * t) * 0.12
-    next.anim = 'jump'
   } else {
     next.y = next.groundY
     if (!emoting) {
@@ -87,19 +86,24 @@ export function tickPhysics(state: PhysicsState, frame: number, input: LobbyInpu
     }
   }
 
-  if (!jumping && emoting) {
-    next.anim = 'bite'
-  } else if (!jumping && input.move !== 0) {
-    const dashing = input.dash && !emoting
-    const speed = jumping
-      ? WALK_SPEED * 0.65
-      : dashing
-        ? DASH_SPEED
-        : WALK_SPEED
+  const dashing = input.dash && !emoting
+  const moving = input.move !== 0 && !emoting
+
+  // Horizontal movement runs even mid-jump so you can walk and jump together.
+  if (moving) {
+    const speed = jumping ? WALK_SPEED * 0.85 : dashing ? DASH_SPEED : WALK_SPEED
     next.x += input.move * speed
     next.facing = input.move < 0 ? 'left' : 'right'
-    if (!jumping) next.anim = dashing ? 'dash' : 'walk'
-  } else if (!jumping && !emoting) {
+  }
+
+  // Animation priority: jump takes over the sprite, then bite, then move, then idle.
+  if (jumping) {
+    next.anim = 'jump'
+  } else if (emoting) {
+    next.anim = 'bite'
+  } else if (moving) {
+    next.anim = dashing ? 'dash' : 'walk'
+  } else {
     next.anim = 'idle'
   }
 
