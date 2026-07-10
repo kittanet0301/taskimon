@@ -14,9 +14,9 @@ export const CREATURE_PIXEL_SCALE = 2
 
 /** Target on-screen sprite size (px) for creature UI — egg/baby share one size. */
 export const CREATURE_DISPLAY_SIZE = {
-  egg: 300,
-  baby: 300,
-  adult: 450
+  egg: 250,
+  baby: 250,
+  adult: 500
 } as const
 
 export function creatureDisplaySize(stage: Stage): number {
