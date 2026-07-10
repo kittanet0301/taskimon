@@ -1,20 +1,24 @@
 import { useEffect, useRef } from 'react'
 import type { AnimationState, PetData } from '../shared/types'
-import { DINO_PREVIEW_COLORS } from '../shared/constants'
-import { hubPreviewClip, resolveDinoClip } from '../shared/dinoAnim'
+import { petPreviewColor } from '../shared/constants'
+import { hubPreviewClip, resolvePetClip } from '../shared/dinoAnim'
 import {
   DINO_BOB_PERIOD,
-  DINO_BOB_PERIOD_EGG,
-  DINO_FRAMES_PER_SPRITE_FRAME
+  DINO_BOB_PERIOD_EGG
 } from '../shared/dinoTiming'
 import {
-  drawDinoSpriteFrame,
-  dinoSpriteUrl,
-  loadDinoSprite,
-  pixelScaleForStage,
-  preloadDinoSprites,
-  setupCrispCanvas
-} from '../shared/dinoSprites'
+  drawPetSpriteFrame,
+  frameCountFromImage,
+  frameSizeForPet,
+  isCreaturePet,
+  isHatchAnimationComplete,
+  loadPetSprite,
+  petSpriteUrl,
+  preloadPetSprites,
+  resolveSpriteRenderSize,
+  setupCrispCanvas,
+  spriteFrameIndexForClip
+} from '../shared/petSprites'
 
 interface Props {
   pet: PetData
@@ -22,88 +26,129 @@ interface Props {
   className?: string
   hatching?: boolean
   movementAnim?: AnimationState
+  onHatchComplete?: () => void
 }
 
 function preloadUrlsForPet(pet: PetData): string[] {
   const base = ['idle', 'move', 'hurt', 'bite', 'jump'] as const
-  const egg = ['move', 'crack', 'hatch'] as const
-  const urls = base.map((clip) => dinoSpriteUrl(pet.gender, pet.character, 'base', clip))
+  const egg = ['move', 'hatch'] as const
+  const baby = ['idle', 'move', 'hurt', 'bite', 'jump'] as const
+  const urls = base.map((clip) => petSpriteUrl(pet, 'base', clip))
   if (pet.stage === 'egg') {
-    urls.push(...egg.map((clip) => dinoSpriteUrl(pet.gender, pet.character, 'egg', clip)))
+    urls.push(...egg.map((clip) => petSpriteUrl(pet, 'egg', clip)))
+    urls.push(...baby.map((clip) => petSpriteUrl(pet, 'baby', clip)))
   }
   return urls
 }
 
 export function DinoSprite({
   pet,
-  size = 96,
+  size,
   className,
   hatching = false,
-  movementAnim
+  movementAnim,
+  onHatchComplete
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const frameRef = useRef(0)
-  const pixelScale = pixelScaleForStage(pet.stage)
+  const hatchCompleteFiredRef = useRef(false)
+  const onHatchCompleteRef = useRef(onHatchComplete)
+  const { canvasSize, drawSize } = resolveSpriteRenderSize(pet, size)
   const hubMode = movementAnim === undefined
+  const feetAnchored = hubMode && isCreaturePet(pet)
 
   useEffect(() => {
-    void preloadDinoSprites(preloadUrlsForPet(pet))
+    onHatchCompleteRef.current = onHatchComplete
+  }, [onHatchComplete])
+
+  useEffect(() => {
+    if (hatching) {
+      frameRef.current = 0
+      hatchCompleteFiredRef.current = false
+    }
+  }, [hatching])
+
+  useEffect(() => {
+    void preloadPetSprites(preloadUrlsForPet(pet))
   }, [pet.gender, pet.character, pet.stage])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = setupCrispCanvas(canvas, size)
+    const ctx = setupCrispCanvas(canvas, canvasSize)
 
     let raf = 0
     let currentImg: HTMLImageElement | null = null
     let currentUrl = ''
+    let ticking = false
 
-    const tick = async () => {
-      frameRef.current++
-      const frame = frameRef.current
-      const clip = hubMode
-        ? hubPreviewClip(pet, hatching)
-        : resolveDinoClip(pet, frame, movementAnim!, hatching)
+    const tick = () => {
+      if (ticking) return
+      ticking = true
+      void (async () => {
+        frameRef.current++
+        const frame = frameRef.current
+        const clip =
+          hatching || !hubMode
+            ? resolvePetClip(pet, frame, movementAnim ?? 'idle', hatching)
+            : hubPreviewClip(pet, false)
 
-      const url = dinoSpriteUrl(pet.gender, pet.character, clip.folder, clip.clip)
-      if (url !== currentUrl) {
-        currentUrl = url
-        try {
-          currentImg = await loadDinoSprite(url)
-        } catch {
-          currentImg = null
+        const url = petSpriteUrl(pet, clip.folder, clip.clip)
+        if (url !== currentUrl) {
+          currentUrl = url
+          try {
+            currentImg = await loadPetSprite(url)
+          } catch {
+            currentImg = null
+          }
         }
-      }
 
-      ctx.clearRect(0, 0, size, size)
-      const bob = pet.stage === 'egg'
-        ? Math.round(Math.sin(frame / DINO_BOB_PERIOD_EGG) * 2)
-        : Math.round(Math.sin(frame / DINO_BOB_PERIOD) * 2)
-      const cx = Math.round(size / 2)
-      const cy = Math.round(size / 2 + bob)
+        ctx.clearRect(0, 0, canvasSize, canvasSize)
+        const bob = pet.stage === 'egg'
+          ? Math.round(Math.sin(frame / DINO_BOB_PERIOD_EGG) * 2)
+          : Math.round(Math.sin(frame / DINO_BOB_PERIOD) * 2)
+        const cx = Math.round(canvasSize / 2)
+        const cy = feetAnchored
+          ? Math.round(canvasSize - 4 - drawSize / 2 + bob)
+          : Math.round(canvasSize / 2 + bob)
 
-      if (currentImg) {
-        drawDinoSpriteFrame(ctx, currentImg, Math.floor(frame / DINO_FRAMES_PER_SPRITE_FRAME), {
-          x: cx,
-          y: cy,
-          pixelScale,
-          flipX: clip.flipX
-        })
-      } else {
-        const fallback = pixelScale * 24
-        ctx.fillStyle = DINO_PREVIEW_COLORS[pet.character]
-        ctx.beginPath()
-        ctx.arc(cx, cy, fallback / 3, 0, Math.PI * 2)
-        ctx.fill()
-      }
+        if (currentImg) {
+          const spriteFrame = spriteFrameIndexForClip(clip.clip, frame, currentImg, pet.character)
+          drawPetSpriteFrame(ctx, currentImg, spriteFrame, pet.character, {
+            x: cx,
+            y: cy,
+            pixelScale: drawSize / frameSizeForPet(pet),
+            drawSize,
+            flipX: clip.flipX
+          })
 
-      raf = requestAnimationFrame(tick)
+          if (
+            hatching &&
+            clip.clip === 'hatch' &&
+            !hatchCompleteFiredRef.current
+          ) {
+            const frameCount = frameCountFromImage(currentImg, pet.character)
+            if (isHatchAnimationComplete(frame, frameCount)) {
+              hatchCompleteFiredRef.current = true
+              onHatchCompleteRef.current?.()
+            }
+          }
+        } else {
+          const fallback = Math.max(12, frameSizeForPet(pet) / 4)
+          ctx.fillStyle = petPreviewColor(pet.character)
+          ctx.beginPath()
+          ctx.arc(cx, cy, fallback, 0, Math.PI * 2)
+          ctx.fill()
+        }
+
+        ticking = false
+        raf = requestAnimationFrame(tick)
+      })()
     }
 
     tick()
     return () => cancelAnimationFrame(raf)
-  }, [pet, size, pixelScale, hatching, hubMode, movementAnim])
+  }, [pet, canvasSize, drawSize, feetAnchored, hatching, hubMode, movementAnim])
 
   return (
     <canvas

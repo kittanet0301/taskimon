@@ -1,20 +1,21 @@
 import { useEffect, useRef } from 'react'
 import type { Gender, Stage } from '../../shared/types'
-import { DINO_PREVIEW_COLORS } from '../../shared/constants'
-import { normalizeDinoCharacter } from '../../shared/dinoCharacters'
+import { petPreviewColor } from '../../shared/constants'
+import { normalizePetSpecies } from '../../shared/dinoCharacters'
 import {
   DINO_BOB_PERIOD,
   DINO_FRAMES_PER_SPRITE_FRAME
 } from '../../shared/dinoTiming'
 import {
-  drawDinoSpriteFrame,
-  dinoSpriteUrl,
-  loadDinoSprite,
+  displaySizeFromPixelScale,
+  drawPetSpriteFrame,
+  loadPetSprite,
+  petSpriteUrl,
   pixelScaleForStage,
-  preloadDinoSprites,
+  preloadPetSprites,
   setupCrispCanvas,
-  type DinoSpriteFolder
-} from '../../shared/dinoSprites'
+  type PetSpriteFolder
+} from '../../shared/petSprites'
 import { drawLobbyBackground } from './lobbyBackgrounds'
 import {
   createPhysicsState,
@@ -26,12 +27,12 @@ import {
 import { pruneBubbles, upsertBubble } from './speechBubbles'
 import type { ChatRoomMember, ChatRoomMessage, LobbyEntity } from './types'
 import { parseLobbyAnim } from './types'
+import { flipXForFacing } from '../../shared/dinoAnim'
 
 const CANVAS_W = 960
 const CANVAS_H = 480
 const LERP = 0.18
 const SYNC_MS = 150
-const LOBBY_PET_BASE = 96
 
 const PET_CLIPS = [
   { folder: 'base' as const, clip: 'idle' },
@@ -54,7 +55,7 @@ function memberToEntity(m: ChatRoomMember, isSelf: boolean): LobbyEntity {
   return {
     userId: m.user_id,
     username: m.username,
-    character: normalizeDinoCharacter(m.pet_character),
+    character: normalizePetSpecies(m.pet_character),
     gender: m.gender as Gender,
     stage: (m.stage === 'egg' || m.stage === 'baby' ? m.stage : 'adult') as Stage,
     x: m.x,
@@ -66,11 +67,11 @@ function memberToEntity(m: ChatRoomMember, isSelf: boolean): LobbyEntity {
 }
 
 function resolveLobbyClip(entity: LobbyEntity): {
-  folder: DinoSpriteFolder
+  folder: PetSpriteFolder
   clip: string
   flipX: boolean
 } {
-  const flipX = entity.facing === 'left'
+  const flipX = flipXForFacing(entity.facing)
   if (entity.stage === 'egg') {
     return { folder: 'egg', clip: 'move', flipX: false }
   }
@@ -228,17 +229,17 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
 
   useEffect(() => {
     const urls = members.flatMap((m) => {
-      const character = normalizeDinoCharacter(m.pet_character)
-      if (m.stage === 'egg') {
-        return ['move', 'crack', 'hatch'].map((clip) =>
-          dinoSpriteUrl(m.gender as Gender, character, 'egg', clip)
-        )
+      const pet = {
+        character: normalizePetSpecies(m.pet_character),
+        gender: m.gender as Gender,
+        stage: (m.stage === 'egg' || m.stage === 'baby' ? m.stage : 'adult') as Stage
       }
-      return PET_CLIPS.map(({ folder, clip }) =>
-        dinoSpriteUrl(m.gender as Gender, character, folder, clip)
-      )
+      if (m.stage === 'egg') {
+        return ['move', 'hatch'].map((clip) => petSpriteUrl(pet, 'egg', clip))
+      }
+      return PET_CLIPS.map(({ folder, clip }) => petSpriteUrl(pet, folder, clip))
     })
-    void preloadDinoSprites(urls)
+    void preloadPetSprites(urls)
   }, [members])
 
   useEffect(() => {
@@ -380,11 +381,15 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
 
         const clip = resolveLobbyClip(entity)
 
-        const url = dinoSpriteUrl(entity.gender, entity.character, clip.folder, clip.clip)
+        const url = petSpriteUrl(
+          { character: entity.character, gender: entity.gender, stage: entity.stage },
+          clip.folder,
+          clip.clip
+        )
         let img = spriteCacheRef.current.get(url)
         if (!img) {
           try {
-            img = await loadDinoSprite(url)
+            img = await loadPetSprite(url)
             spriteCacheRef.current.set(url, img)
           } catch {
             img = undefined
@@ -392,18 +397,18 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
         }
 
         const bob = Math.round(Math.sin(frame / DINO_BOB_PERIOD) * 2)
-        const scale = pixelScaleForStage(entity.stage)
-        const displaySize = LOBBY_PET_BASE * (scale / 4)
+        const pixelScale = pixelScaleForStage(entity.stage, entity.character)
+        const displaySize = displaySizeFromPixelScale(pixelScale, entity.character, entity.stage)
 
         if (img) {
-          drawDinoSpriteFrame(ctx, img, Math.floor(frame / DINO_FRAMES_PER_SPRITE_FRAME), {
+          drawPetSpriteFrame(ctx, img, Math.floor(frame / DINO_FRAMES_PER_SPRITE_FRAME), entity.character, {
             x: Math.round(px),
             y: Math.round(py + bob),
-            pixelScale: Math.max(3, Math.round(displaySize / 24)),
+            pixelScale,
             flipX: clip.flipX
           })
         } else {
-          ctx.fillStyle = DINO_PREVIEW_COLORS[entity.character]
+          ctx.fillStyle = petPreviewColor(entity.character)
           ctx.beginPath()
           ctx.arc(Math.round(px), Math.round(py + bob), displaySize / 3, 0, Math.PI * 2)
           ctx.fill()

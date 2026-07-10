@@ -7,6 +7,8 @@ import { QUICK_ITEM_SLOT_COUNT } from '../shared/constants'
 import { normalizeQuickItemSlots } from '../shared/items'
 import { canEvolveToAdult, canHatchEgg } from '../shared/stats'
 import { tItemDescription, tItemLabel } from '../i18n/labels'
+import { creatureDisplaySize, waitForHatchAnimation } from '../shared/petSprites'
+import { isCreatureSpecies } from '../shared/creatureCharacters'
 import {
   coverImagePointToPercent,
   DASH_BG_HEIGHT,
@@ -22,7 +24,7 @@ interface Props {
   displayName: string
   syncing: boolean
   onNavigate: (tab: DashboardNavTarget) => void
-  onUpdated: () => void
+  onUpdated: () => void | Promise<void>
 }
 
 const HUD_ICON_SRC = {
@@ -33,8 +35,8 @@ const HUD_ICON_SRC = {
   community: '/ui/hud-icon-community.png',
   battle: '/ui/hud-icon-battle.png',
   settings: '/ui/hud-icon-settings.png',
-  minigame: '/ui/hud-icon-missions.png',
-  ranking: '/ui/hud-icon-battle.png'
+  minigame: '/ui/hud-icon-minigame.png',
+  ranking: '/ui/hud-icon-ranking.png'
 } as const
 
 const ITEM_ICON_SRC: Record<ItemType, string> = {
@@ -68,6 +70,8 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
   const isEgg = pet?.stage === 'egg'
   const [layout, setLayout] = useState({ leftPct: 50, topPct: 50, spriteSize: 96 })
   const [editingSlot, setEditingSlot] = useState<number | null>(null)
+  const [hatching, setHatching] = useState(false)
+  const hatchDoneRef = useRef<(() => void) | null>(null)
   const sceneKey = 'hatch'
 
   const quickSlots = useMemo(
@@ -94,7 +98,9 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
       setLayout({
         leftPct: pos.leftPct,
         topPct: pos.topPct,
-        spriteSize: dashSpriteSize(width, Boolean(isEgg))
+        spriteSize: isCreatureSpecies(pet.character)
+          ? creatureDisplaySize(pet.stage)
+          : dashSpriteSize(width, Boolean(isEgg))
       })
     }
 
@@ -125,8 +131,14 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
 
   const runPetAction = async () => {
     if (canHatch) {
+      setHatching(true)
+      await waitForHatchAnimation(pet.character, (finish) => {
+        hatchDoneRef.current = finish
+      })
+      hatchDoneRef.current = null
       await window.electronAPI.patchGame('hatch')
-      onUpdated()
+      await onUpdated()
+      setHatching(false)
       return
     }
     if (canEvolve) {
@@ -178,7 +190,12 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
               title={item.label}
               aria-label={item.label}
             >
-              <img className="hud-icon" src={HUD_ICON_SRC[item.icon]} alt="" draggable={false} />
+              <img
+                className="hud-icon"
+                src={HUD_ICON_SRC[item.icon]}
+                alt=""
+                draggable={false}
+              />
             </button>
           ))}
         </aside>
@@ -221,6 +238,16 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
               <div><i style={{ width: statPercent(pet.stats.devPoints, 999) }} /></div>
               <b>{pet.stats.devPoints}/999</b>
             </div>
+            {(canHatch || canEvolve) && (
+              <button
+                type="button"
+                className="dash-hud-action dash-hud-action--inline"
+                onClick={runPetAction}
+                disabled={hatching}
+              >
+                {hatching ? t('pet.hatching') : canHatch ? t('pet.hatch') : t('pet.evolveToAdult')}
+              </button>
+            )}
           </div>
         </section>
 
@@ -228,14 +255,13 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
           className={`dash-scene-pet dash-scene-pet--${isEgg ? 'egg' : 'pedestal'}`}
           style={{ left: `${layout.leftPct}%`, top: `${layout.topPct}%` }}
         >
-          <DinoSprite pet={pet} size={layout.spriteSize} />
+          <DinoSprite
+            pet={pet}
+            size={layout.spriteSize}
+            hatching={hatching}
+            onHatchComplete={() => hatchDoneRef.current?.()}
+          />
         </div>
-
-        {(canHatch || canEvolve) && (
-          <button type="button" className="dash-hud-action" onClick={runPetAction}>
-            {canHatch ? t('pet.hatch') : t('pet.evolveToAdult')}
-          </button>
-        )}
 
         <section className="dash-hud-quickbar" aria-label={t('home.quickCare')}>
           {quickSlots.map((type, index) => {

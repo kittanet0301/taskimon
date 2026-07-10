@@ -2,12 +2,12 @@ import { useEffect, useRef } from 'react'
 import type { GameSave } from '../../../shared/types'
 import { DINO_FRAMES_PER_SPRITE_FRAME } from '../../../shared/dinoTiming'
 import {
-  drawDinoSpriteFrame,
-  dinoSpriteUrl,
-  loadDinoSprite,
-  pixelScaleForStage,
+  drawPetSpriteFrame,
+  loadPetSprite,
+  petSpriteUrl,
+  pixelScaleForPet,
   setupCrispCanvas
-} from '../../../shared/dinoSprites'
+} from '../../../shared/petSprites'
 import {
   CANVAS_H,
   CANVAS_W,
@@ -73,11 +73,9 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
     const ctx = setupCrispCanvas(canvas, CANVAS_W, CANVAS_H, false)
     ctx.imageSmoothingEnabled = false
 
-    const spriteUrl = pet
-      ? dinoSpriteUrl(pet.gender, pet.character, 'base', 'move')
-      : ''
+    const spriteUrl = pet ? petSpriteUrl(pet, pet.stage === 'egg' ? 'egg' : 'base', 'move') : ''
     let spriteImg: HTMLImageElement | null = null
-    void loadDinoSprite(spriteUrl)
+    void loadPetSprite(spriteUrl)
       .then((img) => {
         spriteImg = img
       })
@@ -122,8 +120,8 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
       }
 
       if (pet && spriteImg) {
-        const scale = pixelScaleForStage(pet.stage)
-        drawDinoSpriteFrame(ctx, spriteImg, Math.floor(frameRef.current / DINO_FRAMES_PER_SPRITE_FRAME), {
+        const scale = pixelScaleForPet(pet)
+        drawPetSpriteFrame(ctx, spriteImg, Math.floor(frameRef.current / DINO_FRAMES_PER_SPRITE_FRAME), pet.character, {
           x: DINO_X,
           y: Math.round(state.dinoY),
           pixelScale: Math.max(3, Math.round((DINO_H / 24) * (scale / 4))),

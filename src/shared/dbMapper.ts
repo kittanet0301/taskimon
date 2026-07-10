@@ -11,7 +11,7 @@ import type {
 } from './types'
 import { SAVE_VERSION, PET_SLOT_BASE } from './constants'
 import { createDefaultSave } from './growth'
-import { normalizeDinoCharacter } from './dinoCharacters'
+import { normalizePetSpecies } from './dinoCharacters'
 import { clampSlotLimit } from './petCollection'
 
 type DbPet = {
@@ -88,7 +88,7 @@ export function petFromDbRow(row: DbPet): PetData {
   return {
     id: row.id,
     name: row.name,
-    character: normalizeDinoCharacter(row.species),
+    character: normalizePetSpecies(row.species),
     gender: row.gender as Gender,
     stage: row.stage as Stage,
     stats: {

@@ -1,4 +1,4 @@
-import type { DinoCharacter, Gender, Stage } from '../../shared/types'
+import type { PetSpecies, Gender, Stage } from '../../shared/types'
 
 export interface ChatRoomRow {
   id: string
@@ -40,7 +40,7 @@ export function parseLobbyAnim(value: unknown): LobbyAnim {
 export interface LobbyEntity {
   userId: string
   username: string
-  character: DinoCharacter
+  character: PetSpecies
   gender: Gender
   stage: Stage
   x: number

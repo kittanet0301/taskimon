@@ -30,7 +30,17 @@ export function coverImagePointToPercent(
   }
 }
 
-export function dashSpriteSize(sceneWidth: number, isEgg: boolean): number {
-  const base = Math.round(sceneWidth * (isEgg ? 0.085 : 0.13))
-  return Math.max(isEgg ? 72 : 96, Math.min(isEgg ? 112 : 168, base))
+export const DASH_SPRITE_SCALE = 2
+
+export function dashSpriteSize(
+  sceneWidth: number,
+  isEgg: boolean,
+  options?: { creature?: boolean }
+): number {
+  const creature = options?.creature ?? false
+  const ratio = isEgg ? 0.085 : creature ? 0.16 : 0.13
+  const min = (isEgg ? 72 : creature ? 120 : 96) * DASH_SPRITE_SCALE
+  const max = (isEgg ? 112 : creature ? 200 : 168) * DASH_SPRITE_SCALE
+  const base = Math.round(sceneWidth * ratio * DASH_SPRITE_SCALE)
+  return Math.max(min, Math.min(max, base))
 }

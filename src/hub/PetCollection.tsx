@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData } from '../shared/types'
-import { DINO_PREVIEW_COLORS, PET_SLOTS_PER_PAGE } from '../shared/constants'
+import { petPreviewColor, PET_SLOTS_PER_PAGE } from '../shared/constants'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
-import { displaySizeFromPixelScale, pixelScaleForStage } from '../shared/dinoSprites'
+import { displaySizeForPet } from '../shared/petSprites'
 import { tCharacter, tStage } from '../i18n/labels'
 import { getCollectionPageCount, getUsedSlots } from '../shared/petCollection'
 
 function petSpriteSize(pet: PetData): number {
-  return displaySizeFromPixelScale(pixelScaleForStage(pet.stage))
+  return displaySizeForPet(pet)
 }
 
 interface Props {
@@ -62,7 +62,7 @@ export function PetCollection({ save, onUpdated, onSelect }: Props) {
           <span className="collection-active-badge">{t('collection.active')}</span>
           <div
             className="collection-active-preview"
-            style={{ background: DINO_PREVIEW_COLORS[save.pet.character] }}
+            style={{ background: petPreviewColor(save.pet.character) }}
           >
             <DinoSprite pet={save.pet} size={petSpriteSize(save.pet)} />
           </div>
@@ -95,7 +95,7 @@ export function PetCollection({ save, onUpdated, onSelect }: Props) {
               >
                 <div
                   className="collection-slot-preview"
-                  style={{ background: DINO_PREVIEW_COLORS[pet.character] }}
+                  style={{ background: petPreviewColor(pet.character) }}
                 >
                   <DinoSprite pet={pet} size={petSpriteSize(pet)} />
                 </div>

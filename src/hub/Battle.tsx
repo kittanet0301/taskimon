@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData } from '../shared/types'
 import { tCharacter } from '../i18n/labels'
-import { normalizeDinoCharacter } from '../shared/dinoCharacters'
+import { normalizePetSpecies } from '../shared/dinoCharacters'
 
 interface Props {
   save: GameSave
@@ -39,7 +39,7 @@ export function Battle({ save }: Props) {
     setEnemyPet({
       id: String(pet.id),
       name: String(pet.name),
-      character: normalizeDinoCharacter(String(pet.species)),
+      character: normalizePetSpecies(String(pet.species)),
       gender: pet.gender as PetData['gender'],
       stage: pet.stage as PetData['stage'],
       stats: {

@@ -1,0 +1,58 @@
+{
+  "ember-sail": {
+    "egg": {
+      "move": {
+        "frameSize": 184,
+        "frames": 6
+      },
+      "hatch": {
+        "frameSize": 184,
+        "frames": 6
+      }
+    },
+    "baby": {
+      "idle": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "move": {
+        "frameSize": 160,
+        "frames": 4
+      },
+      "hurt": {
+        "frameSize": 168,
+        "frames": 4
+      },
+      "bite": {
+        "frameSize": 176,
+        "frames": 4
+      },
+      "jump": {
+        "frameSize": 152,
+        "frames": 4
+      }
+    },
+    "adult": {
+      "idle": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "move": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "hurt": {
+        "frameSize": 192,
+        "frames": 4
+      },
+      "bite": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "jump": {
+        "frameSize": 200,
+        "frames": 4
+      }
+    }
+  }
+}

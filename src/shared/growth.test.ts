@@ -10,15 +10,26 @@ import {
 import { PET_SLOT_BASE, SAVE_VERSION } from './constants'
 
 describe('growth helpers', () => {
-  it('creates a default save with the expected baseline fields', () => {
+  it('creates a default save with ember-sail egg', () => {
     const save = createDefaultSave()
 
     expect(save.version).toBe(SAVE_VERSION)
     expect(save.pet?.stage).toBe('egg')
+    expect(save.pet?.character).toBe('ember-sail')
     expect(save.collection).toEqual([])
     expect(save.petSlotLimit).toBe(PET_SLOT_BASE)
     expect(save.inventory.length).toBeGreaterThan(0)
     expect(save.missions.length).toBeGreaterThan(0)
+  })
+
+  it('migrates legacy dino species to ember-sail', () => {
+    const save = createDefaultSave()
+    if (!save.pet) throw new Error('expected pet')
+    save.pet.character = 'cole'
+
+    const migrated = migrateSave(save)
+
+    expect(migrated.pet?.character).toBe('ember-sail')
   })
 
   it('moves pets through hatch, reset, and evolve stages', () => {

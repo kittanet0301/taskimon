@@ -967,6 +967,7 @@ input, select {
 .dash-hud .dash-scene-pet {
   z-index: 2;
   filter: drop-shadow(4px 8px 0 rgba(22, 11, 5, 0.4));
+  overflow: visible;
 }
 
 .dash-hud .dash-scene-pet--egg,
@@ -989,6 +990,20 @@ input, select {
   font-size: clamp(0.55rem, 0.9vw, 0.72rem);
   box-shadow: 4px 4px 0 rgba(30, 14, 4, 0.86);
   cursor: pointer;
+}
+
+.dash-hud-action--inline {
+  position: static;
+  transform: none;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  font-size: clamp(0.5rem, 0.85vw, 0.68rem);
+  line-height: 1.5;
+}
+
+.dash-hud-action--inline:hover {
+  background: #ffd07f;
 }
 
 .dash-hud-action:hover {

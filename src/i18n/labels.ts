@@ -1,8 +1,8 @@
 import type { MissionDefinition } from '../shared/missions'
-import type { DinoCharacter, ItemType, Stage } from '../shared/types'
+import type { ItemType, PetSpecies, Stage } from '../shared/types'
 import i18n from './index'
 
-export function tCharacter(character: DinoCharacter | string): string {
+export function tCharacter(character: PetSpecies | string): string {
   return i18n.t(`characters.${character}`, { defaultValue: String(character) })
 }
 
@@ -37,7 +37,7 @@ export function tStage(stage: Stage | 'teen'): string {
   return i18n.t(`stages.${stage}`)
 }
 
-export function tDefaultPetName(character: DinoCharacter): string {
+export function tDefaultPetName(character: PetSpecies): string {
   return i18n.t(`defaultPetNames.${character}`)
 }
 

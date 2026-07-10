@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { DINO_PREVIEW_COLORS, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
+import { petPreviewColor, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
+import { displaySizeForPet } from '../shared/petSprites'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
 import { tCharacter, tStage } from '../i18n/labels'
@@ -32,8 +33,8 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
   return (
     <div className="card">
       <h2>{pet.name}</h2>
-      <div className="pet-preview" style={{ background: DINO_PREVIEW_COLORS[pet.character], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <DinoSprite pet={pet} size={96} />
+      <div className="pet-preview" style={{ background: petPreviewColor(pet.character), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <DinoSprite pet={pet} size={displaySizeForPet(pet)} />
       </div>
       <p>
         {tCharacter(pet.character)} · <GenderTag gender={pet.gender} /> ·{' '}

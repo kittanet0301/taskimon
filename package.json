@@ -20,7 +20,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:assets": "node scripts/check-assets.mjs"
+    "check:assets": "node scripts/check-assets.mjs",
+    "check:creatures": "node scripts/check-creature-assets.mjs",
+    "creature:process": "node scripts/process-creature-clip.mjs",
+    "creature:stitch": "node scripts/stitch-sprite-strip.mjs",
+    "creature:batch": "node scripts/batch-creature-species.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

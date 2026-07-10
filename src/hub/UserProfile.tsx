@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Stage } from '../shared/types'
-import { normalizeDinoCharacter } from '../shared/dinoCharacters'
+import { normalizePetSpecies } from '../shared/dinoCharacters'
 import { tCharacter, tStage } from '../i18n/labels'
 
 interface Props {
@@ -43,7 +43,7 @@ export function UserProfile({ userId }: Props) {
         <div style={{ marginTop: 16 }}>
           <h3>{t('profile.petTitle')}</h3>
           <p>
-            {String(pet.name)} · {tCharacter(normalizeDinoCharacter(String(pet.species)))} ·{' '}
+            {String(pet.name)} · {tCharacter(normalizePetSpecies(String(pet.species)))} ·{' '}
             {tStage(String(pet.stage) as Stage)}
           </p>
           <p>

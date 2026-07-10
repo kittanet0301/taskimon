@@ -17,4 +17,14 @@ export const KEYS_PER_DEV = TEST_FAST_EVO ? 50 : 500
 export const MAX_DEV_PER_HOUR = TEST_FAST_EVO ? 999 : 10
 export const RESET_SYSTEM_PIN = '1234'
 
-export { DINO_PREVIEW_COLORS } from './dinoCharacters'
+import type { PetSpecies } from './types'
+import { CREATURE_PREVIEW_COLORS } from './creatureCharacters'
+import { DINO_PREVIEW_COLORS } from './dinoCharacters'
+import { isCreatureSpecies } from './creatureCharacters'
+
+export { DINO_PREVIEW_COLORS, CREATURE_PREVIEW_COLORS }
+
+export function petPreviewColor(species: PetSpecies): string {
+  if (isCreatureSpecies(species)) return CREATURE_PREVIEW_COLORS[species]
+  return DINO_PREVIEW_COLORS[species]
+}

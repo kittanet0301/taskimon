@@ -1,11 +1,11 @@
 import type { PetData } from '../../shared/types'
-import { normalizeDinoCharacter } from '../../shared/dinoCharacters'
+import { normalizePetSpecies } from '../../shared/dinoCharacters'
 
 export function mapCloudPetToPetData(pet: Record<string, unknown>): PetData {
   return {
     id: String(pet.id),
     name: String(pet.name),
-    character: normalizeDinoCharacter(String(pet.species)),
+    character: normalizePetSpecies(String(pet.species)),
     gender: pet.gender as PetData['gender'],
     stage: pet.stage as PetData['stage'],
     stats: {

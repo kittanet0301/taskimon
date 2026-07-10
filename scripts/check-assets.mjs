@@ -20,7 +20,7 @@ const CHARACTERS = [
   'vita'
 ]
 const GENDERS = ['male', 'female']
-const EGG_CLIPS = ['move', 'crack', 'hatch']
+const EGG_CLIPS = ['move', 'hatch']
 const BASE_CLIPS = ['idle', 'move', 'hurt', 'bite', 'kick', 'dash', 'jump', 'avoid', 'scan', 'dead']
 const GHOST_CLIPS = ['idle', 'move']
 

@@ -11,5 +11,10 @@ _ws_extract
 .tools
 .tmp-agent-skills
 
+# Creature pipeline intermediates (regen from scripts + AI)
+assets/raw-creatures/
+sprite-output/
+scripts/__pycache__/
+
 .vercel
 .env.local

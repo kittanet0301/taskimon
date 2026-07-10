@@ -4,8 +4,8 @@ import { createDefaultMissions, ensureAllMissions } from './missions'
 import { clampSlotLimit } from './petCollection'
 import { getDefaultInventory, getDefaultQuickItemSlots, normalizeQuickItemSlots } from './items'
 import { createDefaultMinigameState } from './minigame'
-import { hatchEgg, defaultPetName } from './dinoCharacters'
-import { normalizeDinoCharacter } from './dinoCharacters'
+import { DEFAULT_CREATURE_SPECIES } from './creatureCharacters'
+import { hatchEgg, defaultPetName, normalizePetSpecies } from './dinoCharacters'
 
 function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -60,10 +60,10 @@ export function evolvePet(pet: PetData): PetData {
 
 function migratePet(pet: PetData & { species?: string; element?: string }): PetData {
   const character = pet.character
-    ? normalizeDinoCharacter(pet.character)
+    ? normalizePetSpecies(pet.character)
     : pet.species
-      ? normalizeDinoCharacter(pet.species)
-      : 'cole'
+      ? normalizePetSpecies(pet.species)
+      : DEFAULT_CREATURE_SPECIES
   const { species: _species, element: _element, ...rest } = pet
   return { ...rest, character }
 }
@@ -90,25 +90,30 @@ function normalizeCollectionFields(save: GameSave): GameSave {
 /** One-time save upgrades (test mode egg rewind on v2; dino characters on v3; collection on v4; quick slots on v5). */
 export function migrateSave(save: GameSave): GameSave {
   let next = normalizeCollectionFields(save)
-  if (next.version >= SAVE_VERSION) return next
 
-  if (next.version < 4) {
-    next = { ...next, collection: next.collection ?? [], petSlotLimit: PET_SLOT_BASE }
-  }
-  if (next.version < 5) {
-    next = { ...next, quickItemSlots: getDefaultQuickItemSlots(next.inventory) }
-  }
-  if (next.version < 6) {
-    next = { ...next, minigame: createDefaultMinigameState() }
-  }
-
-  next = { ...next, version: SAVE_VERSION }
-  if (next.pet) {
-    next = { ...next, pet: migratePet(next.pet) }
-    if (TEST_FAST_EVO && save.version < 2 && next.pet.stage !== 'egg') {
+  if (next.version < SAVE_VERSION) {
+    if (next.version < 4) {
+      next = { ...next, collection: next.collection ?? [], petSlotLimit: PET_SLOT_BASE }
+    }
+    if (next.version < 5) {
+      next = { ...next, quickItemSlots: getDefaultQuickItemSlots(next.inventory) }
+    }
+    if (next.version < 6) {
+      next = { ...next, minigame: createDefaultMinigameState() }
+    }
+    if (TEST_FAST_EVO && save.version < 2 && next.pet?.stage !== 'egg') {
       next = { ...next, pet: resetPetToEggStage(next.pet) }
     }
+    next = { ...next, version: SAVE_VERSION }
   }
+
+  if (next.pet) {
+    next = { ...next, pet: migratePet(next.pet) }
+  }
+  if (next.collection.length > 0) {
+    next = { ...next, collection: next.collection.map(migratePet) }
+  }
+
   return next
 }
 

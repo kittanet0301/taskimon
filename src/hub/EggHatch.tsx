@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { DEV_POINTS_HATCH, DINO_PREVIEW_COLORS } from '../shared/constants'
-import { DINO_HATCH_MS } from '../shared/dinoTiming'
+import { DEV_POINTS_HATCH, petPreviewColor } from '../shared/constants'
+import { waitForHatchAnimation } from '../shared/petSprites'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
 import { canHatchEgg } from '../shared/stats'
@@ -43,13 +43,17 @@ function StatBar({
 export function EggHatch({ pet, onHatched }: Props) {
   const { t } = useTranslation()
   const [hatching, setHatching] = useState(false)
+  const hatchDoneRef = useRef<(() => void) | null>(null)
   const [name, setName] = useState(pet.name)
   const ready = canHatchEgg(pet)
 
   const hatch = async () => {
     if (!ready) return
     setHatching(true)
-    await new Promise((r) => setTimeout(r, DINO_HATCH_MS))
+    await waitForHatchAnimation(pet.character, (finish) => {
+      hatchDoneRef.current = finish
+    })
+    hatchDoneRef.current = null
     await window.electronAPI.patchGame('rename', [name])
     await window.electronAPI.patchGame('hatch')
     setHatching(false)
@@ -61,13 +65,18 @@ export function EggHatch({ pet, onHatched }: Props) {
       <h2>{t('pet.mysteriousEgg')}</h2>
       <div
         className="pet-preview dash-pet-sprite"
-        style={{ background: DINO_PREVIEW_COLORS[pet.character] }}
+        style={{ background: petPreviewColor(pet.character) }}
       >
-        <DinoSprite pet={pet} size={96} hatching={hatching} />
+        <DinoSprite
+          pet={pet}
+          size={96}
+          hatching={hatching}
+          onHatchComplete={() => hatchDoneRef.current?.()}
+        />
       </div>
       <p>
         {t('pet.character')}:{' '}
-        <span className="tag" style={{ background: DINO_PREVIEW_COLORS[pet.character], color: '#fff' }}>
+        <span className="tag" style={{ background: petPreviewColor(pet.character), color: '#fff' }}>
           {tCharacter(pet.character)}
         </span>
         · {t('pet.gender')}: <GenderTag gender={pet.gender} />

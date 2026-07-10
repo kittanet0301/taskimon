@@ -1,7 +1,12 @@
 import type { DinoCharacter } from './dinoCharacters'
+import type { CreatureSpecies } from './creatureCharacters'
 
 export type { DinoCharacter } from './dinoCharacters'
+export type { CreatureSpecies } from './creatureCharacters'
 export { DINO_CHARACTERS } from './dinoCharacters'
+export { CREATURE_SPECIES } from './creatureCharacters'
+
+export type PetSpecies = DinoCharacter | CreatureSpecies
 
 export type Gender = 'male' | 'female'
 export type Stage = 'egg' | 'baby' | 'adult'
@@ -47,7 +52,7 @@ export interface PetStats {
 export interface PetData {
   id: string
   name: string
-  character: DinoCharacter
+  character: PetSpecies
   gender: Gender
   stage: Stage
   stats: PetStats
@@ -143,6 +148,6 @@ export interface ChatMessage {
 }
 
 export interface HatchResult {
-  character: DinoCharacter
+  character: PetSpecies
   gender: Gender
 }
