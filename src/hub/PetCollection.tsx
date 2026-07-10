@@ -8,8 +8,10 @@ import { displaySizeForPet } from '../shared/petSprites'
 import { tCharacter, tStage } from '../i18n/labels'
 import { getCollectionPageCount, getUsedSlots } from '../shared/petCollection'
 
+const COLLECTION_PREVIEW_SIZE = 88
+
 function petSpriteSize(pet: PetData): number {
-  return displaySizeForPet(pet)
+  return Math.min(displaySizeForPet(pet), COLLECTION_PREVIEW_SIZE)
 }
 
 interface Props {

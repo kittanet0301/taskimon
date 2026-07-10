@@ -4,6 +4,7 @@ import { addDevPoints } from '@shared/stats'
 import { updateMissionProgress } from '@shared/missions'
 import { applyGamePatch } from '@shared/gameMutators'
 import { applyDailyResets } from '@shared/missions'
+import { applyMinigameDailyReset } from '@shared/minigame'
 import { createDefaultSave, migrateSave } from '@shared/growth'
 import { loadSave, writeSave } from './storage'
 import {
@@ -58,7 +59,9 @@ function scheduleCloudPersist(): void {
 }
 
 export function getGameSave(): GameSave {
-  const next = applyDailyResets(saveRef)
+  let next = applyDailyResets(saveRef)
+  const minigameReset = applyMinigameDailyReset(next)
+  if (minigameReset !== next) next = minigameReset
   if (next !== saveRef) {
     saveRef = next
     writeSave(saveRef)
@@ -86,7 +89,9 @@ export function setGameSave(save: GameSave, options?: { skipCloud?: boolean }): 
 }
 
 export function updateSave(mutator: (save: GameSave) => GameSave): GameSave {
-  const reset = applyDailyResets(saveRef)
+  let reset = applyDailyResets(saveRef)
+  const minigameReset = applyMinigameDailyReset(reset)
+  if (minigameReset !== reset) reset = minigameReset
   if (reset !== saveRef) saveRef = reset
   return setGameSave(mutator(saveRef))
 }

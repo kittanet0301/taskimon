@@ -2128,7 +2128,7 @@ input, select {
   justify-content: center;
   width: 96px;
   height: 96px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .collection-active-meta {
@@ -2199,7 +2199,7 @@ input, select {
   justify-content: center;
   min-height: 96px;
   margin-bottom: 6px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .collection-slot-name {

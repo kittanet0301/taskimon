@@ -4,6 +4,7 @@ import { SAVE_VERSION, CLICKS_PER_DEV, KEYS_PER_DEV, MAX_DEV_PER_HOUR } from '..
 import { createDefaultSave, migrateSave } from '../../src/shared/growth'
 import { addDevPoints } from '../../src/shared/stats'
 import { updateMissionProgress, applyDailyResets } from '../../src/shared/missions'
+import { applyMinigameDailyReset } from '../../src/shared/minigame'
 import { loadSave, writeSave } from './storage'
 import { refreshTray } from './tray'
 import {
@@ -93,7 +94,9 @@ export async function setCurrentUser(userId: string | null): Promise<GameSave> {
 }
 
 export function getGameSave(): GameSave {
-  const next = applyDailyResets(saveRef)
+  let next = applyDailyResets(saveRef)
+  const minigameReset = applyMinigameDailyReset(next)
+  if (minigameReset !== next) next = minigameReset
   if (next !== saveRef) {
     saveRef = next
     writeSave(saveRef)
@@ -141,7 +144,9 @@ export function setGameSave(save: GameSave, options?: { skipCloud?: boolean }): 
 }
 
 export function updateSave(mutator: (save: GameSave) => GameSave): GameSave {
-  const reset = applyDailyResets(saveRef)
+  let reset = applyDailyResets(saveRef)
+  const minigameReset = applyMinigameDailyReset(reset)
+  if (minigameReset !== reset) reset = minigameReset
   if (reset !== saveRef) saveRef = reset
   return setGameSave(mutator(saveRef))
 }

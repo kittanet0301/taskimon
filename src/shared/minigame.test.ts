@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createDefaultSave } from './growth'
-import { applyFinishMinigame, minigameItemsLeft } from './minigame'
+import { applyFinishMinigame, applyMinigameDailyReset, minigameItemsLeft } from './minigame'
+import { localDayKey } from './missions'
 
 describe('minigame rewards', () => {
   it('grants random item when score meets threshold', () => {
@@ -31,5 +32,28 @@ describe('minigame rewards', () => {
     expect(result.rewarded).toBe(false)
     expect(result.reason).toBe('quota')
     expect(minigameItemsLeft(save, 'dino_jump')).toBe(0)
+  })
+
+  it('resets daily item quota on a new local calendar day', () => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayKey = localDayKey(yesterday)
+
+    let save = createDefaultSave()
+    save = {
+      ...save,
+      minigame: {
+        day: yesterdayKey,
+        itemsEarnedToday: { dino_jump: 3 },
+        bestScores: { dino_jump: 1200 }
+      }
+    }
+
+    const today = new Date()
+    const reset = applyMinigameDailyReset(save, today)
+    expect(reset.minigame.day).toBe(localDayKey(today))
+    expect(reset.minigame.itemsEarnedToday).toEqual({})
+    expect(reset.minigame.bestScores.dino_jump).toBe(1200)
+    expect(minigameItemsLeft(reset, 'dino_jump', today)).toBe(3)
   })
 })

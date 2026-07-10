@@ -158,6 +158,22 @@ export function displaySizeForPet(pet: Pick<PetData, 'character' | 'stage'>): nu
   return pixelScaleForPet(pet) * frameSizeForPet(pet)
 }
 
+/** On-screen sprite size in the chat lobby — adult is 2× baby/egg. */
+export const LOBBY_SPRITE_BABY = 80
+export const LOBBY_SPRITE_ADULT = LOBBY_SPRITE_BABY * 2
+
+export function lobbyDisplaySizeForPet(pet: Pick<PetData, 'character' | 'stage'>): number {
+  return pet.stage === 'adult' ? LOBBY_SPRITE_ADULT : LOBBY_SPRITE_BABY
+}
+
+/** Dino Jump minigame — baby/egg height matches hitbox; adult is 2×. */
+export const MINIGAME_JUMP_SPRITE_BABY = 48
+export const MINIGAME_JUMP_SPRITE_ADULT = MINIGAME_JUMP_SPRITE_BABY * 2
+
+export function minigameJumpDisplaySizeForPet(pet: Pick<PetData, 'character' | 'stage'>): number {
+  return pet.stage === 'adult' ? MINIGAME_JUMP_SPRITE_ADULT : MINIGAME_JUMP_SPRITE_BABY
+}
+
 export function displaySizeFromPixelScale(pixelScale: number, species?: string, stage?: Stage): number {
   if (species && isCreatureSpecies(species)) {
     if (stage) return creatureDisplaySize(stage)

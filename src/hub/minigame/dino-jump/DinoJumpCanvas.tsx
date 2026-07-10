@@ -1,12 +1,18 @@
 import { useEffect, useRef } from 'react'
-import type { GameSave } from '../../../shared/types'
+import type { GameSave, Stage } from '../../../shared/types'
+import { petPreviewColor } from '../../../shared/constants'
+import { flipXForFacing } from '../../../shared/dinoAnim'
+import { isCreatureSpecies } from '../../../shared/creatureCharacters'
 import { DINO_FRAMES_PER_SPRITE_FRAME } from '../../../shared/dinoTiming'
 import {
   drawPetSpriteFrame,
   loadPetSprite,
+  minigameJumpDisplaySizeForPet,
   petSpriteUrl,
-  pixelScaleForPet,
-  setupCrispCanvas
+  preloadPetSprites,
+  setupCrispCanvas,
+  spriteFrameIndexForClip,
+  type PetSpriteFolder
 } from '../../../shared/petSprites'
 import {
   CANVAS_H,
@@ -15,9 +21,11 @@ import {
   DINO_H,
   DINO_W,
   DINO_X,
+  EMPTY_JUMP_INPUT,
   GROUND_Y,
   getScore,
   tickJumpState,
+  type JumpInput,
   type JumpState
 } from './dinoJumpPhysics'
 
@@ -28,14 +36,26 @@ interface Props {
   onGameOver: (score: number) => void
 }
 
+function jumpClipsForPet(stage: Stage) {
+  if (stage === 'egg') {
+    return [{ folder: 'egg' as PetSpriteFolder, clip: 'move' }]
+  }
+  return [
+    { folder: 'base' as PetSpriteFolder, clip: 'move' },
+    { folder: 'base' as PetSpriteFolder, clip: 'jump' }
+  ]
+}
+
 export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef<JumpState>(createJumpState())
-  const jumpQueuedRef = useRef(false)
+  const jumpInputRef = useRef<JumpInput>({ ...EMPTY_JUMP_INPUT })
+  const jumpHeldRef = useRef(false)
   const frameRef = useRef(0)
   const reportedOverRef = useRef(false)
   const onDistanceChangeRef = useRef(onDistanceChange)
   const onGameOverRef = useRef(onGameOver)
+  const spriteCacheRef = useRef<Map<string, HTMLImageElement>>(new Map())
 
   onDistanceChangeRef.current = onDistanceChange
   onGameOverRef.current = onGameOver
@@ -43,27 +63,63 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
   useEffect(() => {
     if (running) {
       stateRef.current = createJumpState()
-      jumpQueuedRef.current = false
+      jumpInputRef.current = { ...EMPTY_JUMP_INPUT }
+      jumpHeldRef.current = false
       frameRef.current = 0
       reportedOverRef.current = false
+      spriteCacheRef.current.clear()
     }
   }, [running])
+
+  const queueJumpPress = () => {
+    jumpInputRef.current.jumpPressed = true
+    jumpInputRef.current.jumpHeld = true
+    jumpHeldRef.current = true
+  }
+
+  const queueJumpRelease = () => {
+    if (!jumpHeldRef.current) return
+    jumpInputRef.current.jumpHeld = false
+    jumpInputRef.current.jumpReleased = true
+    jumpHeldRef.current = false
+  }
 
   useEffect(() => {
     if (!running) return
 
+    const isJumpKey = (key: string) => key === ' ' || key === 'ArrowUp'
+
     const onKeyDown = (e: KeyboardEvent) => {
       const el = document.activeElement
       if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return
-      if (e.key === ' ' || e.key === 'ArrowUp') {
-        jumpQueuedRef.current = true
+      if (isJumpKey(e.key)) {
+        queueJumpPress()
+        e.preventDefault()
+      }
+    }
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (isJumpKey(e.key)) {
+        queueJumpRelease()
         e.preventDefault()
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+      queueJumpRelease()
+    }
   }, [running])
+
+  useEffect(() => {
+    const pet = save.pet
+    if (!pet) return
+    const urls = jumpClipsForPet(pet.stage).map(({ folder, clip }) => petSpriteUrl(pet, folder, clip))
+    void preloadPetSprites(urls)
+  }, [save.pet?.gender, save.pet?.character, save.pet?.stage])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -73,23 +129,16 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
     const ctx = setupCrispCanvas(canvas, CANVAS_W, CANVAS_H, false)
     ctx.imageSmoothingEnabled = false
 
-    const spriteUrl = pet ? petSpriteUrl(pet, pet.stage === 'egg' ? 'egg' : 'base', 'move') : ''
-    let spriteImg: HTMLImageElement | null = null
-    void loadPetSprite(spriteUrl)
-      .then((img) => {
-        spriteImg = img
-      })
-      .catch(() => {
-        spriteImg = null
-      })
-
     let raf = 0
-    const tick = () => {
+    const tick = async () => {
       frameRef.current += 1
-      const jump = jumpQueuedRef.current
-      jumpQueuedRef.current = false
-
-      stateRef.current = tickJumpState(stateRef.current, jump)
+      const input = jumpInputRef.current
+      stateRef.current = tickJumpState(stateRef.current, input)
+      jumpInputRef.current = {
+        jumpPressed: false,
+        jumpHeld: jumpHeldRef.current,
+        jumpReleased: false
+      }
       const state = stateRef.current
       const score = getScore(state.distanceRan)
       onDistanceChangeRef.current(state.distanceRan, score)
@@ -119,14 +168,42 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
         ctx.fillStyle = '#5a3824'
       }
 
-      if (pet && spriteImg) {
-        const scale = pixelScaleForPet(pet)
-        drawPetSpriteFrame(ctx, spriteImg, Math.floor(frameRef.current / DINO_FRAMES_PER_SPRITE_FRAME), pet.character, {
-          x: DINO_X,
-          y: Math.round(state.dinoY),
-          pixelScale: Math.max(3, Math.round((DINO_H / 24) * (scale / 4))),
-          flipX: false
-        })
+      if (pet) {
+        const drawSize = minigameJumpDisplaySizeForPet(pet)
+        const spriteX = DINO_X + DINO_W / 2
+        const spriteY = state.dinoY + DINO_H - drawSize / 2
+        const useJump = !state.grounded && pet.stage !== 'egg'
+        const folder: PetSpriteFolder = pet.stage === 'egg' ? 'egg' : 'base'
+        const clip = useJump ? 'jump' : 'move'
+        const url = petSpriteUrl(pet, folder, clip)
+
+        let img = spriteCacheRef.current.get(url)
+        if (!img) {
+          try {
+            img = await loadPetSprite(url)
+            spriteCacheRef.current.set(url, img)
+          } catch {
+            img = undefined
+          }
+        }
+
+        if (img) {
+          const spriteFrame = spriteFrameIndexForClip(
+            clip,
+            frameRef.current,
+            img,
+            pet.character
+          )
+          drawPetSpriteFrame(ctx, img, spriteFrame, pet.character, {
+            x: spriteX,
+            y: Math.round(spriteY),
+            drawSize,
+            flipX: isCreatureSpecies(pet.character) ? flipXForFacing('right') : false
+          })
+        } else {
+          ctx.fillStyle = petPreviewColor(pet.character)
+          ctx.fillRect(DINO_X, state.dinoY, DINO_W, DINO_H)
+        }
       } else {
         ctx.fillStyle = '#e8789a'
         ctx.fillRect(DINO_X, state.dinoY, DINO_W, DINO_H)
@@ -157,7 +234,13 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
       width={CANVAS_W}
       height={CANVAS_H}
       onPointerDown={() => {
-        if (running) jumpQueuedRef.current = true
+        if (running) queueJumpPress()
+      }}
+      onPointerUp={() => {
+        if (running) queueJumpRelease()
+      }}
+      onPointerLeave={() => {
+        if (running) queueJumpRelease()
       }}
       aria-label="Dino jump mini-game"
     />

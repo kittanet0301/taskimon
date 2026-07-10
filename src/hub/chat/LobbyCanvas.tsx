@@ -7,11 +7,10 @@ import {
   DINO_FRAMES_PER_SPRITE_FRAME
 } from '../../shared/dinoTiming'
 import {
-  displaySizeFromPixelScale,
   drawPetSpriteFrame,
   loadPetSprite,
+  lobbyDisplaySizeForPet,
   petSpriteUrl,
-  pixelScaleForStage,
   preloadPetSprites,
   setupCrispCanvas,
   type PetSpriteFolder
@@ -250,6 +249,12 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
 
     const held = { left: false, right: false, shift: false }
 
+    const isMoveLeft = (e: KeyboardEvent) =>
+      e.code === 'KeyA' || e.key === 'a' || e.key === 'A' || e.key === 'ฟ'
+
+    const isMoveRight = (e: KeyboardEvent) =>
+      e.code === 'KeyD' || e.key === 'd' || e.key === 'D' || e.key === 'ก'
+
     const syncInput = () => {
       inputRef.current.move = held.left && !held.right ? -1 : held.right && !held.left ? 1 : 0
       inputRef.current.dash = held.shift
@@ -257,12 +262,12 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (isTyping()) return
-      if (e.key === 'a' || e.key === 'A') {
+      if (isMoveLeft(e)) {
         held.left = true
         syncInput()
         e.preventDefault()
       }
-      if (e.key === 'd' || e.key === 'D') {
+      if (isMoveRight(e)) {
         held.right = true
         syncInput()
         e.preventDefault()
@@ -282,11 +287,11 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
     }
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'a' || e.key === 'A') {
+      if (isMoveLeft(e)) {
         held.left = false
         syncInput()
       }
-      if (e.key === 'd' || e.key === 'D') {
+      if (isMoveRight(e)) {
         held.right = false
         syncInput()
       }
@@ -397,26 +402,28 @@ export function LobbyCanvas({ roomId, roomSlug, userId, members, onPositionSync,
         }
 
         const bob = Math.round(Math.sin(frame / DINO_BOB_PERIOD) * 2)
-        const pixelScale = pixelScaleForStage(entity.stage, entity.character)
-        const displaySize = displaySizeFromPixelScale(pixelScale, entity.character, entity.stage)
+        const drawSize = lobbyDisplaySizeForPet({
+          character: entity.character,
+          stage: entity.stage
+        })
 
         if (img) {
           drawPetSpriteFrame(ctx, img, Math.floor(frame / DINO_FRAMES_PER_SPRITE_FRAME), entity.character, {
             x: Math.round(px),
             y: Math.round(py + bob),
-            pixelScale,
+            drawSize,
             flipX: clip.flipX
           })
         } else {
           ctx.fillStyle = petPreviewColor(entity.character)
           ctx.beginPath()
-          ctx.arc(Math.round(px), Math.round(py + bob), displaySize / 3, 0, Math.PI * 2)
+          ctx.arc(Math.round(px), Math.round(py + bob), drawSize / 3, 0, Math.PI * 2)
           ctx.fill()
         }
 
         const bubble = bubblesRef.current.get(entity.userId)
         if (bubble) {
-          drawBubble(ctx, px, py - displaySize / 2 - 12, bubble.content, entity.username)
+          drawBubble(ctx, px, py - drawSize / 2 - 12, bubble.content, entity.username)
         }
       }
 

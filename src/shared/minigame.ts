@@ -60,6 +60,14 @@ export function normalizeMinigameState(save: GameSave, now = new Date()): GameSa
   }
 }
 
+/** Persist minigame daily quota reset when the local calendar day changes. */
+export function applyMinigameDailyReset(save: GameSave, now = new Date()): GameSave {
+  const today = localDayKey(now)
+  const minigame = save.minigame ?? createDefaultMinigameState()
+  if (minigame.day === today) return save
+  return normalizeMinigameState(save, now)
+}
+
 export function minigameItemsEarnedToday(save: GameSave, gameId: MinigameId, now = new Date()): number {
   const normalized = normalizeMinigameState(save, now)
   return normalized.minigame.itemsEarnedToday[gameId] ?? 0

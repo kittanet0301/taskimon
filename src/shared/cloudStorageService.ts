@@ -3,6 +3,7 @@ import { createDefaultSave } from './growth'
 import { gameSaveFromDbParts, gameSaveToDbPayload } from './dbMapper'
 import { applyMoodDecay } from './stats'
 import { applyDailyResets, ensureAllMissions } from './missions'
+import { applyMinigameDailyReset } from './minigame'
 import type { SupabaseGetter } from './supabaseService'
 
 interface CloudStorageOptions {
@@ -148,6 +149,7 @@ export function createCloudStorageService({
     const lastSaved = new Date(save.lastSaved).getTime()
     const hoursAway = (Date.now() - lastSaved) / 3_600_000
     let next = applyDailyResets(save)
+    next = applyMinigameDailyReset(next)
     if (next.pet && hoursAway > 0.1) {
       next.pet = {
         ...next.pet,

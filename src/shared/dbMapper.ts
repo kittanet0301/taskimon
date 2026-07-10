@@ -5,12 +5,15 @@ import type {
   Gender,
   InventoryItem,
   ItemType,
+  MinigameId,
+  MinigameSaveState,
   MissionProgress,
   PetData,
   Stage
 } from './types'
 import { SAVE_VERSION, PET_SLOT_BASE } from './constants'
 import { createDefaultSave } from './growth'
+import { createDefaultMinigameState } from './minigame'
 import { normalizePetSpecies } from './dinoCharacters'
 import { clampSlotLimit } from './petCollection'
 
@@ -57,6 +60,41 @@ type DbActivity = {
   save_version: number
   pet_slot_limit?: number
   quick_item_slots?: Array<ItemType | null> | null
+  minigame_state?: MinigameSaveState | null
+}
+
+function normalizeMinigameStateFromDb(value: MinigameSaveState | null | undefined): MinigameSaveState {
+  const base = createDefaultMinigameState()
+  if (!value || typeof value !== 'object') return base
+  return {
+    day: typeof value.day === 'string' ? value.day : base.day,
+    itemsEarnedToday: { ...base.itemsEarnedToday, ...(value.itemsEarnedToday ?? {}) },
+    bestScores: { ...base.bestScores, ...(value.bestScores ?? {}) }
+  }
+}
+
+function normalizeMinigameId(key: string): MinigameId | null {
+  return key === 'dino_jump' ? 'dino_jump' : null
+}
+
+function normalizeMinigameCounts(
+  raw: Partial<Record<string, number>> | undefined
+): Partial<Record<MinigameId, number>> {
+  const next: Partial<Record<MinigameId, number>> = {}
+  for (const [key, count] of Object.entries(raw ?? {})) {
+    const gameId = normalizeMinigameId(key)
+    if (!gameId || typeof count !== 'number') continue
+    next[gameId] = count
+  }
+  return next
+}
+
+function minigameStateToDb(minigame: MinigameSaveState): MinigameSaveState {
+  return {
+    day: minigame.day,
+    itemsEarnedToday: normalizeMinigameCounts(minigame.itemsEarnedToday),
+    bestScores: normalizeMinigameCounts(minigame.bestScores)
+  }
 }
 
 function normalizeItemType(type: string): ItemType {
@@ -136,7 +174,8 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       last_saved: save.lastSaved,
       save_version: save.version,
       pet_slot_limit: save.petSlotLimit,
-      quick_item_slots: save.quickItemSlots
+      quick_item_slots: save.quickItemSlots,
+      minigame_state: minigameStateToDb(save.minigame ?? createDefaultMinigameState())
     }
   }
 }
@@ -183,6 +222,7 @@ export function gameSaveFromDbParts(
     lastSaved: activity?.last_saved ?? new Date().toISOString(),
     totalPlaySeconds: activity?.total_play_seconds ?? 0,
     dailyMissionsCompletedDays: activity?.daily_missions_completed_days ?? 0,
-    lastDailyMissionDay: activity?.last_daily_mission_day ?? null
+    lastDailyMissionDay: activity?.last_daily_mission_day ?? null,
+    minigame: normalizeMinigameStateFromDb(activity?.minigame_state)
   }
 }
