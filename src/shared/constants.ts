@@ -9,8 +9,9 @@ export const QUICK_ITEM_SLOT_COUNT = 6
 /** Flip to false before release builds. */
 export const TEST_FAST_EVO = true
 
-export const DEV_POINTS_HATCH = TEST_FAST_EVO ? 5 : 100
-export const DEV_POINTS_ADULT = TEST_FAST_EVO ? 10 : 500
+/** Instant hatch/evolve while testing creature art. */
+export const DEV_POINTS_HATCH = TEST_FAST_EVO ? 0 : 100
+export const DEV_POINTS_ADULT = TEST_FAST_EVO ? 0 : 500
 export const ADULT_MIN_HOURS = TEST_FAST_EVO ? 0 : 48
 export const CLICKS_PER_DEV = TEST_FAST_EVO ? 10 : 100
 export const KEYS_PER_DEV = TEST_FAST_EVO ? 50 : 500

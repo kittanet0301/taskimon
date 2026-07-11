@@ -5,7 +5,7 @@ import { buildGenPrompt } from './creature-gen-prompts.mjs'
 import { clipGrid, repoRoot, speciesBoardPath, spriteOutputDir } from './creature-manifest.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const species = 'ember-sail'
+const species = process.argv[2] ?? 'ember-sail'
 const rawDir = join(repoRoot, 'assets', 'raw-creatures', species)
 const outDir = join(repoRoot, 'sprite-output', species)
 
@@ -24,7 +24,7 @@ function gridPixels(rows, cols) {
 function entry(stage, clip, references, promptExtra = '') {
   const grid = clipGrid(stage, clip)
   const { width, height } = gridPixels(grid.rows, grid.cols)
-  let prompt = buildGenPrompt(stage, clip)
+  let prompt = buildGenPrompt(stage, clip, species)
   if (stage === 'egg' && clip === 'hatch') {
     prompt = prompt.replace(
       'Frame 6 baby MUST match baby master reference exactly.',

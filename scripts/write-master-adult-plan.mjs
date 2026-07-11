@@ -35,7 +35,7 @@ const plan = {
   masterAdult,
   speciesBoard: board,
   outputSize: '1024x1024',
-  prompt: buildMasterAdultPrompt(),
+  prompt: buildMasterAdultPrompt(species),
   references: [masterBaby, board].filter((p) => existsSync(p)),
   saveRawTo: rawPath,
   notes: 'Single portrait — NOT a sprite sheet. Attach master-baby + species board.'

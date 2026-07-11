@@ -1,6 +1,6 @@
 import type { Gender, HatchResult, PetSpecies } from './types'
 import { tDefaultPetName } from '../i18n/labels'
-import { DEFAULT_CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
+import { DEFAULT_CREATURE_SPECIES, CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
 
 /** Dino Family asset variants (https://demching.itch.io/dino-family) */
 export const DINO_CHARACTERS = [
@@ -52,7 +52,7 @@ export function normalizeDinoCharacter(value: string): DinoCharacter {
   return LEGACY_SPECIES_MAP[value] ?? 'cole'
 }
 
-/** All playable pets resolve to ember-sail until more creature species ship. */
+/** Prefer known creature species; legacy dino ids fall back to default. */
 export function normalizePetSpecies(value: string): PetSpecies {
   if (isCreatureSpecies(value)) return value
   return DEFAULT_CREATURE_SPECIES
@@ -67,17 +67,17 @@ export function rollGender(): Gender {
 }
 
 export function rollPetSpecies(): PetSpecies {
-  return DEFAULT_CREATURE_SPECIES
+  return pickRandom(CREATURE_SPECIES)
 }
 
 export function rollDinoCharacter(): DinoCharacter {
   return pickRandom(DINO_CHARACTERS)
 }
 
-/** New eggs default to the active creature POC until more species ship. */
-export function hatchEgg(): HatchResult {
+/** New eggs use an explicit species, or the default creature POC. */
+export function hatchEgg(species?: PetSpecies): HatchResult {
   return {
-    character: DEFAULT_CREATURE_SPECIES,
+    character: species && isCreatureSpecies(species) ? species : DEFAULT_CREATURE_SPECIES,
     gender: rollGender()
   }
 }

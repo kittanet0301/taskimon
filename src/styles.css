@@ -1006,6 +1006,47 @@ input, select {
   background: #ffd07f;
 }
 
+.dash-hud-debug {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 2px dashed #c0392b;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.dash-hud-debug-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.45rem;
+  color: #c0392b;
+}
+
+.dash-hud-debug-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dash-hud-debug-btn {
+  padding: 4px 6px;
+  border: 2px solid #2c1408;
+  background: #fff6e8;
+  color: #3b210e;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.4rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.dash-hud-debug-btn.active {
+  background: #ffb55d;
+}
+
+.dash-hud-debug-btn:hover {
+  background: #ffd07f;
+}
+
 .dash-hud-action:hover {
   background: #ffd07f;
 }

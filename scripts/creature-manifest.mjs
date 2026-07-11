@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export const repoRoot = join(__dirname, '..')
 
 /** POC species using the creature sprite pipeline. */
-export const CREATURE_SPECIES = ['ember-sail']
+export const CREATURE_SPECIES = ['ember-sail', 'garden']
 
 /** Clips per stage. Keys match folder names under assets/creatures/{species}/ */
 export const STAGE_CLIPS = {
@@ -79,8 +79,19 @@ export function cropSettingsForStage(stage) {
   return stage === 'adult' ? ADULT_CROP_SETTINGS : CROP_SETTINGS
 }
 
+/** Per-species chroma override (green creatures cannot use green key). */
+export const SPECIES_CHROMA_KEY = {
+  'ember-sail': 'green',
+  garden: 'magenta'
+}
+
+export function chromaKeyForSpecies(species) {
+  return SPECIES_CHROMA_KEY[species] ?? CROP_SETTINGS.chromaKey
+}
+
 const SPECIES_BOARD_FILES = {
-  'ember-sail': 'ember-sail-species-board.png'
+  'ember-sail': 'ember-sail-species-board.png',
+  garden: 'garden-species-board.png'
 }
 
 export function spriteOutputDir(species, stage, clip) {

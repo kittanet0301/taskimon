@@ -15,8 +15,8 @@ function uuid(): string {
   })
 }
 
-export function createEggPet(): PetData {
-  const hatch = hatchEgg()
+export function createEggPet(species?: PetData['character']): PetData {
+  const hatch = hatchEgg(species)
   return {
     id: uuid(),
     name: defaultPetName(hatch.character),

@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next'
 import type { GameSave, ItemType } from '../shared/types'
 import { DinoSprite } from '../components/DinoSprite'
 import { getActivityScore, getPetLevel, getStageLabel } from '../shared/activityScore'
-import { QUICK_ITEM_SLOT_COUNT } from '../shared/constants'
+import { QUICK_ITEM_SLOT_COUNT, TEST_FAST_EVO } from '../shared/constants'
 import { normalizeQuickItemSlots } from '../shared/items'
 import { canEvolveToAdult, canHatchEgg } from '../shared/stats'
-import { tItemDescription, tItemLabel } from '../i18n/labels'
+import { tCharacter, tItemDescription, tItemLabel } from '../i18n/labels'
 import { creatureDisplaySize, waitForHatchAnimation } from '../shared/petSprites'
-import { isCreatureSpecies } from '../shared/creatureCharacters'
+import { CREATURE_SPECIES, isCreatureSpecies } from '../shared/creatureCharacters'
 import {
   coverImagePointToPercent,
   DASH_BG_HEIGHT,
@@ -147,6 +147,11 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
     }
   }
 
+  const runDebug = async (mutator: string, args: unknown[] = []) => {
+    await window.electronAPI.patchGame(mutator, args)
+    onUpdated()
+  }
+
   const navItems: Array<{
     id: DashboardNavTarget | 'inventory'
     label: string
@@ -247,6 +252,55 @@ export function HomeDashboard({ save, displayName, syncing, onNavigate, onUpdate
               >
                 {hatching ? t('pet.hatching') : canHatch ? t('pet.hatch') : t('pet.evolveToAdult')}
               </button>
+            )}
+            {TEST_FAST_EVO && (
+              <div className="dash-hud-debug" aria-label="Test controls">
+                <span className="dash-hud-debug-label">TEST</span>
+                <div className="dash-hud-debug-row">
+                  {CREATURE_SPECIES.map((species) => (
+                    <button
+                      key={species}
+                      type="button"
+                      className={`dash-hud-debug-btn${pet.character === species ? ' active' : ''}`}
+                      onClick={() => runDebug('debugSetSpecies', [species])}
+                      title={tCharacter(species)}
+                    >
+                      {species === 'ember-sail' ? 'ember' : species}
+                    </button>
+                  ))}
+                </div>
+                <div className="dash-hud-debug-row">
+                  {(['egg', 'baby', 'adult'] as const).map((stage) => (
+                    <button
+                      key={stage}
+                      type="button"
+                      className={`dash-hud-debug-btn${pet.stage === stage ? ' active' : ''}`}
+                      onClick={() => runDebug('debugSetStage', [stage])}
+                    >
+                      {stage}
+                    </button>
+                  ))}
+                </div>
+                <div className="dash-hud-debug-row">
+                  <button type="button" className="dash-hud-debug-btn" onClick={() => runDebug('debugBoostDev', [50])}>
+                    +50 DP
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => runDebug('newEgg', ['garden'])}
+                  >
+                    +garden egg
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => runDebug('newEgg', ['ember-sail'])}
+                  >
+                    +ember egg
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </section>

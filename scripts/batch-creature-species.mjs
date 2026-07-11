@@ -7,6 +7,7 @@ import {
   CLIP_ALIGN,
   PROCESS_CELL_SIZE,
   assetOutputPath,
+  chromaKeyForSpecies,
   frameManifestPath,
   frameManifestTsPath,
   listJobs,
@@ -307,7 +308,7 @@ function finalizeMasterAdult(species) {
       '--canvas', String(PROCESS_CELL_SIZE),
       '--pad', '6',
       '--height-multiplier', '1.4',
-      '--chroma-key', 'green'
+      '--chroma-key', chromaKeyForSpecies(species)
     ],
     'finalize master-adult from master-baby'
   )
@@ -321,7 +322,10 @@ const STAGE_NORMALIZE = {
 }
 
 function normalizeStage(species, stage, stageJobs, options = {}) {
-  if (stageJobs.length === 0) return
+  const availableJobs = stageJobs.filter(({ clip }) =>
+    existsSync(join(spriteOutputDir(species, stage, clip), `${clip}-1.png`))
+  )
+  if (availableJobs.length === 0) return
 
   const stageDefaults = STAGE_NORMALIZE[stage] ?? STAGE_NORMALIZE.baby
   const heightMultiplier = options.heightMultiplier ?? stageDefaults.heightMultiplier
@@ -336,7 +340,7 @@ function normalizeStage(species, stage, stageJobs, options = {}) {
     reference: master,
     heightMultiplier,
     heightOnly,
-    clips: stageJobs.map(({ clip }) => ({
+    clips: availableJobs.map(({ clip }) => ({
       stage,
       clip,
       inputDir: spriteOutputDir(species, stage, clip),

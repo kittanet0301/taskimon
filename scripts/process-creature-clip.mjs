@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process'
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
-import { cropSettingsForStage, PROCESS_CELL_SIZE, clipGrid } from './creature-manifest.mjs'
+import { cropSettingsForStage, PROCESS_CELL_SIZE, clipGrid, chromaKeyForSpecies } from './creature-manifest.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(__dirname, '..')
@@ -122,7 +122,7 @@ function main() {
     '--fit-scale', String(crop.fitScale),
     '--threshold', String(crop.threshold),
     '--edge-threshold', String(crop.edgeThreshold),
-    '--chroma-key', crop.chromaKey
+    '--chroma-key', chromaKeyForSpecies(options.species)
   ]
 
   const result = spawnSync('python', args, { stdio: 'inherit', cwd: repoRoot })

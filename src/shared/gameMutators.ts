@@ -1,10 +1,31 @@
-import type { GameSave, ItemType, MinigameId } from './types'
-import { hatchPet, evolvePet, createEggPet } from './growth'
+import type { GameSave, ItemType, MinigameId, PetSpecies, Stage } from './types'
+import { hatchPet, evolvePet, createEggPet, resetPetToEggStage } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
 import { applyFinishMinigame } from './minigame'
+import { TEST_FAST_EVO } from './constants'
+import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
+import { defaultPetName } from './dinoCharacters'
+
+function debugSetPetStage(pet: NonNullable<GameSave['pet']>, stage: Stage) {
+  if (stage === 'egg') return resetPetToEggStage(pet)
+  if (stage === 'baby') {
+    return {
+      ...pet,
+      stage: 'baby' as const,
+      hatchedAt: pet.hatchedAt ?? new Date().toISOString(),
+      animationState: 'idle' as const
+    }
+  }
+  return {
+    ...pet,
+    stage: 'adult' as const,
+    hatchedAt: pet.hatchedAt ?? new Date().toISOString(),
+    animationState: 'idle' as const
+  }
+}
 
 export function applyGamePatch(save: GameSave, mutatorName: string, args: unknown[] = []): GameSave {
   if (mutatorName === 'hatch') {
@@ -22,7 +43,53 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   }
   if (mutatorName === 'newEgg') {
     if (!canAddPet(save)) return save
-    return { ...save, collection: [...save.collection, createEggPet()] }
+    const speciesArg = typeof args[0] === 'string' && isCreatureSpecies(args[0]) ? args[0] : undefined
+    return { ...save, collection: [...save.collection, createEggPet(speciesArg)] }
+  }
+  if (TEST_FAST_EVO && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
+    if (!save.pet || !isCreatureSpecies(args[0])) return save
+    const species = args[0] as PetSpecies
+    return {
+      ...save,
+      pet: {
+        ...save.pet,
+        character: species,
+        name: defaultPetName(species)
+      }
+    }
+  }
+  if (TEST_FAST_EVO && mutatorName === 'debugSetStage' && typeof args[0] === 'string') {
+    if (!save.pet) return save
+    const stage = args[0] as Stage
+    if (stage !== 'egg' && stage !== 'baby' && stage !== 'adult') return save
+    return { ...save, pet: debugSetPetStage(save.pet, stage) }
+  }
+  if (TEST_FAST_EVO && mutatorName === 'debugBoostDev') {
+    if (!save.pet) return save
+    const amount = typeof args[0] === 'number' ? Math.max(0, Math.floor(args[0])) : 50
+    return {
+      ...save,
+      pet: {
+        ...save.pet,
+        stats: {
+          ...save.pet.stats,
+          devPoints: Math.min(999, save.pet.stats.devPoints + amount)
+        }
+      }
+    }
+  }
+  if (TEST_FAST_EVO && mutatorName === 'debugCycleSpecies') {
+    if (!save.pet) return save
+    const idx = CREATURE_SPECIES.indexOf(save.pet.character as (typeof CREATURE_SPECIES)[number])
+    const next = CREATURE_SPECIES[(idx + 1) % CREATURE_SPECIES.length]
+    return {
+      ...save,
+      pet: {
+        ...save.pet,
+        character: next,
+        name: defaultPetName(next)
+      }
+    }
   }
   if (mutatorName === 'setActivePet' && typeof args[0] === 'string') {
     const petId = args[0] as string
