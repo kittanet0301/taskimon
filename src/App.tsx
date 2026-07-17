@@ -18,12 +18,11 @@ import { PetCollection } from './hub/PetCollection'
 import { ChangePasswordForm } from './hub/ChangePasswordForm'
 import { LanguageSwitcher } from './hub/LanguageSwitcher'
 import { MiniGameHub } from './hub/minigame/MiniGameHub'
-import { MiniGameRanking } from './hub/minigame/MiniGameRanking'
 import { HubSidebar, type HubSidebarTarget } from './hub/HubSidebar'
 import { HubTopBar } from './hub/HubTopBar'
 import { Inventory } from './hub/Inventory'
 
-type Tab = 'home' | 'collection' | 'community' | 'battle' | 'profile' | 'settings' | 'minigame' | 'ranking'
+type MainView = 'home' | 'battle'
 
 type Session = { user: { id: string; email?: string } } | null
 type UserProfile = { username: string; friend_code: string }
@@ -52,10 +51,14 @@ function AppContent({ variant = 'desktop' }: Props) {
   const battleCtx = useContext(BattleContext)
   const { isInRoom, confirmLeave } = useBattleGuard()
   const [save, setSave] = useState<GameSave | null>(null)
-  const [tab, setTab] = useState<Tab>('home')
+  const [mainView, setMainView] = useState<MainView>('home')
   const [cloudReady, setCloudReady] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
   const [showInventory, setShowInventory] = useState(false)
+  const [showCollection, setShowCollection] = useState(false)
+  const [showCommunity, setShowCommunity] = useState(false)
+  const [showMinigame, setShowMinigame] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [showCover, setShowCover] = useState(() => !isOnboardingComplete())
   const [session, setSession] = useState<Session>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -78,45 +81,31 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const [tabSyncing, setTabSyncing] = useState(false)
 
-  const handleTabChange = useCallback(
-    async (nextTab: Tab) => {
-      if (nextTab === tab || tabSyncing) return
-      if (tab === 'battle' && nextTab !== 'battle' && isInRoom) {
+  const handleMainViewChange = useCallback(
+    async (nextView: MainView) => {
+      if (nextView === mainView || tabSyncing) return
+      if (mainView === 'battle' && nextView !== 'battle' && isInRoom) {
         const ok = await confirmLeave()
         if (!ok) return
       }
       setTabSyncing(true)
       try {
         await syncOnTabChange()
-        setTab(nextTab)
+        setMainView(nextView)
       } catch (e) {
-        console.error('[tab] sync failed:', e)
-        setTab(nextTab)
+        console.error('[view] sync failed:', e)
+        setMainView(nextView)
       } finally {
         setTabSyncing(false)
       }
     },
-    [tab, tabSyncing, syncOnTabChange, isInRoom, confirmLeave]
+    [mainView, tabSyncing, syncOnTabChange, isInRoom, confirmLeave]
   )
 
-  const goToProfile = useCallback(
-    async (userId: string | null) => {
-      if (tabSyncing) return
-      setTabSyncing(true)
-      try {
-        await syncOnTabChange()
-        setViewUserId(userId)
-        setTab('profile')
-      } catch (e) {
-        console.error('[tab] sync failed:', e)
-        setViewUserId(userId)
-        setTab('profile')
-      } finally {
-        setTabSyncing(false)
-      }
-    },
-    [tabSyncing, syncOnTabChange]
-  )
+  const goToProfile = useCallback((userId: string) => {
+    setShowCommunity(false)
+    setViewUserId(userId)
+  }, [])
 
   const handleViewProfile = useCallback((userId: string) => goToProfile(userId), [goToProfile])
 
@@ -179,17 +168,28 @@ function AppContent({ variant = 'desktop' }: Props) {
     setShowCover(false)
   }
 
+  const closeAllPopups = () => {
+    setShowInventory(false)
+    setShowCollection(false)
+    setShowCommunity(false)
+    setShowMinigame(false)
+    setShowSettings(false)
+    setViewUserId(null)
+  }
+
   const handleLogout = () => {
     setSession(null)
     setProfile(null)
     setShowTitle(true)
+    closeAllPopups()
     refresh()
   }
 
   const handleDataReset = () => {
     localStorage.removeItem(ONBOARDING_KEY)
     setShowCover(true)
-    setTab('home')
+    setMainView('home')
+    closeAllPopups()
     refresh()
   }
 
@@ -254,19 +254,45 @@ function AppContent({ variant = 'desktop' }: Props) {
   const displayName =
     profile?.username ?? session?.user?.email?.split('@')[0] ?? ''
 
-  const sidebarTarget: HubSidebarTarget | null =
-    tab === 'ranking' ? 'minigame' : tab === 'home' ? 'home' : (tab as HubSidebarTarget)
+  const sidebarTarget: HubSidebarTarget | null = showCollection
+    ? 'collection'
+    : showInventory
+      ? 'inventory'
+      : showCommunity
+        ? 'community'
+        : showMinigame
+          ? 'minigame'
+          : showSettings
+            ? 'settings'
+            : mainView === 'battle'
+              ? 'battle'
+              : null
 
   const handleSidebarNavigate = (target: HubSidebarTarget) => {
+    if (target === 'battle') {
+      void handleMainViewChange('battle')
+      return
+    }
     if (target === 'inventory') {
       setShowInventory(true)
       return
     }
-    if (target === 'profile') {
-      void goToProfile(null)
+    if (target === 'collection') {
+      setShowCollection(true)
       return
     }
-    void handleTabChange(target as Tab)
+    if (target === 'community') {
+      setShowCommunity(true)
+      return
+    }
+    if (target === 'minigame') {
+      setShowMinigame(true)
+      return
+    }
+    if (target === 'settings') {
+      setShowSettings(true)
+      return
+    }
   }
 
   return (
@@ -289,44 +315,60 @@ function AppContent({ variant = 'desktop' }: Props) {
           <LanguageSwitcher variant="pixel" />
         </HubTopBar>
 
-        <main className={`hub-content${tab === 'home' ? ' hub-content--home' : ' hub-content--panel'}`}>
-          {tab === 'home' && (
+        <main className={`hub-content${mainView === 'home' ? ' hub-content--home' : ' hub-content--panel'}`}>
+          {mainView === 'home' && (
             <HomeDashboard save={save} syncing={tabSyncing} onUpdated={refresh} />
           )}
-          {tab === 'collection' && (
-            <PetCollection save={save} onUpdated={refresh} onSelect={() => setTab('home')} />
-          )}
-          {tab === 'minigame' && (
-            <MiniGameHub
-              save={save}
-              onUpdated={refresh}
-              onOpenRanking={() => void handleTabChange('ranking')}
-            />
-          )}
-          {tab === 'ranking' && <MiniGameRanking />}
-          {tab === 'community' && <Community key="community" onViewProfile={handleViewProfile} />}
-          {tab === 'battle' && <BattleHub save={save} variant={variant} />}
-          {tab === 'profile' && (
-            <UserProfile
-              key={`profile-${viewUserId ?? 'self'}`}
-              userId={viewUserId}
-              save={save}
-              onUpdated={refresh}
-            />
-          )}
-          {tab === 'settings' && (
-            <AuthPanel
-              save={save}
-              onSynced={refresh}
-              cloudReady={cloudReady}
-              onLogout={handleLogout}
-              onDataReset={handleDataReset}
-            />
+          {mainView === 'battle' && (
+            <>
+              <button
+                type="button"
+                className="hub-back-btn"
+                onClick={() => void handleMainViewChange('home')}
+                disabled={tabSyncing}
+              >
+                ‹ {t('tabs.home')}
+              </button>
+              <BattleHub save={save} variant={variant} />
+            </>
           )}
         </main>
       </div>
 
       {showInventory && <Inventory save={save} onClose={() => setShowInventory(false)} />}
+      {showCollection && (
+        <PetCollection
+          save={save}
+          onUpdated={refresh}
+          onSelect={() => setShowCollection(false)}
+          onClose={() => setShowCollection(false)}
+        />
+      )}
+      {showCommunity && (
+        <Community key="community" onViewProfile={handleViewProfile} onClose={() => setShowCommunity(false)} />
+      )}
+      {showMinigame && (
+        <MiniGameHub save={save} onUpdated={refresh} onClose={() => setShowMinigame(false)} />
+      )}
+      {showSettings && (
+        <AuthPanel
+          save={save}
+          onSynced={refresh}
+          cloudReady={cloudReady}
+          onLogout={handleLogout}
+          onDataReset={handleDataReset}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+      {viewUserId && (
+        <UserProfile
+          key={`profile-${viewUserId}`}
+          userId={viewUserId}
+          save={save}
+          onUpdated={refresh}
+          onClose={() => setViewUserId(null)}
+        />
+      )}
     </div>
   )
 }

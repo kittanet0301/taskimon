@@ -27,9 +27,10 @@ interface Props {
   save: GameSave
   onUpdated: () => void
   onSelect: () => void
+  onClose: () => void
 }
 
-export function PetCollection({ save, onUpdated, onSelect }: Props) {
+export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
   const { t } = useTranslation()
   const [filter, setFilter] = useState<StageFilter>('all')
   const [page, setPage] = useState(0)
@@ -108,9 +109,15 @@ export function PetCollection({ save, onUpdated, onSelect }: Props) {
   const stageFilters: StageFilter[] = ['all', 'egg', 'baby', 'adult']
 
   return (
-    <div className="card collection-card">
-      <div className="collection-header">
+    <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="hub-modal collection-modal card" onClick={(e) => e.stopPropagation()}>
+      <div className="hub-modal-head">
         <h2>{t('collection.title')}</h2>
+        <button type="button" className="hub-modal-close" onClick={onClose} aria-label={t('common.cancel')}>
+          ×
+        </button>
+      </div>
+      <div className="collection-header">
         <span className="collection-slots">
           {t('collection.slots', { used: getUsedSlots(save), limit: save.petSlotLimit })}
         </span>
@@ -315,6 +322,7 @@ export function PetCollection({ save, onUpdated, onSelect }: Props) {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

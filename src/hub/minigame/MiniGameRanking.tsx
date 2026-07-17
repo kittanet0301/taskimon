@@ -6,9 +6,10 @@ import type { MinigameLeaderboardRow } from '../../shared/minigame'
 
 interface Props {
   defaultGameId?: MinigameId
+  onBack?: () => void
 }
 
-export function MiniGameRanking({ defaultGameId = 'dino_jump' }: Props) {
+export function MiniGameRanking({ defaultGameId = 'dino_jump', onBack }: Props) {
   const { t } = useTranslation()
   const [gameId, setGameId] = useState<MinigameId>(defaultGameId)
   const [rows, setRows] = useState<MinigameLeaderboardRow[]>([])
@@ -50,6 +51,11 @@ export function MiniGameRanking({ defaultGameId = 'dino_jump' }: Props) {
   return (
     <div className="ranking-view card">
       <div className="ranking-header">
+        {onBack && (
+          <button type="button" className="secondary ranking-back-btn" onClick={onBack}>
+            ‹ {t('minigame.title')}
+          </button>
+        )}
         <h2>{t('ranking.title')}</h2>
         <label className="ranking-filter">
           <span>{t('ranking.game')}</span>

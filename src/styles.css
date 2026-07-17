@@ -58,6 +58,7 @@ body {
   background: linear-gradient(180deg, #2c1408 0%, #130f1e 100%);
   border-right: 4px solid var(--pixel-border);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .hub-main {
@@ -116,6 +117,26 @@ body {
 
 .hub-content--panel {
   padding: 20px 24px 32px;
+}
+
+.hub-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  border: 3px solid var(--pixel-border);
+  background: var(--pixel-card-bg);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+}
+
+.hub-back-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .dash-hud-counter--gem::before {
@@ -1373,6 +1394,12 @@ input, select {
   max-height: 82vh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+}
+
+.hub-modal--lg {
+  max-width: 880px;
+  max-height: 88vh;
 }
 
 .hub-modal-head {

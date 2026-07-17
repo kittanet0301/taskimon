@@ -15,9 +15,10 @@ interface Props {
   cloudReady: boolean
   onLogout?: () => void
   onDataReset?: () => void
+  onClose: () => void
 }
 
-export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }: Props) {
+export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, onClose }: Props) {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -113,18 +114,31 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
 
   if (!cloudReady) {
     return (
-      <div className="card">
-        <h2>{t('auth.panelTitle')}</h2>
-        <p className="notice" style={{ margin: 0 }}>
-          {t('auth.supabaseNotConfigured')}
-        </p>
+      <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+        <div className="hub-modal settings-modal card" onClick={(e) => e.stopPropagation()}>
+          <div className="hub-modal-head">
+            <h2>{t('auth.panelTitle')}</h2>
+            <button type="button" className="hub-modal-close" onClick={onClose} aria-label={t('common.cancel')}>
+              ×
+            </button>
+          </div>
+          <p className="notice" style={{ margin: 0 }}>
+            {t('auth.supabaseNotConfigured')}
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="card">
-      <h2>{t('auth.panelTitle')}</h2>
+    <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+    <div className="hub-modal settings-modal card" onClick={(e) => e.stopPropagation()}>
+      <div className="hub-modal-head">
+        <h2>{t('auth.panelTitle')}</h2>
+        <button type="button" className="hub-modal-close" onClick={onClose} aria-label={t('common.cancel')}>
+          ×
+        </button>
+      </div>
       <p>
         {t('auth.statusLabel')}:{' '}
         <strong style={{ color: dbMode ? '#16a34a' : '#ca8a04' }}>
@@ -222,6 +236,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset }:
           </div>
         </>
       )}
+    </div>
     </div>
   )
 }

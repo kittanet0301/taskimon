@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
 export type HubSidebarTarget =
-  | 'profile'
-  | 'home'
   | 'collection'
   | 'inventory'
   | 'community'
@@ -17,8 +15,9 @@ interface Props {
   onNavigate: (target: HubSidebarTarget) => void
 }
 
-const NAV_ICON_SRC: Record<Exclude<HubSidebarTarget, 'profile'>, string> = {
-  home: '/ui/hud-icon-dino.png',
+const AVATAR_ICON_SRC = '/ui/hud-icon-dino.png'
+
+const NAV_ICON_SRC: Record<HubSidebarTarget, string> = {
   collection: '/ui/hud-icon-collection.png',
   inventory: '/ui/hud-icon-inventory.png',
   community: '/ui/hud-icon-community.png',
@@ -31,8 +30,6 @@ export function HubSidebar({ activeTarget, displayName, disabled, onNavigate }: 
   const { t } = useTranslation()
 
   const items: Array<{ id: HubSidebarTarget; label: string }> = [
-    { id: 'profile', label: t('tabs.profile') },
-    { id: 'home', label: t('tabs.home') },
     { id: 'collection', label: t('tabs.collection') },
     { id: 'inventory', label: t('inventory.title') },
     { id: 'community', label: t('tabs.friends') },
@@ -44,7 +41,7 @@ export function HubSidebar({ activeTarget, displayName, disabled, onNavigate }: 
   return (
     <aside className="hub-sidebar" aria-label="Main navigation">
       <div className="dash-hud-avatar">
-        <img className="hud-icon hud-icon--large" src={NAV_ICON_SRC.home} alt="" draggable={false} />
+        <img className="hud-icon hud-icon--large" src={AVATAR_ICON_SRC} alt="" draggable={false} />
         <span>{displayName}</span>
       </div>
       {items.map((item) => (
@@ -57,13 +54,7 @@ export function HubSidebar({ activeTarget, displayName, disabled, onNavigate }: 
           title={item.label}
           aria-label={item.label}
         >
-          {item.id === 'profile' ? (
-            <span className="hud-icon hud-icon-emoji" aria-hidden>
-              👤
-            </span>
-          ) : (
-            <img className="hud-icon" src={NAV_ICON_SRC[item.id]} alt="" draggable={false} />
-          )}
+          <img className="hud-icon" src={NAV_ICON_SRC[item.id]} alt="" draggable={false} />
         </button>
       ))}
     </aside>
