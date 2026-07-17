@@ -500,6 +500,17 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     }
   }
 
+  async function sendGift(recipientId: string, itemType: string, quantity: number) {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('send_gift', {
+      p_recipient_id: recipientId,
+      p_item_type: itemType,
+      p_quantity: quantity
+    })
+    if (error) rpcError(error)
+    return data
+  }
+
   async function submitMinigameScore(gameId: string, score: number) {
     const supabase = requireSupabase()
     const { data, error } = await supabase.rpc('upsert_minigame_score', {
@@ -566,6 +577,7 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     syncInventory,
     syncMissions,
     submitMinigameScore,
-    getMinigameLeaderboard
+    getMinigameLeaderboard,
+    sendGift
   }
 }

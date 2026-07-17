@@ -5,6 +5,8 @@ import type {
   BattleSession,
   BattleTurn
 } from './types'
+import type { Gender, PetData, Stage } from '../types'
+import { normalizePetSpecies } from '../dinoCharacters'
 
 function str(v: unknown): string {
   return String(v ?? '')
@@ -34,6 +36,8 @@ export function mapBattleSession(row: Record<string, unknown>): BattleSession {
     defenderEnergy: num(row.defender_energy ?? 0),
     challengerDefending: bool(row.challenger_defending),
     defenderDefending: bool(row.defender_defending),
+    challengerAvoiding: bool(row.challenger_avoiding),
+    defenderAvoiding: bool(row.defender_avoiding),
     status: row.status as BattleSession['status'],
     turnUserId: row.turn_user_id ? str(row.turn_user_id) : null,
     winnerUserId: row.winner_user_id ? str(row.winner_user_id) : null,
@@ -80,6 +84,26 @@ export function mapBattleRoomMember(row: Record<string, unknown>): BattleRoomMem
     role: row.role as BattleRoomMember['role'],
     status: row.status as BattleRoomMember['status'],
     joinedAt: str(row.joined_at)
+  }
+}
+
+/** Maps a raw `pets` table row (as returned by getFriendPet) into a PetData for battle sprite rendering. */
+export function mapPetRowToPetData(row: Record<string, unknown>): PetData {
+  return {
+    id: str(row.id),
+    name: str(row.name) || 'Pet',
+    character: normalizePetSpecies(str(row.species)),
+    gender: (row.gender as Gender) === 'female' ? 'female' : 'male',
+    stage: (row.stage as Stage) ?? 'baby',
+    stats: {
+      hp: num(row.hp),
+      mood: num(row.mood),
+      devPoints: num(row.dev_points)
+    },
+    hatchedAt: row.hatched_at ? str(row.hatched_at) : null,
+    createdAt: str(row.created_at) || new Date().toISOString(),
+    animationState: 'idle',
+    feedCount: 0
   }
 }
 

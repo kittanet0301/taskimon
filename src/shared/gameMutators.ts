@@ -185,9 +185,28 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     const missions = save.missions.map((m) =>
       m.missionId === missionId ? { ...m, completed: false, progress: 0 } : m
     )
-    let next: GameSave = { ...save, inventory, pet, collection, petSlotLimit, missions }
+    const gemsReward = def.kind === 'daily' ? 5 : 15
+    let next: GameSave = {
+      ...save,
+      inventory,
+      pet,
+      collection,
+      petSlotLimit,
+      missions,
+      gems: (save.gems ?? 0) + gemsReward
+    }
     if (def.kind === 'daily') next = recordDailyMissionClaim(next)
     return next
+  }
+  if (mutatorName === 'sendGiftLocal' && typeof args[0] === 'string' && typeof args[1] === 'number') {
+    const itemType = args[0] as ItemType
+    const quantity = Math.max(0, Math.floor(args[1]))
+    if (quantity <= 0) return save
+    const inv = [...save.inventory]
+    const idx = inv.findIndex((i) => i.type === itemType)
+    if (idx < 0 || inv[idx].quantity < quantity) return save
+    inv[idx] = { ...inv[idx], quantity: inv[idx].quantity - quantity }
+    return { ...save, inventory: inv.filter((i) => i.quantity > 0) }
   }
   if (mutatorName === 'finishMinigame' && typeof args[0] === 'string' && typeof args[1] === 'number') {
     const gameId = args[0] as MinigameId

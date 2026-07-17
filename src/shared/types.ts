@@ -88,6 +88,8 @@ export interface GameSave {
   collection: PetData[]
   /** Max pet slots (base 5, up to 27 via weekly missions). */
   petSlotLimit: number
+  /** Soft currency, earned from mission claims. */
+  gems: number
   inventory: InventoryItem[]
   quickItemSlots: Array<ItemType | null>
   missions: MissionProgress[]

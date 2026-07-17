@@ -1,8 +1,8 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { GameSave } from '../../shared/types'
+import type { GameSave, PetData } from '../../shared/types'
 import type { BattleActionType, BattleSession } from '../../shared/battle/types'
-import { mapBattleSession, mapBattleTurn } from '../../shared/battle/mappers'
+import { mapBattleSession, mapBattleTurn, mapPetRowToPetData } from '../../shared/battle/mappers'
 import { tCharacter } from '../../i18n/labels'
 import { BattleContext } from './BattleContext'
 import { RoomLobby } from './RoomLobby'
@@ -36,6 +36,12 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
   const userId = ctx?.userId ?? null
   const sessionId = ctx?.activeSessionId ?? null
   const { session, turns, reload } = useBattleSession(userId, sessionId)
+  const [fighters, setFighters] = useState<{
+    challengerName: string
+    defenderName: string
+    challengerPet: PetData | null
+    defenderPet: PetData | null
+  } | null>(null)
 
   const goToActiveBattle = useCallback(async () => {
     if (!ctx?.roomId) {
@@ -157,6 +163,33 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
   }, [ctx?.memberStatus, sessionId])
 
   useEffect(() => {
+    if (!session || session.status !== 'active') return
+    let cancelled = false
+    void (async () => {
+      try {
+        const [challengerProfile, defenderProfile, challengerPetRow, defenderPetRow] = await Promise.all([
+          window.electronAPI.getProfile(session.challengerUserId) as Promise<{ username: string } | null>,
+          window.electronAPI.getProfile(session.defenderUserId) as Promise<{ username: string } | null>,
+          window.electronAPI.getFriendPet(session.challengerUserId) as Promise<Record<string, unknown> | null>,
+          window.electronAPI.getFriendPet(session.defenderUserId) as Promise<Record<string, unknown> | null>
+        ])
+        if (cancelled) return
+        setFighters({
+          challengerName: challengerProfile?.username ?? t('battle.challenger'),
+          defenderName: defenderProfile?.username ?? t('battle.defender'),
+          challengerPet: challengerPetRow ? mapPetRowToPetData(challengerPetRow) : null,
+          defenderPet: defenderPetRow ? mapPetRowToPetData(defenderPetRow) : null
+        })
+      } catch {
+        if (!cancelled) setFighters(null)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session?.id, session?.status, session?.challengerUserId, session?.defenderUserId, t])
+
+  useEffect(() => {
     if (ctx?.memberStatus !== 'in_battle' || ctx?.activeSessionId || !ctx?.roomId) return
     void discoverRoomSession()
     const id = setInterval(() => void discoverRoomSession(), 2500)
@@ -230,6 +263,10 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
                 session={session}
                 turns={turns}
                 userId={userId}
+                challengerName={fighters?.challengerName}
+                defenderName={fighters?.defenderName}
+                challengerPet={fighters?.challengerPet}
+                defenderPet={fighters?.defenderPet}
                 onAction={submitAction}
               />
             ) : (

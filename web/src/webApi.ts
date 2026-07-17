@@ -51,7 +51,8 @@ import {
   syncInventory,
   syncMissions,
   submitMinigameScore,
-  getMinigameLeaderboard
+  getMinigameLeaderboard,
+  sendGift
 } from './supabase'
 import { applyFinishMinigame } from '@shared/minigame'
 import type { MinigameId } from '@shared/types'
@@ -207,6 +208,10 @@ export function createWebApi(): GameAPI {
     getMinigameLeaderboard: async (gameId, limit) => {
       if (!isSupabaseConfigured()) return []
       return getMinigameLeaderboard(gameId, limit ?? 50)
+    },
+    sendGift: async (recipientId, itemType, quantity) => {
+      await sendGift(recipientId, itemType, quantity)
+      return patchSave('sendGiftLocal', [itemType, quantity])
     }
   }
 }

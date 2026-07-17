@@ -61,6 +61,7 @@ type DbActivity = {
   pet_slot_limit?: number
   quick_item_slots?: Array<ItemType | null> | null
   minigame_state?: MinigameSaveState | null
+  gems?: number
 }
 
 function normalizeMinigameStateFromDb(value: MinigameSaveState | null | undefined): MinigameSaveState {
@@ -175,7 +176,8 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       save_version: save.version,
       pet_slot_limit: save.petSlotLimit,
       quick_item_slots: save.quickItemSlots,
-      minigame_state: minigameStateToDb(save.minigame ?? createDefaultMinigameState())
+      minigame_state: minigameStateToDb(save.minigame ?? createDefaultMinigameState()),
+      gems: save.gems
     }
   }
 }
@@ -195,6 +197,7 @@ export function gameSaveFromDbParts(
     pet: activeRow ? petFromDbRow(activeRow) : null,
     collection: collectionRows.map(petFromDbRow),
     petSlotLimit: clampSlotLimit(activity?.pet_slot_limit ?? PET_SLOT_BASE),
+    gems: activity?.gems ?? 0,
     quickItemSlots: activity?.quick_item_slots ?? base.quickItemSlots,
     inventory: inventory.map(
       (row): InventoryItem => ({

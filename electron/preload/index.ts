@@ -87,7 +87,9 @@ const api: GameAPI = {
   reportActivityKey: () => ipcRenderer.invoke('activity:key'),
   finishMinigame: (gameId, score) => ipcRenderer.invoke('minigame:finish', gameId, score),
   submitMinigameScore: (gameId, score) => ipcRenderer.invoke('minigame:submitScore', gameId, score),
-  getMinigameLeaderboard: (gameId, limit) => ipcRenderer.invoke('minigame:leaderboard', gameId, limit)
+  getMinigameLeaderboard: (gameId, limit) => ipcRenderer.invoke('minigame:leaderboard', gameId, limit),
+  sendGift: (recipientId, itemType, quantity) =>
+    ipcRenderer.invoke('gift:send', recipientId, itemType, quantity)
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

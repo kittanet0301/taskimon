@@ -1,4 +1,19 @@
-export type BattleActionType = 'attack' | 'ultimate' | 'defend' | 'flee'
+/**
+ * Bite/Jump/Tailwhip are attack variants, Shield/Avoid are defensive stances,
+ * Ultimate needs a full energy meter. Flee is internal-only (room forfeit),
+ * never a visible arena button. 'attack'/'defend' are legacy aliases kept only
+ * so historical battle_turns rows (pre-6-action) still satisfy this type.
+ */
+export type BattleActionType =
+  | 'bite'
+  | 'jump'
+  | 'tailwhip'
+  | 'shield'
+  | 'avoid'
+  | 'ultimate'
+  | 'flee'
+  | 'attack'
+  | 'defend'
 
 export type BattleSessionStatus =
   | 'pending'
@@ -22,6 +37,8 @@ export interface BattleCombatant {
   hpStart: number
   energy: number
   defending: boolean
+  /** Set by the Avoid action; gives a chance to fully dodge the opponent's next hit. */
+  avoiding: boolean
 }
 
 export interface BattleSession {
@@ -39,6 +56,8 @@ export interface BattleSession {
   defenderEnergy: number
   challengerDefending: boolean
   defenderDefending: boolean
+  challengerAvoiding: boolean
+  defenderAvoiding: boolean
   status: BattleSessionStatus
   turnUserId: string | null
   winnerUserId: string | null

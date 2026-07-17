@@ -68,7 +68,8 @@ import {
   syncInventory,
   syncMissions,
   submitMinigameScore,
-  getMinigameLeaderboard
+  getMinigameLeaderboard,
+  sendGift
 } from './supabase'
 
 let activeBattleRoomId: string | null = null
@@ -286,6 +287,14 @@ function setupIpc(): void {
       userId,
       inventory.map((i) => ({ item_type: i.type, quantity: i.quantity }))
     )
+  )
+
+  ipcMain.handle(
+    'gift:send',
+    async (_e, recipientId: string, itemType: string, quantity: number) => {
+      await sendGift(recipientId, itemType, quantity)
+      return updateSave((save) => applyGamePatch(save, 'sendGiftLocal', [itemType, quantity]))
+    }
   )
 
   ipcMain.handle('cloud:syncMissions', async (_e, userId: string, missions: GameSave['missions']) =>

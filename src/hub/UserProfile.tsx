@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Stage } from '../shared/types'
+import type { GameSave, Stage } from '../shared/types'
 import { normalizePetSpecies } from '../shared/dinoCharacters'
 import { tCharacter, tStage } from '../i18n/labels'
+import { SendGiftModal } from './SendGiftModal'
 
 interface Props {
   userId: string | null
+  save?: GameSave | null
+  onUpdated?: () => void | Promise<void>
 }
 
-export function UserProfile({ userId }: Props) {
+export function UserProfile({ userId, save, onUpdated }: Props) {
   const { t } = useTranslation()
   const [profile, setProfile] = useState<{ username: string; friend_code: string } | null>(null)
   const [pet, setPet] = useState<Record<string, unknown> | null>(null)
   const [selfId, setSelfId] = useState<string | null>(null)
+  const [showGift, setShowGift] = useState(false)
 
   useEffect(() => {
     ;(async () => {
@@ -38,7 +42,16 @@ export function UserProfile({ userId }: Props) {
     <div className="card">
       <h2>{t('profile.titleWithName', { username: profile.username })}</h2>
       <p>{t('profile.friendCode')}: <strong>{profile.friend_code}</strong></p>
-      {userId && userId !== selfId && <p style={{ color: '#6b7280' }}>{t('profile.viewingFriendReadonly')}</p>}
+      {userId && userId !== selfId && (
+        <div className="profile-friend-actions">
+          <p style={{ color: '#6b7280', margin: 0 }}>{t('profile.viewingFriendReadonly')}</p>
+          {save && (
+            <button type="button" className="dash-hud-action dash-hud-action--inline" onClick={() => setShowGift(true)}>
+              {t('gift.sendGift')}
+            </button>
+          )}
+        </div>
+      )}
       {pet ? (
         <div style={{ marginTop: 16 }}>
           <h3>{t('profile.petTitle')}</h3>
@@ -56,6 +69,18 @@ export function UserProfile({ userId }: Props) {
         </div>
       ) : (
         <p>{t('profile.noCloudPet')}</p>
+      )}
+
+      {showGift && save && userId && (
+        <SendGiftModal
+          save={save}
+          recipientId={userId}
+          recipientName={profile.username}
+          onClose={() => setShowGift(false)}
+          onSent={async () => {
+            await onUpdated?.()
+          }}
+        />
       )}
     </div>
   )

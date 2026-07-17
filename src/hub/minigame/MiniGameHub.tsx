@@ -7,6 +7,8 @@ import {
   getMinigameDefinition,
   minigameItemsLeft
 } from '../../shared/minigame'
+import { ITEM_ICON_SRC } from '../../shared/itemIcons'
+import { tItemLabel } from '../../i18n/labels'
 import { DinoJumpGame } from './dino-jump/DinoJumpGame'
 
 interface Props {
@@ -46,6 +48,23 @@ export function MiniGameHub({ save, onUpdated, onOpenRanking }: Props) {
             <article key={game.id} className="card minigame-card">
               <h3>{t(game.titleKey)}</h3>
               <p className="pixel-muted-text">{t(game.descriptionKey)}</p>
+              <div className="minigame-card-reward">
+                {(def?.rewardPool ?? []).map((type) => (
+                  <img
+                    key={type}
+                    className="hud-icon minigame-card-reward-icon"
+                    src={ITEM_ICON_SRC[type]}
+                    alt={tItemLabel(type)}
+                    title={tItemLabel(type)}
+                    draggable={false}
+                  />
+                ))}
+                <span>
+                  {t('minigame.rewardItems', {
+                    items: (def?.rewardPool ?? []).map((type) => tItemLabel(type)).join(', ')
+                  })}
+                </span>
+              </div>
               <ul className="minigame-card-stats">
                 <li>{t('minigame.itemsLeft', { left: itemsLeft, total: MINIGAME_DAILY_ITEM_LIMIT })}</li>
                 <li>{t('minigame.scoreThreshold1000', { score: def?.scoreThreshold ?? 1000 })}</li>

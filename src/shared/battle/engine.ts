@@ -1,19 +1,38 @@
 import type { BattleActionType, BattleSessionState } from './types'
-import i18n from '../../i18n'
 import {
-  ENERGY_GAIN_ATTACK_MAX,
-  ENERGY_GAIN_ATTACK_MIN,
-  ENERGY_GAIN_DEFEND_MAX,
-  ENERGY_GAIN_DEFEND_MIN,
+  AVOID_DODGE_CHANCE,
+  ENERGY_GAIN_AVOID_MAX,
+  ENERGY_GAIN_AVOID_MIN,
+  ENERGY_GAIN_BITE_MAX,
+  ENERGY_GAIN_BITE_MIN,
+  ENERGY_GAIN_JUMP_MAX,
+  ENERGY_GAIN_JUMP_MIN,
+  ENERGY_GAIN_SHIELD_MAX,
+  ENERGY_GAIN_SHIELD_MIN,
+  ENERGY_GAIN_TAILWHIP_MAX,
+  ENERGY_GAIN_TAILWHIP_MIN,
   ULTIMATE_ENERGY_MAX
 } from './constants'
 import { calcDamage } from './damage'
 import {
   formatActionMessage,
-  formatDefendMessage,
+  formatAvoidMessage,
+  formatDodgeMessage,
   formatFleeMessage,
+  formatShieldMessage,
   formatWinnerMessage
 } from './formatLog'
+import i18n from '../../i18n'
+
+type EnergyGainKind = 'bite' | 'jump' | 'tailwhip' | 'shield' | 'avoid'
+
+const ENERGY_GAIN_RANGE: Record<EnergyGainKind, readonly [number, number]> = {
+  bite: [ENERGY_GAIN_BITE_MIN, ENERGY_GAIN_BITE_MAX],
+  jump: [ENERGY_GAIN_JUMP_MIN, ENERGY_GAIN_JUMP_MAX],
+  tailwhip: [ENERGY_GAIN_TAILWHIP_MIN, ENERGY_GAIN_TAILWHIP_MAX],
+  shield: [ENERGY_GAIN_SHIELD_MIN, ENERGY_GAIN_SHIELD_MAX],
+  avoid: [ENERGY_GAIN_AVOID_MIN, ENERGY_GAIN_AVOID_MAX]
+}
 
 export function isChallenger(state: BattleSessionState, userId: string): boolean {
   return state.challenger.userId === userId
@@ -31,14 +50,11 @@ export function canUseUltimate(state: BattleSessionState, userId: string): boole
   return getActor(state, userId).energy >= ULTIMATE_ENERGY_MAX
 }
 
-export function rollEnergyGain(action: 'attack' | 'defend', randomFactor?: number): number {
+export function rollEnergyGain(kind: EnergyGainKind, randomFactor?: number): number {
   const roll = randomFactor ?? Math.random()
-  if (action === 'defend') {
-    const span = ENERGY_GAIN_DEFEND_MAX - ENERGY_GAIN_DEFEND_MIN + 1
-    return ENERGY_GAIN_DEFEND_MIN + Math.floor(roll * span)
-  }
-  const span = ENERGY_GAIN_ATTACK_MAX - ENERGY_GAIN_ATTACK_MIN + 1
-  return ENERGY_GAIN_ATTACK_MIN + Math.floor(roll * span)
+  const [min, max] = ENERGY_GAIN_RANGE[kind]
+  const span = max - min + 1
+  return min + Math.floor(roll * span)
 }
 
 export function addEnergy(current: number, gain: number): number {
@@ -94,15 +110,30 @@ export function applyAction(
     }
   }
 
-  if (action === 'defend') {
-    const gain = rollEnergyGain('defend', randomFactor)
+  if (action === 'shield' || action === 'defend') {
+    const gain = rollEnergyGain('shield', randomFactor)
     actorRef.defending = true
+    actorRef.avoiding = false
     actorRef.energy = addEnergy(actorRef.energy, gain)
     next.turnUserId = nextTurnUserId(next)
     return {
       state: next,
       damage: 0,
-      logMessage: `${formatDefendMessage(actor.name)} (+${gain}% ${i18n.t('battle.ultimateEnergy')})`,
+      logMessage: `${formatShieldMessage(actor.name)} (+${gain}% ${i18n.t('battle.ultimateEnergy')})`,
+      finished: false
+    }
+  }
+
+  if (action === 'avoid') {
+    const gain = rollEnergyGain('avoid', randomFactor)
+    actorRef.avoiding = true
+    actorRef.defending = false
+    actorRef.energy = addEnergy(actorRef.energy, gain)
+    next.turnUserId = nextTurnUserId(next)
+    return {
+      state: next,
+      damage: 0,
+      logMessage: `${formatAvoidMessage(actor.name)} (+${gain}% ${i18n.t('battle.ultimateEnergy')})`,
       finished: false
     }
   }
@@ -112,25 +143,35 @@ export function applyAction(
   }
 
   const effectiveAction: BattleActionType =
-    action === 'ultimate' && actorRef.energy >= ULTIMATE_ENERGY_MAX ? 'ultimate' : 'attack'
+    action === 'ultimate' && actorRef.energy >= ULTIMATE_ENERGY_MAX ? 'ultimate' : action
 
   if (effectiveAction === 'ultimate') {
     actorRef.energy = 0
   } else {
-    const gain = rollEnergyGain('attack', randomFactor)
+    const gainKind: EnergyGainKind =
+      effectiveAction === 'jump' ? 'jump' : effectiveAction === 'tailwhip' ? 'tailwhip' : 'bite'
+    const gain = rollEnergyGain(gainKind, randomFactor)
     actorRef.energy = addEnergy(actorRef.energy, gain)
   }
 
-  const damage = calcDamage({
-    action: effectiveAction,
-    defenderDefending: opponentRef.defending,
-    randomFactor
-  })
+  const dodgeRoll = randomFactor ?? Math.random()
+  const dodged = opponentRef.avoiding && dodgeRoll < AVOID_DODGE_CHANCE
 
-  const logMessage = formatActionMessage(actor.name, opponent.name, effectiveAction, damage)
+  const damage = dodged
+    ? 0
+    : calcDamage({
+        action: effectiveAction,
+        defenderDefending: opponentRef.defending,
+        randomFactor
+      })
+
+  const logMessage = dodged
+    ? formatDodgeMessage(opponent.name, actor.name)
+    : formatActionMessage(actor.name, opponent.name, effectiveAction, damage)
 
   opponentRef.hp = Math.max(0, opponentRef.hp - damage)
-  if (opponentRef.defending) opponentRef.defending = false
+  opponentRef.defending = false
+  opponentRef.avoiding = false
 
   const winnerUserId = checkWinner(next)
   if (winnerUserId) {

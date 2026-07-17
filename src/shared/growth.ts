@@ -83,7 +83,8 @@ function normalizeCollectionFields(save: GameSave): GameSave {
       typeof save.petSlotLimit === 'number' ? save.petSlotLimit : PET_SLOT_BASE
     ),
     quickItemSlots: normalizeQuickItemSlots(save.quickItemSlots),
-    missions: ensureAllMissions(save.missions)
+    missions: ensureAllMissions(save.missions),
+    gems: typeof save.gems === 'number' && Number.isFinite(save.gems) ? Math.max(0, save.gems) : 0
   })
 }
 
@@ -124,6 +125,7 @@ export function createDefaultSave(): GameSave {
     pet: createEggPet(),
     collection: [],
     petSlotLimit: PET_SLOT_BASE,
+    gems: 0,
     inventory: getDefaultInventory(),
     quickItemSlots: getDefaultQuickItemSlots(),
     missions: createDefaultMissions(),
