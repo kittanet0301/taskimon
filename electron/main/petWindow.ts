@@ -1,6 +1,6 @@
 import { BrowserWindow, screen } from 'electron'
 import { join } from 'path'
-import { getRendererPageUrl, getRendererIndexPath, isDevMode } from './rendererUrl'
+import { getRendererAppUrl, getRendererPageUrl, isDevMode } from './rendererUrl'
 
 const PET_SIZE = 96
 
@@ -37,7 +37,7 @@ export function createPetWindow(): BrowserWindow {
   if (isDevMode() && process.env.ELECTRON_RENDERER_URL) {
     petWindow.loadURL(getRendererPageUrl({ view: 'pet' }))
   } else {
-    petWindow.loadFile(getRendererIndexPath(), { query: { view: 'pet' } })
+    petWindow.loadURL(getRendererAppUrl({ view: 'pet' }))
   }
 
   petWindow.once('ready-to-show', () => {

@@ -4,6 +4,7 @@ import { createPetWindow, getPetWindow, setPetIgnoreMouse } from './petWindow'
 import { createHubWindow, getHubWindow } from './hubWindow'
 import { createTray, destroyTray, refreshTray } from './tray'
 import { setMainLocale } from './locale'
+import { registerAppProtocolHandler, registerAppProtocolScheme } from './rendererUrl'
 import {
   broadcastToWindows,
   forceCloudSave,
@@ -76,6 +77,7 @@ let activeBattleRoomId: string | null = null
 let chatRoomUnsubscribe: (() => void) | null = null
 
 loadEnvFile()
+registerAppProtocolScheme()
 
 const isDev = !app.isPackaged
 
@@ -311,6 +313,7 @@ function setupIpc(): void {
 }
 
 app.whenReady().then(async () => {
+  registerAppProtocolHandler()
   setupIpc()
   await startActivityTracker()
   await hydrateFromSession()
