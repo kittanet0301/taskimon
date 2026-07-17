@@ -7,14 +7,13 @@ export interface GameAPI {
   updateGame: (save: GameSave) => Promise<GameSave>
   forceCloudSave: () => Promise<void>
   clearMyGameData: () => Promise<GameSave>
-  resetSystemGameData: () => Promise<GameSave>
   isDbMode: () => Promise<boolean>
   reloadFromCloud: () => Promise<GameSave>
   onGameUpdated: (callback: (save: GameSave) => void) => () => void
   onHubOpened: (callback: () => void) => () => void
   openHub: () => Promise<void>
   supabaseConfigured: () => Promise<boolean>
-  signUp: (email: string, password: string, username: string, birthDate: string) => Promise<unknown>
+  signUp: (email: string, password: string, username: string) => Promise<unknown>
   signIn: (email: string, password: string) => Promise<unknown>
   signOut: () => Promise<void>
   setLocale: (locale: 'en' | 'th') => Promise<void>

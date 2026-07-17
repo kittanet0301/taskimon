@@ -89,8 +89,18 @@ export function createCloudStorageService({
     }
 
     if (payload.pets.length > 0) {
-      const { error } = await supabase.from('pets').upsert(payload.pets, { onConflict: 'id' })
-      if (error) throw error
+      // Deactivate first, then activate — avoids unique index pets_one_active_per_owner
+      // failing when swapping which pet is the main/playing one.
+      const inactivePets = payload.pets.filter((p) => !p.is_active)
+      const activePets = payload.pets.filter((p) => p.is_active)
+      if (inactivePets.length > 0) {
+        const { error } = await supabase.from('pets').upsert(inactivePets, { onConflict: 'id' })
+        if (error) throw error
+      }
+      if (activePets.length > 0) {
+        const { error } = await supabase.from('pets').upsert(activePets, { onConflict: 'id' })
+        if (error) throw error
+      }
     }
 
     if (!skipInventory) {
@@ -141,20 +151,17 @@ export function createCloudStorageService({
     const { error: activityError } = await supabase.from('player_activity').delete().eq('user_id', userId)
     if (activityError) throw activityError
 
+    const { error: giftSenderError } = await supabase.from('gifts').delete().eq('sender_id', userId)
+    if (giftSenderError) throw giftSenderError
+
+    const { error: giftRecipientError } = await supabase.from('gifts').delete().eq('recipient_id', userId)
+    if (giftRecipientError) throw giftRecipientError
+
+    const { error: scoreError } = await supabase.from('minigame_scores').delete().eq('user_id', userId)
+    if (scoreError) throw scoreError
+
     const fresh = createDefaultSave()
     return saveGameSaveToDb(userId, fresh)
-  }
-
-  async function resetSystemDataInDb(userId: string): Promise<GameSave> {
-    const supabase = getSupabase()
-    if (!supabase) throw new Error('Supabase not configured')
-
-    const { error } = await supabase.rpc('reset_all_game_data')
-    if (error) throw error
-
-    const cloudSave = await loadGameSaveFromDb(userId)
-    if (cloudSave) return cloudSave
-    return bootstrapGameSaveInDb(userId, createDefaultSave())
   }
 
   function applyOfflineDecay(save: GameSave): GameSave {
@@ -176,7 +183,6 @@ export function createCloudStorageService({
     saveGameSaveToDb,
     bootstrapGameSaveInDb,
     resetGameDataInDb,
-    resetSystemDataInDb,
     canUseCloudStorage: () => isSupabaseConfigured()
   }
 }

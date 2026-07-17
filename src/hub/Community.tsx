@@ -6,11 +6,12 @@ import { Friends } from './Friends'
 interface Props {
   onViewProfile: (userId: string) => void
   onClose: () => void
+  onPendingChange?: () => void
 }
 
 type CommunityTab = 'friends' | 'chat'
 
-export function Community({ onViewProfile, onClose }: Props) {
+export function Community({ onViewProfile, onClose, onPendingChange }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<CommunityTab>('friends')
 
@@ -42,7 +43,11 @@ export function Community({ onViewProfile, onClose }: Props) {
               </button>
             </div>
           </div>
-          {tab === 'friends' ? <Friends key="friends" onViewProfile={onViewProfile} /> : <Chat key="chat" />}
+          {tab === 'friends' ? (
+            <Friends key="friends" onViewProfile={onViewProfile} onPendingChange={onPendingChange} />
+          ) : (
+            <Chat key="chat" />
+          )}
         </div>
       </div>
     </div>

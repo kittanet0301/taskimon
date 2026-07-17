@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData, Stage } from '../shared/types'
 import { petPreviewColor, PET_SLOTS_PER_PAGE } from '../shared/constants'
@@ -36,6 +36,9 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
   const [pendingDelete, setPendingDelete] = useState<PetData | null>(null)
   const [detailPet, setDetailPet] = useState<PetData | null>(null)
   const [busy, setBusy] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const skipRenameBlurRef = useRef(false)
 
   const maxCollectionSlots = save.pet ? save.petSlotLimit - 1 : save.petSlotLimit
 
@@ -58,12 +61,53 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
     setPage(0)
   }
 
+  const startRename = () => {
+    if (!save.pet) return
+    setNameDraft(save.pet.name)
+    setEditingName(true)
+  }
+
+  const cancelRename = () => {
+    skipRenameBlurRef.current = true
+    setEditingName(false)
+    setNameDraft('')
+  }
+
+  const saveRename = async () => {
+    if (!save.pet) return
+    if (skipRenameBlurRef.current) {
+      skipRenameBlurRef.current = false
+      return
+    }
+    const nextName = nameDraft.trim()
+    if (!nextName || nextName === save.pet.name) {
+      setEditingName(false)
+      setNameDraft('')
+      return
+    }
+    setBusy(true)
+    try {
+      await window.electronAPI.patchGame('rename', [nextName])
+      try {
+        await window.electronAPI.forceCloudSave()
+      } catch (err) {
+        console.error('[collection] failed to sync rename:', err)
+      }
+      setEditingName(false)
+      setNameDraft('')
+      onUpdated()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const setActive = async (petId: string, navigate: boolean) => {
+    setEditingName(false)
     await window.electronAPI.patchGame('setActivePet', [petId])
     try {
       await window.electronAPI.forceCloudSave()
-    } catch {
-      // local save is still updated; chat uses local active pet for self
+    } catch (err) {
+      console.error('[collection] failed to sync full save after main pet switch:', err)
     }
     onUpdated()
     if (navigate) onSelect()
@@ -114,7 +158,51 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
             <DinoSprite pet={save.pet} size={petSpriteSize(save.pet)} />
           </div>
           <div className="collection-active-meta">
-            <strong>{save.pet.name}</strong>
+            <div className="collection-active-name-row">
+              {editingName ? (
+                <input
+                  className="collection-active-name-input"
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      void saveRename()
+                    }
+                    if (e.key === 'Escape') {
+                      e.preventDefault()
+                      cancelRename()
+                    }
+                  }}
+                  onBlur={() => {
+                    void saveRename()
+                  }}
+                  maxLength={24}
+                  disabled={busy}
+                  autoFocus
+                  aria-label={t('pet.rename')}
+                />
+              ) : (
+                <>
+                  <strong>{save.pet.name}</strong>
+                  <button
+                    type="button"
+                    className="collection-rename-btn"
+                    onClick={startRename}
+                    disabled={busy}
+                    title={t('pet.rename')}
+                    aria-label={t('pet.rename')}
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                      <path
+                        fill="currentColor"
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l9.06-9.06.92.92L5.92 19.58zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                      />
+                    </svg>
+                  </button>
+                </>
+              )}
+            </div>
             <span className="collection-slot-info">
               {tCharacter(save.pet.character)} · <GenderTag gender={save.pet.gender} /> · {tStage(save.pet.stage)}
             </span>

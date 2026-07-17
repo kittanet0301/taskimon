@@ -22,7 +22,6 @@ type DbPet = {
   owner_id: string
   name: string
   species: string
-  element: string
   gender: string
   stage: string
   hp: number
@@ -62,6 +61,7 @@ type DbActivity = {
   quick_item_slots?: Array<ItemType | null> | null
   minigame_state?: MinigameSaveState | null
   gems?: number
+  active_pet_id?: string | null
 }
 
 function normalizeMinigameStateFromDb(value: MinigameSaveState | null | undefined): MinigameSaveState {
@@ -109,7 +109,6 @@ export function petToDbRow(pet: PetData, ownerId: string, isActive: boolean) {
     owner_id: ownerId,
     name: pet.name,
     species: pet.character,
-    element: 'none',
     gender: pet.gender,
     stage: pet.stage,
     hp: pet.stats.hp,
@@ -177,7 +176,8 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       pet_slot_limit: save.petSlotLimit,
       quick_item_slots: save.quickItemSlots,
       minigame_state: minigameStateToDb(save.minigame ?? createDefaultMinigameState()),
-      gems: save.gems
+      gems: save.gems,
+      active_pet_id: save.pet?.id ?? null
     }
   }
 }
@@ -189,8 +189,12 @@ export function gameSaveFromDbParts(
   activity: DbActivity | null
 ): GameSave {
   const base = createDefaultSave()
-  const activeRow = pets.find((p) => p.is_active) ?? null
-  const collectionRows = pets.filter((p) => !p.is_active)
+  const activeId = activity?.active_pet_id ?? null
+  const activeRow =
+    (activeId ? pets.find((p) => p.id === activeId) : undefined) ??
+    pets.find((p) => p.is_active) ??
+    null
+  const collectionRows = pets.filter((p) => p.id !== activeRow?.id)
 
   return {
     version: activity?.save_version ?? SAVE_VERSION,

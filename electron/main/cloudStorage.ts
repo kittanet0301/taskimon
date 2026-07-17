@@ -7,7 +7,6 @@ export const {
   saveGameSaveToDb,
   bootstrapGameSaveInDb,
   resetGameDataInDb,
-  resetSystemDataInDb,
   canUseCloudStorage
 } = createCloudStorageService({
   getSupabase,

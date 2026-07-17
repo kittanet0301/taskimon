@@ -47,10 +47,16 @@ export function HubSidebar({ activeTarget, displayName, disabled, badges, onNavi
       </div>
       {items.map((item) => {
         const badgeCount = badges?.[item.id] ?? 0
+        const showAlert =
+          badgeCount > 0 && (item.id === 'collection' || item.id === 'community')
         const label =
           item.id === 'inventory' && badgeCount > 0
             ? t('gift.sidebarPending', { count: badgeCount })
-            : item.label
+            : item.id === 'collection' && badgeCount > 0
+              ? t('collection.sidebarHatchable')
+              : item.id === 'community' && badgeCount > 0
+                ? t('friends.sidebarPending')
+                : item.label
         return (
           <button
             key={item.id}
@@ -65,8 +71,8 @@ export function HubSidebar({ activeTarget, displayName, disabled, badges, onNavi
           >
             <img className="hud-icon" src={NAV_ICON_SRC[item.id]} alt="" draggable={false} />
             {badgeCount > 0 && (
-              <span className="dash-hud-nav-badge" aria-hidden>
-                {badgeCount > 9 ? '9+' : badgeCount}
+              <span className={`dash-hud-nav-badge${showAlert ? ' dash-hud-nav-badge--alert' : ''}`} aria-hidden>
+                {showAlert ? '!' : badgeCount > 9 ? '9+' : badgeCount}
               </span>
             )}
           </button>

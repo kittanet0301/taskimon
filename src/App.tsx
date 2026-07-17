@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave } from './shared/types'
 import { getActivityScore, isOnboardingComplete, ONBOARDING_KEY } from './shared/activityScore'
+import { countHatchableEggs } from './shared/petCollection'
 import './i18n'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
@@ -60,6 +61,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [showMinigame, setShowMinigame] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [pendingGiftCount, setPendingGiftCount] = useState(0)
+  const [pendingFriendCount, setPendingFriendCount] = useState(0)
   const [showCover, setShowCover] = useState(() => !isOnboardingComplete())
   const [session, setSession] = useState<Session>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -82,6 +84,20 @@ function AppContent({ variant = 'desktop' }: Props) {
       // keep last known count; gift API may be briefly unavailable
     }
   }, [])
+
+  const refreshPendingFriends = useCallback(async (userId?: string) => {
+    const id = userId ?? session?.user?.id
+    if (!window.electronAPI?.listPending || !id) {
+      setPendingFriendCount(0)
+      return
+    }
+    try {
+      const rows = (await window.electronAPI.listPending(id)) as unknown[]
+      setPendingFriendCount(rows.length)
+    } catch {
+      // keep last known count
+    }
+  }, [session?.user?.id])
 
   const syncOnTabChange = useCallback(async () => {
     if (!window.electronAPI) return
@@ -128,6 +144,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       try {
         await syncOnTabChange()
         await refreshPendingGifts()
+        await refreshPendingFriends()
       } catch (e) {
         console.error('[popup] sync failed:', e)
       } finally {
@@ -135,7 +152,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       }
       setter(true)
     },
-    [tabSyncing, syncOnTabChange, refreshPendingGifts]
+    [tabSyncing, syncOnTabChange, refreshPendingGifts, refreshPendingFriends]
   )
 
   const goToProfile = useCallback(
@@ -172,11 +189,13 @@ function AppContent({ variant = 'desktop' }: Props) {
       await window.electronAPI.reloadFromCloud()
       await refresh()
       await refreshPendingGifts()
+      await refreshPendingFriends(s.user.id)
     } else {
       setProfile(null)
       setPendingGiftCount(0)
+      setPendingFriendCount(0)
     }
-  }, [refresh, refreshPendingGifts])
+  }, [refresh, refreshPendingGifts, refreshPendingFriends])
 
   useEffect(() => {
     if (!window.electronAPI) return
@@ -208,21 +227,24 @@ function AppContent({ variant = 'desktop' }: Props) {
   useEffect(() => {
     if (!session?.user?.id || showCover || !window.electronAPI) return
     void refreshPendingGifts()
+    void refreshPendingFriends()
     const id = setInterval(() => {
       refresh()
       void refreshPendingGifts()
+      void refreshPendingFriends()
     }, 60_000)
     return () => clearInterval(id)
-  }, [session, showCover, refresh, refreshPendingGifts])
+  }, [session, showCover, refresh, refreshPendingGifts, refreshPendingFriends])
 
   useEffect(() => {
     if (!window.electronAPI) return
     const onFocus = () => {
       void refreshPendingGifts()
+      void refreshPendingFriends()
     }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
-  }, [refreshPendingGifts])
+  }, [refreshPendingGifts, refreshPendingFriends])
 
   const handleGetStarted = () => {
     localStorage.setItem(ONBOARDING_KEY, '1')
@@ -241,6 +263,8 @@ function AppContent({ variant = 'desktop' }: Props) {
   const handleLogout = () => {
     setSession(null)
     setProfile(null)
+    setPendingGiftCount(0)
+    setPendingFriendCount(0)
     setShowTitle(true)
     closeAllPopups()
     refresh()
@@ -362,7 +386,11 @@ function AppContent({ variant = 'desktop' }: Props) {
         activeTarget={sidebarTarget}
         displayName={displayName}
         disabled={tabSyncing}
-        badges={{ inventory: pendingGiftCount }}
+        badges={{
+          inventory: pendingGiftCount,
+          collection: save ? countHatchableEggs(save) : 0,
+          community: pendingFriendCount
+        }}
         onNavigate={handleSidebarNavigate}
       />
 
@@ -419,7 +447,17 @@ function AppContent({ variant = 'desktop' }: Props) {
         />
       )}
       {showCommunity && (
-        <Community key="community" onViewProfile={handleViewProfile} onClose={() => setShowCommunity(false)} />
+        <Community
+          key="community"
+          onViewProfile={handleViewProfile}
+          onPendingChange={() => {
+            void refreshPendingFriends()
+          }}
+          onClose={() => {
+            setShowCommunity(false)
+            void refreshPendingFriends()
+          }}
+        />
       )}
       {showMinigame && (
         <MiniGameHub save={save} onUpdated={refresh} onClose={() => setShowMinigame(false)} />

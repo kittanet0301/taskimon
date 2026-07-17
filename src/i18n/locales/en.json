@@ -54,6 +54,7 @@
     "petSummary": "Pet: {{petName}} · {{itemCount}} item types · {{missionCount}} missions",
     "emailLabel": "Email",
     "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm password",
     "usernameLabel": "Username",
     "usernameSignUpLabel": "Username (new signup)",
     "newPasswordLabel": "New password",
@@ -65,8 +66,6 @@
     "signUpSuccessAutoLogin": "Sign-up complete. Logging in...",
     "signUpSuccessVerifyEmail": "Sign-up complete. Check your email and confirm before signing in.",
     "needUsername": "Please enter a username.",
-    "needBirthDate": "Please select a complete birth date.",
-    "mustBe18": "You must be at least 18 years old to play.",
     "needEmail": "Please enter your email.",
     "passwordMin": "Password must be at least 6 characters.",
     "passwordMismatch": "Passwords do not match.",
@@ -93,13 +92,6 @@
     "usernameUpdated": "Username updated successfully",
     "usernameUnchanged": "Username is unchanged",
     "usernameTaken": "This username is already taken"
-  },
-  "birthDate": {
-    "label": "Birth date (18+ required)",
-    "day": "Day",
-    "month": "Month",
-    "year": "Year",
-    "yearAd": "Year (AD)"
   },
   "home": {
     "getStartedTaglineLine1": "Turn your browser activity",
@@ -217,7 +209,8 @@
     "noSlots": "No free slots",
     "page": "Page {{current}} / {{total}}",
     "active": "Playing",
-    "filterAll": "All"
+    "filterAll": "All",
+    "sidebarHatchable": "Collection — eggs left to hatch"
   },
   "friends": {
     "title": "Friends",
@@ -225,6 +218,7 @@
     "addByCode": "Add friend with code",
     "sendRequest": "Send request",
     "pendingTitle": "Pending requests",
+    "sidebarPending": "Community — friend requests waiting",
     "nonePending": "No pending requests",
     "friendListTitle": "Friend list",
     "noneFriends": "No friends yet",
@@ -277,7 +271,8 @@
     "loginToView": "Log in to view your profile, or select a friend from the Friends tab.",
     "friendCode": "Friend code",
     "viewingFriendReadonly": "Viewing friend profile (read-only)",
-    "petTitle": "Pet",
+    "petTitle": "Currently playing",
+    "playingNow": "Main",
     "noCloudPet": "No pet in cloud yet.",
     "statsLine": "HP {{hp}} · Mood {{mood}} · Evolution {{devPoints}}"
   },
@@ -399,25 +394,12 @@
     "description": "Delete only this account's game data{{usernameSuffix}} without affecting other players.",
     "descriptionWithUsernameSuffix": " for {{username}}",
     "descriptionWithoutUsernameSuffix": "",
-    "deleteList": "Delete: pet, items, missions, activity, battle history (this account)",
+    "deleteList": "Delete: pets, items, missions, activity, gifts, minigame scores, battle history (this account)",
     "keepList": "Keep: login account, friends, chat (this account)",
     "button": "Clear my data",
     "confirm": "Are you sure you want to clear all your game data?",
     "done": "Your data has been cleared. Starting fresh.",
     "loading": "Clearing..."
-  },
-  "systemReset": {
-    "title": "System Reset",
-    "description": "Reset all players' game data across the system. Login, friends, and chat remain.",
-    "deleteList": "Delete: all pets, items, missions, activity, battle history, and battle rooms",
-    "keepList": "Keep: all login accounts, friends, and chats",
-    "button": "Reset system",
-    "confirm": "Are you sure you want to clear all players' game data?",
-    "pinLabel": "Enter confirmation PIN",
-    "pinPlaceholder": "4-digit PIN",
-    "invalidPin": "Invalid confirmation PIN.",
-    "done": "System reset complete. Game data has been reset for all users.",
-    "loading": "Resetting..."
   },
   "tray": {
     "title": "Taskino",
@@ -521,7 +503,7 @@
     "newPasswordSameAsOld": "New password must be different from the old password.",
     "rateLimited": "Too many requests. Please wait and try again.",
     "emailRateLimited": "Too many recovery emails have been sent. Please wait before trying again.",
-    "noBirthDateOnAccount": "This account has no birth date on file. Contact support.",
+    "invalidEmail": "Please enter a valid email address.",
     "usernameTaken": "This username is already taken."
   }
 }

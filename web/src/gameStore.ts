@@ -12,10 +12,9 @@ import {
   canUseCloudStorage,
   loadGameSaveFromDb,
   resetGameDataInDb,
-  resetSystemDataInDb,
   saveGameSaveToDb
 } from './cloudStorage'
-import { getSession } from './supabase'
+import { getSession, setActivePet } from './supabase'
 
 let saveRef: GameSave = loadSave()
 let currentUserId: string | null = null
@@ -39,7 +38,8 @@ async function persistCloudIfCurrent(
   const saved = await saveGameSaveToDb(currentUserId, saveRef, {
     skipInventory: !options?.syncInventory
   })
-  if (generation === cloudSaveGeneration && saved !== saveRef) {
+  if (generation !== cloudSaveGeneration) return
+  if (saved !== saveRef) {
     saveRef = saved
     writeSave(saveRef)
     broadcast()
@@ -49,9 +49,10 @@ async function persistCloudIfCurrent(
 function scheduleCloudPersist(options?: { syncInventory?: boolean }): void {
   if (!currentUserId || !canUseCloudStorage()) return
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer)
+  const generation = ++cloudSaveGeneration
   cloudSaveTimer = setTimeout(() => {
     cloudSaveTimer = null
-    const generation = cloudSaveGeneration
+    if (generation !== cloudSaveGeneration) return
     cloudSyncing = true
     const promise = persistCloudIfCurrent(generation, options)
       .then(() => {
@@ -112,8 +113,16 @@ export function updateSave(mutator: (save: GameSave) => GameSave): GameSave {
   return setGameSave(next, { syncInventory })
 }
 
-export function patchSave(mutatorName: string, args: unknown[] = []): GameSave {
-  return updateSave((save) => applyGamePatch(save, mutatorName, args))
+export async function patchSave(mutatorName: string, args: unknown[] = []): Promise<GameSave> {
+  const save = updateSave((current) => applyGamePatch(current, mutatorName, args))
+  if (mutatorName === 'setActivePet' && typeof args[0] === 'string' && isDbMode()) {
+    try {
+      await setActivePet(args[0])
+    } catch (err) {
+      console.error('[cloud] setActivePet failed:', err)
+    }
+  }
+  return save
 }
 
 export async function forceCloudSave(): Promise<void> {
@@ -149,27 +158,6 @@ export async function clearMyGameData(): Promise<GameSave> {
   cloudSyncing = true
   try {
     saveRef = await resetGameDataInDb(currentUserId)
-    writeSave(saveRef)
-    broadcast()
-    return saveRef
-  } finally {
-    cloudSyncing = false
-  }
-}
-
-export async function resetSystemGameData(): Promise<GameSave> {
-  if (!currentUserId) throw new Error('Not logged in')
-  cloudSaveGeneration++
-  if (cloudSaveTimer) {
-    clearTimeout(cloudSaveTimer)
-    cloudSaveTimer = null
-  }
-  if (cloudSavePromise) {
-    await cloudSavePromise.catch(() => {})
-  }
-  cloudSyncing = true
-  try {
-    saveRef = await resetSystemDataInDb(currentUserId)
     writeSave(saveRef)
     broadcast()
     return saveRef

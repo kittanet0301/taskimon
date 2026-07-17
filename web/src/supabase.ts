@@ -36,6 +36,7 @@ export const {
   listFriends,
   listPendingRequests,
   getFriendPet,
+  setActivePet,
   createBattleRoom,
   joinBattleRoom,
   leaveBattleRoom,

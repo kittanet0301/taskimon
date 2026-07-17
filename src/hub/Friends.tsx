@@ -16,9 +16,10 @@ interface PendingRow {
 
 interface Props {
   onViewProfile: (userId: string) => void
+  onPendingChange?: () => void
 }
 
-export function Friends({ onViewProfile }: Props) {
+export function Friends({ onViewProfile, onPendingChange }: Props) {
   const { t } = useTranslation()
   const [friendCode, setFriendCode] = useState('')
   const [friends, setFriends] = useState<FriendRow[]>([])
@@ -32,6 +33,7 @@ export function Friends({ onViewProfile }: Props) {
     setUserId(session.user.id)
     setFriends((await window.electronAPI.listFriends(session.user.id)) as FriendRow[])
     setPending((await window.electronAPI.listPending(session.user.id)) as PendingRow[])
+    onPendingChange?.()
   }
 
   useEffect(() => {

@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { GameSave, Stage } from '../shared/types'
-import { normalizePetSpecies } from '../shared/dinoCharacters'
+import type { GameSave } from '../shared/types'
+import { petPreviewColor } from '../shared/constants'
 import { tCharacter, tStage } from '../i18n/labels'
+import { mapPetRowToPetData } from '../shared/battle/mappers'
+import { DinoSprite } from '../components/DinoSprite'
+import { GenderTag } from '../components/GenderTag'
+import { displaySizeForPet } from '../shared/petSprites'
 import { SendGiftModal } from './SendGiftModal'
+
+const FRIEND_PET_PREVIEW = 96
 
 interface Props {
   userId: string
@@ -15,13 +21,13 @@ interface Props {
 export function UserProfile({ userId, save, onUpdated, onClose }: Props) {
   const { t } = useTranslation()
   const [profile, setProfile] = useState<{ username: string; friend_code: string } | null>(null)
-  const [pet, setPet] = useState<Record<string, unknown> | null>(null)
+  const [petRow, setPetRow] = useState<Record<string, unknown> | null>(null)
   const [showGift, setShowGift] = useState(false)
 
   useEffect(() => {
     ;(async () => {
       setProfile((await window.electronAPI.getProfile(userId)) as { username: string; friend_code: string })
-      setPet((await window.electronAPI.getFriendPet(userId)) as Record<string, unknown> | null)
+      setPetRow((await window.electronAPI.getFriendPet(userId)) as Record<string, unknown> | null)
     })()
   }, [userId])
 
@@ -41,6 +47,8 @@ export function UserProfile({ userId, save, onUpdated, onClose }: Props) {
     )
   }
 
+  const pet = petRow ? mapPetRowToPetData(petRow) : null
+
   return (
     <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="hub-modal profile-modal card" onClick={(e) => e.stopPropagation()}>
@@ -50,7 +58,9 @@ export function UserProfile({ userId, save, onUpdated, onClose }: Props) {
             ×
           </button>
         </div>
-        <p>{t('profile.friendCode')}: <strong>{profile.friend_code}</strong></p>
+        <p>
+          {t('profile.friendCode')}: <strong>{profile.friend_code}</strong>
+        </p>
         <div className="profile-friend-actions">
           <p style={{ color: '#6b7280', margin: 0 }}>{t('profile.viewingFriendReadonly')}</p>
           {save && (
@@ -59,20 +69,34 @@ export function UserProfile({ userId, save, onUpdated, onClose }: Props) {
             </button>
           )}
         </div>
+
         {pet ? (
-          <div style={{ marginTop: 16 }}>
-            <h3>{t('profile.petTitle')}</h3>
-            <p>
-              {String(pet.name)} · {tCharacter(normalizePetSpecies(String(pet.species)))} ·{' '}
-              {tStage(String(pet.stage) as Stage)}
-            </p>
-            <p>
-              {t('profile.statsLine', {
-                hp: String(pet.hp),
-                mood: String(pet.mood),
-                devPoints: String(pet.dev_points)
-              })}
-            </p>
+          <div className="profile-active-pet">
+            <div className="profile-active-pet-head">
+              <h3>{t('profile.petTitle')}</h3>
+              <span className="profile-playing-badge">{t('profile.playingNow')}</span>
+            </div>
+            <div className="profile-active-pet-body">
+              <div
+                className="profile-active-pet-preview"
+                style={{ background: petPreviewColor(pet.character) }}
+              >
+                <DinoSprite pet={pet} size={Math.min(displaySizeForPet(pet), FRIEND_PET_PREVIEW)} />
+              </div>
+              <div className="profile-active-pet-meta">
+                <strong>{pet.name}</strong>
+                <span>
+                  {tCharacter(pet.character)} · <GenderTag gender={pet.gender} /> · {tStage(pet.stage)}
+                </span>
+                <span>
+                  {t('profile.statsLine', {
+                    hp: String(pet.stats.hp),
+                    mood: String(pet.stats.mood),
+                    devPoints: String(pet.stats.devPoints)
+                  })}
+                </span>
+              </div>
+            </div>
           </div>
         ) : (
           <p>{t('profile.noCloudPet')}</p>

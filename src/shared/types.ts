@@ -107,7 +107,6 @@ export interface Profile {
   id: string
   username: string
   friendCode: string
-  avatarUrl: string | null
   createdAt: string
 }
 

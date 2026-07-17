@@ -9,6 +9,16 @@ export function getUsedSlots(save: GameSave): number {
   return (save.pet ? 1 : 0) + save.collection.length
 }
 
+/** Eggs still waiting to hatch (active pet + collection). */
+export function countHatchableEggs(save: GameSave): number {
+  let count = 0
+  if (save.pet?.stage === 'egg') count += 1
+  for (const pet of save.collection) {
+    if (pet.stage === 'egg') count += 1
+  }
+  return count
+}
+
 export function getFreeSlots(save: GameSave): number {
   return Math.max(0, save.petSlotLimit - getUsedSlots(save))
 }

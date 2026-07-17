@@ -20,8 +20,8 @@ const api: GameAPI = {
   },
   openHub: () => ipcRenderer.invoke('hub:open'),
   supabaseConfigured: () => ipcRenderer.invoke('supabase:configured'),
-  signUp: (email, password, username, birthDate) =>
-    ipcRenderer.invoke('auth:signup', email, password, username, birthDate),
+  signUp: (email, password, username) =>
+    ipcRenderer.invoke('auth:signup', email, password, username),
   signIn: (email, password) => ipcRenderer.invoke('auth:signin', email, password),
   signOut: () => ipcRenderer.invoke('auth:signout'),
   setLocale: (locale) => ipcRenderer.invoke('locale:set', locale),
@@ -75,7 +75,6 @@ const api: GameAPI = {
   isDbMode: () => ipcRenderer.invoke('cloud:isDbMode'),
   forceCloudSave: () => ipcRenderer.invoke('cloud:forceSave'),
   clearMyGameData: () => ipcRenderer.invoke('cloud:clearMyData'),
-  resetSystemGameData: () => ipcRenderer.invoke('cloud:resetSystem'),
   reloadFromCloud: () => ipcRenderer.invoke('cloud:reload'),
   getActivityStatus: () =>
     ipcRenderer.invoke('activity:status') as Promise<{

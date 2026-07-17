@@ -14,7 +14,6 @@ import {
   onSaveChange,
   registerPlaytimeTick,
   clearMyGameData,
-  resetSystemGameData,
   setCurrentUser,
   setGameSave,
   startActivityTracker,
@@ -47,6 +46,7 @@ import {
   listFriends,
   listPendingRequests,
   getFriendPet,
+  setActivePet,
   createBattleRoom,
   joinBattleRoom,
   leaveBattleRoom,
@@ -99,8 +99,16 @@ function setupIpc(): void {
     return setGameSave(save)
   })
 
-  ipcMain.handle('game:patch', (_event, mutatorName: string, args: unknown[]) => {
-    return updateSave((save) => applyGamePatch(save, mutatorName, args))
+  ipcMain.handle('game:patch', async (_event, mutatorName: string, args: unknown[]) => {
+    const save = updateSave((current) => applyGamePatch(current, mutatorName, args))
+    if (mutatorName === 'setActivePet' && typeof args[0] === 'string' && isDbMode()) {
+      try {
+        await setActivePet(args[0])
+      } catch (err) {
+        console.error('[cloud] setActivePet failed:', err)
+      }
+    }
+    return save
   })
 
   ipcMain.handle('minigame:finish', (_event, gameId: string, score: number) => {
@@ -145,11 +153,10 @@ function setupIpc(): void {
   ipcMain.handle('cloud:isDbMode', () => isDbMode())
   ipcMain.handle('cloud:forceSave', async () => forceCloudSave())
   ipcMain.handle('cloud:clearMyData', async () => clearMyGameData())
-  ipcMain.handle('cloud:resetSystem', async () => resetSystemGameData())
   ipcMain.handle('cloud:reload', async () => hydrateFromSession())
 
-  ipcMain.handle('auth:signup', async (_e, email: string, password: string, username: string, birthDate: string) => {
-    const data = await signUp(email, password, username, birthDate)
+  ipcMain.handle('auth:signup', async (_e, email: string, password: string, username: string) => {
+    const data = await signUp(email, password, username)
     if (data.session?.user?.id) await setCurrentUser(data.session.user.id)
     return data
   })
@@ -183,7 +190,6 @@ function setupIpc(): void {
       id: pet.id,
       name: pet.name,
       species: pet.character,
-      element: 'none',
       gender: pet.gender,
       stage: pet.stage,
       hp: pet.stats.hp,

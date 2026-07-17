@@ -37,22 +37,44 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     return row.challenger_user_id === userId || row.defender_user_id === userId
   }
 
-  async function signUp(email: string, password: string, username: string, birthDate: string) {
+  async function signUp(email: string, password: string, username: string) {
     const supabase = requireSupabase()
+    const trimmedEmail = email.trim()
+    const trimmedUsername = username.trim()
+
+    if (!trimmedEmail) throw new Error('Email required')
+    if (!trimmedUsername) throw new Error('Username required')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      throw new Error('Invalid email')
+    }
+
+    const { data: availability, error: checkError } = await supabase.rpc('check_signup_availability', {
+      p_email: trimmedEmail,
+      p_username: trimmedUsername
+    })
+    if (checkError) rpcError(checkError)
+
+    const row = (Array.isArray(availability) ? availability[0] : availability) as
+      | { email_taken?: boolean; username_taken?: boolean }
+      | null
+      | undefined
+    if (row?.email_taken) throw new Error('User already registered')
+    if (row?.username_taken) throw new Error('profiles_username_key')
+
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: trimmedEmail,
       password,
-      options: { data: { username, birth_date: birthDate } }
+      options: { data: { username: trimmedUsername } }
     })
     if (error) rpcError(error)
     if (!data.user) throw new Error('No user returned')
+
     const { error: profileError } = await supabase.from('profiles').upsert({
       id: data.user.id,
-      username,
-      friend_code: generateFriendCode(),
-      birth_date: birthDate
+      username: trimmedUsername,
+      friend_code: generateFriendCode()
     })
-    if (profileError) console.warn('[auth] profile upsert:', profileError.message)
+    if (profileError) rpcError(profileError)
     return data
   }
 
@@ -259,6 +281,26 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
   async function getFriendPet(ownerId: string) {
     const supabase = getSupabase()
     if (!supabase) return null
+
+    const { data: activity, error: activityError } = await supabase
+      .from('player_activity')
+      .select('active_pet_id')
+      .eq('user_id', ownerId)
+      .maybeSingle()
+    if (activityError) rpcError(activityError)
+
+    const activePetId = activity?.active_pet_id as string | null | undefined
+    if (activePetId) {
+      const { data, error } = await supabase
+        .from('pets')
+        .select('*')
+        .eq('id', activePetId)
+        .eq('owner_id', ownerId)
+        .maybeSingle()
+      if (error) rpcError(error)
+      if (data) return data
+    }
+
     const { data, error } = await supabase
       .from('pets')
       .select('*')
@@ -550,6 +592,12 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     }))
   }
 
+  async function setActivePet(petId: string) {
+    const supabase = requireSupabase()
+    const { error } = await supabase.rpc('set_active_pet', { p_pet_id: petId })
+    if (error) rpcError(error)
+  }
+
   async function submitMinigameScore(gameId: string, score: number) {
     const supabase = requireSupabase()
     const { data, error } = await supabase.rpc('upsert_minigame_score', {
@@ -594,6 +642,7 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     listFriends,
     listPendingRequests,
     getFriendPet,
+    setActivePet,
     createBattleRoom,
     joinBattleRoom,
     leaveBattleRoom,

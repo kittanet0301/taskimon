@@ -23,6 +23,15 @@ export function formatAuthError(error: unknown): string {
   if (text.includes('User already registered')) {
     return i18n.t('errors.userAlreadyRegistered')
   }
+  if (text.includes('Invalid email') || text.toLowerCase().includes('unable to validate email')) {
+    return i18n.t('errors.invalidEmail')
+  }
+  if (text.includes('Email required') || text === 'Email required') {
+    return i18n.t('auth.needEmail')
+  }
+  if (text.includes('Username required')) {
+    return i18n.t('auth.needUsername')
+  }
   if (text.includes('Password should be at least')) {
     return i18n.t('errors.passwordTooShort')
   }
@@ -40,7 +49,7 @@ export function formatAuthError(error: unknown): string {
     return i18n.t('errors.emailRateLimited')
   }
   if (text.includes('บัญชีนี้ยังไม่มีวันเกิด') || text.toLowerCase().includes('no birth date')) {
-    return i18n.t('errors.noBirthDateOnAccount')
+    return i18n.t('errors.invalidLoginCredentials')
   }
   if (
     text.includes('profiles_username_key') ||

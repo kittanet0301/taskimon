@@ -16,7 +16,6 @@ export const ADULT_MIN_HOURS = TEST_FAST_EVO ? 0 : 48
 export const CLICKS_PER_DEV = TEST_FAST_EVO ? 10 : 100
 export const KEYS_PER_DEV = TEST_FAST_EVO ? 50 : 500
 export const MAX_DEV_PER_HOUR = TEST_FAST_EVO ? 999 : 10
-export const RESET_SYSTEM_PIN = '1234'
 
 import type { PetSpecies } from './types'
 import { CREATURE_PREVIEW_COLORS } from './creatureCharacters'

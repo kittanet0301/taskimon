@@ -11,7 +11,6 @@ import {
   bootstrapGameSaveInDb,
   loadGameSaveFromDb,
   resetGameDataInDb,
-  resetSystemDataInDb,
   saveGameSaveToDb,
   canUseCloudStorage
 } from './cloudStorage'
@@ -108,29 +107,14 @@ export function getGameSave(): GameSave {
   return toDisplaySave(saveRef)
 }
 
-async function persistCloudIfCurrent(
-  generation: number,
-  options?: { syncInventory?: boolean }
-): Promise<void> {
-  if (!currentUserId || generation !== cloudSaveGeneration) return
-  // Activity autosaves must not rewrite inventory — that wipes gifts still only on the server.
-  const saved = await saveGameSaveToDb(currentUserId, saveRef, {
-    skipInventory: !options?.syncInventory
-  })
-  if (generation === cloudSaveGeneration && saved !== saveRef) {
-    saveRef = saved
-    writeSave(saveRef)
-    broadcast()
-    refreshTray(getGameSave)
-  }
-}
-
 function scheduleCloudPersist(options?: { syncInventory?: boolean }): void {
   if (!currentUserId || !canUseCloudStorage()) return
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer)
+  // Invalidate older scheduled/in-flight saves so they cannot overwrite a newer local state.
+  const generation = ++cloudSaveGeneration
   cloudSaveTimer = setTimeout(() => {
     cloudSaveTimer = null
-    const generation = cloudSaveGeneration
+    if (generation !== cloudSaveGeneration) return
     cloudSyncing = true
     const promise = persistCloudIfCurrent(generation, options)
       .then(() => {
@@ -145,6 +129,24 @@ function scheduleCloudPersist(options?: { syncInventory?: boolean }): void {
       })
     cloudSavePromise = promise
   }, 1500)
+}
+
+async function persistCloudIfCurrent(
+  generation: number,
+  options?: { syncInventory?: boolean }
+): Promise<void> {
+  if (!currentUserId || generation !== cloudSaveGeneration) return
+  // Activity autosaves must not rewrite inventory — that wipes gifts still only on the server.
+  const saved = await saveGameSaveToDb(currentUserId, saveRef, {
+    skipInventory: !options?.syncInventory
+  })
+  if (generation !== cloudSaveGeneration) return
+  if (saved !== saveRef) {
+    saveRef = saved
+    writeSave(saveRef)
+    broadcast()
+    refreshTray(getGameSave)
+  }
 }
 
 export function setGameSave(
@@ -361,28 +363,6 @@ export async function clearMyGameData(): Promise<GameSave> {
   cloudSyncing = true
   try {
     saveRef = await resetGameDataInDb(currentUserId)
-    writeSave(saveRef)
-    broadcast()
-    refreshTray(getGameSave)
-    return saveRef
-  } finally {
-    cloudSyncing = false
-  }
-}
-
-export async function resetSystemGameData(): Promise<GameSave> {
-  if (!currentUserId) throw new Error('Not logged in')
-  cloudSaveGeneration++
-  if (cloudSaveTimer) {
-    clearTimeout(cloudSaveTimer)
-    cloudSaveTimer = null
-  }
-  if (cloudSavePromise) {
-    await cloudSavePromise.catch(() => {})
-  }
-  cloudSyncing = true
-  try {
-    saveRef = await resetSystemDataInDb(currentUserId)
     writeSave(saveRef)
     broadcast()
     refreshTray(getGameSave)

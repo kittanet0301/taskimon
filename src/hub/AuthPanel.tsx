@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave } from '../shared/types'
 import { formatAuthError } from '../shared/formatError'
-import { isAtLeast18, isValidBirthDate, toBirthDateIso } from '../shared/birthDate'
 import { ClearMyDataPanel } from './ClearMyDataPanel'
-import { SystemResetPanel } from './SystemResetPanel'
 import { ChangePasswordForm } from './ChangePasswordForm'
 import { ChangeUsernameForm } from './ChangeUsernameForm'
-import { BirthDateFields } from './BirthDateFields'
 
 interface Props {
   save: GameSave
@@ -22,6 +19,7 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [username, setUsername] = useState('')
   const [session, setSession] = useState<{ user: { id: string; email?: string } } | null>(null)
   const [profile, setProfile] = useState<{ username: string; friend_code: string } | null>(null)
@@ -29,9 +27,6 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
   const [dbMode, setDbMode] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [usernameSuccess, setUsernameSuccess] = useState(false)
-  const [birthDay, setBirthDay] = useState(0)
-  const [birthMonth, setBirthMonth] = useState(0)
-  const [birthYear, setBirthYear] = useState(0)
 
   const loadSession = async () => {
     const s = (await window.electronAPI.getSession()) as { user: { id: string; email?: string } } | null
@@ -54,17 +49,20 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
       setMessage(t('auth.needUsername'))
       return
     }
-    if (!isValidBirthDate(birthDay, birthMonth, birthYear)) {
-      setMessage(t('auth.needBirthDate'))
+    if (!email.trim()) {
+      setMessage(t('auth.needEmail'))
       return
     }
-    if (!isAtLeast18(birthDay, birthMonth, birthYear)) {
-      setMessage(t('auth.mustBe18'))
+    if (password.length < 6) {
+      setMessage(t('auth.passwordMin'))
+      return
+    }
+    if (password !== confirmPassword) {
+      setMessage(t('auth.passwordMismatch'))
       return
     }
     try {
-      const birthDate = toBirthDateIso(birthDay, birthMonth, birthYear)
-      const data = (await window.electronAPI.signUp(email, password, username, birthDate)) as {
+      const data = (await window.electronAPI.signUp(email, password, username)) as {
         session: { user: { id: string } } | null
         user: { id: string } | null
       }
@@ -204,7 +202,6 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
           </div>
 
           <ClearMyDataPanel username={profile?.username} onCleared={handleMyDataCleared} />
-          <SystemResetPanel onReset={handleMyDataCleared} />
         </>
       ) : (
         <>
@@ -217,19 +214,23 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="form-row">
-            <label>{t('auth.usernameSignUpLabel')}</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} />
+            <label>{t('auth.confirmPasswordLabel')}</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+            />
           </div>
-          <BirthDateFields
-            day={birthDay}
-            month={birthMonth}
-            year={birthYear}
-            onChange={({ day, month, year }) => {
-              setBirthDay(day)
-              setBirthMonth(month)
-              setBirthYear(year)
-            }}
-          />
+          <div className="form-row">
+            <label>{t('auth.usernameSignUpLabel')}</label>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              maxLength={32}
+              autoComplete="username"
+            />
+          </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="primary" onClick={signIn}>{t('common.login')}</button>
             <button className="secondary" onClick={signUp}>{t('common.signUp')}</button>

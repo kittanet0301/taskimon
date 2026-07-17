@@ -1,8 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatAuthError } from '../shared/formatError'
-import { isAtLeast18, isValidBirthDate, toBirthDateIso } from '../shared/birthDate'
-import { BirthDateFields } from './BirthDateFields'
 import { PixelCoverShell } from './PixelCoverShell'
 
 interface Props {
@@ -178,10 +176,8 @@ function SignUpPage({
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [username, setUsername] = useState('')
-  const [birthDay, setBirthDay] = useState(0)
-  const [birthMonth, setBirthMonth] = useState(0)
-  const [birthYear, setBirthYear] = useState(0)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -190,19 +186,22 @@ function SignUpPage({
       setMessage(t('auth.needUsername'))
       return
     }
-    if (!isValidBirthDate(birthDay, birthMonth, birthYear)) {
-      setMessage(t('auth.needBirthDate'))
+    if (!email.trim()) {
+      setMessage(t('auth.needEmail'))
       return
     }
-    if (!isAtLeast18(birthDay, birthMonth, birthYear)) {
-      setMessage(t('auth.mustBe18'))
+    if (password.length < 6) {
+      setMessage(t('auth.passwordMin'))
+      return
+    }
+    if (password !== confirmPassword) {
+      setMessage(t('auth.passwordMismatch'))
       return
     }
     setLoading(true)
     setMessage('')
     try {
-      const birthDate = toBirthDateIso(birthDay, birthMonth, birthYear)
-      const data = (await window.electronAPI.signUp(email, password, username, birthDate)) as {
+      const data = (await window.electronAPI.signUp(email, password, username)) as {
         session: { user: { id: string } } | null
       }
       if (data.session?.user?.id) {
@@ -239,19 +238,9 @@ function SignUpPage({
           placeholder={t('auth.usernameLabel')}
           disabled={loading}
           autoComplete="username"
+          maxLength={32}
         />
       </div>
-      <BirthDateFields
-        day={birthDay}
-        month={birthMonth}
-        year={birthYear}
-        onChange={({ day, month, year }) => {
-          setBirthDay(day)
-          setBirthMonth(month)
-          setBirthYear(year)
-        }}
-        disabled={loading}
-      />
       <div className="form-row">
         <label>{t('auth.emailLabel')}</label>
         <input
@@ -269,6 +258,17 @@ function SignUpPage({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('auth.passwordMin')}
+          disabled={loading}
+          autoComplete="new-password"
+        />
+      </div>
+      <div className="form-row">
+        <label>{t('auth.confirmPasswordLabel')}</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder={t('auth.confirmPasswordLabel')}
           disabled={loading}
           autoComplete="new-password"
         />

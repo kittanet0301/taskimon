@@ -7,7 +7,6 @@ import {
   onSaveChange,
   patchSave,
   clearMyGameData,
-  resetSystemGameData,
   setCurrentUser,
   setGameSave,
 } from './gameStore'
@@ -73,7 +72,6 @@ export function createWebApi(): GameAPI {
     updateGame: async (save) => setGameSave(save),
     forceCloudSave: async () => forceCloudSave(),
     clearMyGameData: async () => clearMyGameData(),
-    resetSystemGameData: async () => resetSystemGameData(),
     isDbMode: async () => isDbMode(),
     reloadFromCloud: async () => hydrateFromSession(),
     onGameUpdated: (callback) => onSaveChange(callback),
@@ -82,8 +80,8 @@ export function createWebApi(): GameAPI {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     supabaseConfigured: async () => isSupabaseConfigured(),
-    signUp: async (email, password, username, birthDate) => {
-      const data = await signUp(email, password, username, birthDate)
+    signUp: async (email, password, username) => {
+      const data = await signUp(email, password, username)
       if (data.session?.user?.id) await setCurrentUser(data.session.user.id)
       return data
     },
@@ -107,7 +105,6 @@ export function createWebApi(): GameAPI {
         id: pet.id,
         name: pet.name,
         species: pet.character,
-        element: 'none',
         gender: pet.gender,
         stage: pet.stage,
         hp: pet.stats.hp,
