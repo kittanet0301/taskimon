@@ -102,10 +102,38 @@ function AppContent({ variant = 'desktop' }: Props) {
     [mainView, tabSyncing, syncOnTabChange, isInRoom, confirmLeave]
   )
 
-  const goToProfile = useCallback((userId: string) => {
-    setShowCommunity(false)
-    setViewUserId(userId)
-  }, [])
+  const openPopup = useCallback(
+    async (setter: (visible: boolean) => void) => {
+      if (tabSyncing) return
+      setTabSyncing(true)
+      try {
+        await syncOnTabChange()
+      } catch (e) {
+        console.error('[popup] sync failed:', e)
+      } finally {
+        setTabSyncing(false)
+      }
+      setter(true)
+    },
+    [tabSyncing, syncOnTabChange]
+  )
+
+  const goToProfile = useCallback(
+    async (userId: string) => {
+      if (tabSyncing) return
+      setShowCommunity(false)
+      setTabSyncing(true)
+      try {
+        await syncOnTabChange()
+      } catch (e) {
+        console.error('[profile] sync failed:', e)
+      } finally {
+        setTabSyncing(false)
+      }
+      setViewUserId(userId)
+    },
+    [tabSyncing, syncOnTabChange]
+  )
 
   const handleViewProfile = useCallback((userId: string) => goToProfile(userId), [goToProfile])
 
@@ -274,23 +302,23 @@ function AppContent({ variant = 'desktop' }: Props) {
       return
     }
     if (target === 'inventory') {
-      setShowInventory(true)
+      void openPopup(setShowInventory)
       return
     }
     if (target === 'collection') {
-      setShowCollection(true)
+      void openPopup(setShowCollection)
       return
     }
     if (target === 'community') {
-      setShowCommunity(true)
+      void openPopup(setShowCommunity)
       return
     }
     if (target === 'minigame') {
-      setShowMinigame(true)
+      void openPopup(setShowMinigame)
       return
     }
     if (target === 'settings') {
-      setShowSettings(true)
+      void openPopup(setShowSettings)
       return
     }
   }
