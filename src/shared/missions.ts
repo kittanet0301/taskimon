@@ -70,6 +70,12 @@ export const MISSIONS: MissionDefinition[] = [
     kind: 'weekly',
     target: 50,
     reward: { newEgg: true }
+  },
+  {
+    id: 'weekly_battle_win_3',
+    kind: 'weekly',
+    target: 3,
+    reward: { type: 'battle_shield', quantity: 1 }
   }
 ]
 

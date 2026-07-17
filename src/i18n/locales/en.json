@@ -157,6 +157,7 @@
     "weekly_hatch_1": "Hatch your active egg once",
     "weekly_slots_5": "Complete daily missions on 5 days (+5 slots)",
     "weekly_egg_1": "Gain +50 evolution points (egg reward)",
+    "weekly_battle_win_3": "Win 3 battles",
     "rewardEgg": "Mystery egg",
     "rewardSlots": "+{{count}} collection slots",
     "rewardLabel": "Reward: {{reward}}",
@@ -368,7 +369,8 @@
     "tailwhip": "Tail Whip",
     "tailwhipHint": "Lower damage, but partially pierces the opponent's Shield.",
     "shield": "Shield",
-    "shieldHint": "Halves incoming damage this turn and builds energy.",
+    "shieldHint": "Uses 1 Battle shield. Halves incoming damage this turn and builds energy.",
+    "shieldNeedItem": "Need a Battle shield item",
     "avoid": "Avoid",
     "avoidHint": "Chance to fully dodge the opponent's next hit.",
     "dodged": "{{dodgerName}} dodged {{attackerName}}'s attack completely!",
@@ -478,7 +480,7 @@
     },
     "battle_shield": {
       "label": "Battle shield",
-      "description": "Battle use - reduce damage by 50%"
+      "description": "Battle only — consumed by the Shield action (halve damage)"
     }
   },
   "months": {

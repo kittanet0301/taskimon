@@ -2,7 +2,7 @@ import type { GameSave, ItemType, MinigameId, PetSpecies, Stage } from './types'
 import { hatchPet, evolvePet, createEggPet, resetPetToEggStage } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
-import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim } from './missions'
+import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim, updateMissionProgress } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
 import { applyFinishMinigame } from './minigame'
 import { TEST_FAST_EVO } from './constants'
@@ -113,6 +113,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (mutatorName === 'useItem' && typeof args[0] === 'string') {
     const itemType = args[0] as ItemType
     if (!save.pet) return save
+    if (itemType === 'battle_shield') return save
     const inv = [...save.inventory]
     const idx = inv.findIndex((i) => i.type === itemType && i.quantity > 0)
     if (idx < 0) return save
@@ -206,6 +207,20 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     const idx = inv.findIndex((i) => i.type === itemType)
     if (idx < 0 || inv[idx].quantity < quantity) return save
     inv[idx] = { ...inv[idx], quantity: inv[idx].quantity - quantity }
+    return { ...save, inventory: inv.filter((i) => i.quantity > 0) }
+  }
+  if (mutatorName === 'recordBattleWin') {
+    const next = applyDailyResets(save)
+    return {
+      ...next,
+      missions: updateMissionProgress(next.missions, 'weekly_battle_win_3', 1)
+    }
+  }
+  if (mutatorName === 'consumeBattleShield') {
+    const inv = [...save.inventory]
+    const idx = inv.findIndex((i) => i.type === 'battle_shield' && i.quantity > 0)
+    if (idx < 0) return save
+    inv[idx] = { ...inv[idx], quantity: inv[idx].quantity - 1 }
     return { ...save, inventory: inv.filter((i) => i.quantity > 0) }
   }
   if (mutatorName === 'finishMinigame' && typeof args[0] === 'string' && typeof args[1] === 'number') {

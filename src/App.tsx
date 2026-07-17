@@ -419,7 +419,7 @@ function AppContent({ variant = 'desktop' }: Props) {
               >
                 ‹ {t('tabs.home')}
               </button>
-              <BattleHub save={save} variant={variant} />
+              <BattleHub save={save} variant={variant} onUpdated={refresh} />
             </>
           )}
         </main>

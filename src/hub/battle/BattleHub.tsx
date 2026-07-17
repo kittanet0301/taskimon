@@ -23,9 +23,10 @@ interface EndedBattle {
 interface Props {
   save: GameSave
   variant?: 'desktop' | 'web'
+  onUpdated?: () => void | Promise<void>
 }
 
-export function BattleHub({ save, variant = 'desktop' }: Props) {
+export function BattleHub({ save, variant = 'desktop', onUpdated }: Props) {
   const { t } = useTranslation()
   const ctx = useContext(BattleContext)
   const { isInRoom } = useBattleGuard()
@@ -105,6 +106,15 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
       setHubTab('room')
       void refreshMemberStatus()
 
+      if (userId && endedSession.winnerUserId === userId) {
+        try {
+          await window.electronAPI.patchGame('recordBattleWin', [])
+          await onUpdated?.()
+        } catch {
+          /* mission progress is best-effort */
+        }
+      }
+
       try {
         const turnRows = (await window.electronAPI.getBattleTurns(endedSession.id)) as Record<
           string,
@@ -118,7 +128,7 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
         setEndedBattle({ session: endedSession, turns: [] })
       }
     },
-    [ctx, refreshMemberStatus]
+    [ctx, refreshMemberStatus, userId, onUpdated]
   )
 
   useEffect(() => {
@@ -209,9 +219,14 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
   const submitAction = async (action: BattleActionType) => {
     if (!sessionId) return
     await window.electronAPI.submitBattleAction(sessionId, action)
+    if (action === 'shield') {
+      await window.electronAPI.patchGame('consumeBattleShield', [])
+      await onUpdated?.()
+    }
     await reload()
   }
 
+  const shieldCount = save.inventory.find((i) => i.type === 'battle_shield')?.quantity ?? 0
   const canBattle = save.pet && save.pet.stage !== 'egg' && save.pet.stats.hp >= 10
 
   const hubTabs: { id: HubTab; label: string }[] = [
@@ -267,6 +282,7 @@ export function BattleHub({ save, variant = 'desktop' }: Props) {
                 defenderName={fighters?.defenderName}
                 challengerPet={fighters?.challengerPet}
                 defenderPet={fighters?.defenderPet}
+                shieldCount={shieldCount}
                 onAction={submitAction}
               />
             ) : (

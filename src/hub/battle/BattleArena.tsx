@@ -14,6 +14,7 @@ interface Props {
   defenderName?: string
   challengerPet?: PetData | null
   defenderPet?: PetData | null
+  shieldCount?: number
   onAction: (action: BattleActionType) => Promise<void>
 }
 
@@ -96,6 +97,7 @@ export function BattleArena({
   defenderName,
   challengerPet,
   defenderPet,
+  shieldCount = 0,
   onAction
 }: Props) {
   const { t } = useTranslation()
@@ -104,10 +106,12 @@ export function BattleArena({
   const myTurn = session.turnUserId === userId && session.status === 'active'
   const myEnergy = isChallenger ? session.challengerEnergy : session.defenderEnergy
   const ultimateReady = myEnergy >= ULTIMATE_ENERGY_MAX
+  const canShield = shieldCount > 0
 
   const act = async (action: BattleActionType) => {
     if (!myTurn || submitting) return
     if (action === 'ultimate' && !ultimateReady) return
+    if (action === 'shield' && !canShield) return
     setSubmitting(true)
     try {
       await onAction(action)
@@ -133,11 +137,19 @@ export function BattleArena({
     hintKey: string
     className: string
     disabled?: boolean
+    labelExtra?: string
   }> = [
     { action: 'bite', labelKey: 'battle.bite', hintKey: 'battle.biteHint', className: 'primary' },
     { action: 'jump', labelKey: 'battle.jump', hintKey: 'battle.jumpHint', className: 'primary' },
     { action: 'tailwhip', labelKey: 'battle.tailwhip', hintKey: 'battle.tailwhipHint', className: 'primary' },
-    { action: 'shield', labelKey: 'battle.shield', hintKey: 'battle.shieldHint', className: 'secondary' },
+    {
+      action: 'shield',
+      labelKey: 'battle.shield',
+      hintKey: canShield ? 'battle.shieldHint' : 'battle.shieldNeedItem',
+      className: 'secondary',
+      disabled: !canShield,
+      labelExtra: `×${shieldCount}`
+    },
     { action: 'avoid', labelKey: 'battle.avoid', hintKey: 'battle.avoidHint', className: 'secondary' },
     {
       action: 'ultimate',
@@ -180,7 +192,7 @@ export function BattleArena({
         <>
           <EnergyBar energy={myEnergy} />
           <div className="battle-actions battle-actions--6">
-            {actionButtons.map(({ action, labelKey, hintKey, className, disabled }) => (
+            {actionButtons.map(({ action, labelKey, hintKey, className, disabled, labelExtra }) => (
               <button
                 key={action}
                 type="button"
@@ -190,12 +202,18 @@ export function BattleArena({
                 title={t(hintKey)}
               >
                 {t(labelKey)}
+                {labelExtra ? ` ${labelExtra}` : ''}
               </button>
             ))}
           </div>
           {!ultimateReady && myTurn && (
             <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
               {t('battle.ultimateHint')}
+            </p>
+          )}
+          {!canShield && myTurn && (
+            <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
+              {t('battle.shieldNeedItem')}
             </p>
           )}
         </>

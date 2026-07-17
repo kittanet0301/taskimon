@@ -19,6 +19,10 @@
   --pixel-header-bg: linear-gradient(135deg, #ffb07c, #c87050);
   --pixel-overlay: rgba(61, 29, 44, 0.45);
   --pixel-title-bg: url('/ui/title-bg.png');
+  --pixel-scroll-track: #e8c9a0;
+  --pixel-scroll-thumb: #c87050;
+  --pixel-scroll-thumb-hover: #a85a3c;
+  --pixel-scroll-border: #2c1408;
 
   font-family: 'Segoe UI', Tahoma, sans-serif;
   color: #1f2937;
@@ -31,6 +35,100 @@
 
 body {
   margin: 0;
+}
+
+/* Pixel-theme scrollbars (Chromium / Electron / Firefox) */
+.hub-shell,
+.hub-sidebar,
+.hub-content,
+.hub-modal,
+.dash-hud-missions-body,
+.inventory-modal,
+.pixel-hub,
+.battle-log,
+.battle-hub-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pixel-scroll-thumb) var(--pixel-scroll-track);
+}
+
+.hub-shell::-webkit-scrollbar,
+.hub-sidebar::-webkit-scrollbar,
+.hub-content::-webkit-scrollbar,
+.hub-modal::-webkit-scrollbar,
+.dash-hud-missions-body::-webkit-scrollbar,
+.inventory-modal::-webkit-scrollbar,
+.pixel-hub::-webkit-scrollbar,
+.battle-log::-webkit-scrollbar,
+.battle-hub-body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.hub-shell::-webkit-scrollbar-track,
+.hub-sidebar::-webkit-scrollbar-track,
+.hub-content::-webkit-scrollbar-track,
+.hub-modal::-webkit-scrollbar-track,
+.dash-hud-missions-body::-webkit-scrollbar-track,
+.inventory-modal::-webkit-scrollbar-track,
+.pixel-hub::-webkit-scrollbar-track,
+.battle-log::-webkit-scrollbar-track,
+.battle-hub-body::-webkit-scrollbar-track {
+  background: var(--pixel-scroll-track);
+  border-left: 2px solid var(--pixel-scroll-border);
+  box-shadow: inset 1px 0 0 rgba(255, 245, 220, 0.55);
+}
+
+.hub-shell::-webkit-scrollbar-thumb,
+.hub-sidebar::-webkit-scrollbar-thumb,
+.hub-content::-webkit-scrollbar-thumb,
+.hub-modal::-webkit-scrollbar-thumb,
+.dash-hud-missions-body::-webkit-scrollbar-thumb,
+.inventory-modal::-webkit-scrollbar-thumb,
+.pixel-hub::-webkit-scrollbar-thumb,
+.battle-log::-webkit-scrollbar-thumb,
+.battle-hub-body::-webkit-scrollbar-thumb {
+  background: var(--pixel-scroll-thumb);
+  border: 2px solid var(--pixel-scroll-border);
+  border-radius: 0;
+  box-shadow: inset 1px 1px 0 rgba(255, 220, 170, 0.45);
+}
+
+.hub-shell::-webkit-scrollbar-thumb:hover,
+.hub-sidebar::-webkit-scrollbar-thumb:hover,
+.hub-content::-webkit-scrollbar-thumb:hover,
+.hub-modal::-webkit-scrollbar-thumb:hover,
+.dash-hud-missions-body::-webkit-scrollbar-thumb:hover,
+.inventory-modal::-webkit-scrollbar-thumb:hover,
+.pixel-hub::-webkit-scrollbar-thumb:hover,
+.battle-log::-webkit-scrollbar-thumb:hover,
+.battle-hub-body::-webkit-scrollbar-thumb:hover {
+  background: var(--pixel-scroll-thumb-hover);
+}
+
+.hub-shell::-webkit-scrollbar-button,
+.hub-sidebar::-webkit-scrollbar-button,
+.hub-content::-webkit-scrollbar-button,
+.hub-modal::-webkit-scrollbar-button,
+.dash-hud-missions-body::-webkit-scrollbar-button,
+.inventory-modal::-webkit-scrollbar-button,
+.pixel-hub::-webkit-scrollbar-button,
+.battle-log::-webkit-scrollbar-button,
+.battle-hub-body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.hub-shell::-webkit-scrollbar-corner,
+.hub-sidebar::-webkit-scrollbar-corner,
+.hub-content::-webkit-scrollbar-corner,
+.hub-modal::-webkit-scrollbar-corner,
+.dash-hud-missions-body::-webkit-scrollbar-corner,
+.inventory-modal::-webkit-scrollbar-corner,
+.pixel-hub::-webkit-scrollbar-corner,
+.battle-log::-webkit-scrollbar-corner,
+.battle-hub-body::-webkit-scrollbar-corner {
+  background: var(--pixel-scroll-track);
 }
 
 .app {
@@ -141,7 +239,7 @@ body {
 }
 
 .dash-hud-counter--gem::before {
-  background: radial-gradient(circle at 35% 30%, #fff6d0, #e6b325 58%, #7a4c05 59%);
+  display: none;
 }
 
 .header {
@@ -958,16 +1056,20 @@ input, select {
 }
 
 .dash-hud-counter::before {
-  content: '';
-  width: 28px;
-  height: 28px;
+  display: none;
+}
+
+.dash-hud-counter-icon {
   position: absolute;
-  left: 6px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
-  border: 3px solid #2c1408;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff0b4, #b97616 58%, #2c1408 59%);
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(1px 2px 0 rgba(20, 8, 4, 0.75));
+  pointer-events: none;
 }
 
 .dash-hud-counter span {
@@ -1393,9 +1495,8 @@ input, select {
 .dash-hud-mission-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 2px dashed rgba(44, 20, 8, 0.25);
 }
 
@@ -1403,10 +1504,20 @@ input, select {
   border-bottom: none;
 }
 
+.dash-hud-mission-reward-slot {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dash-hud-mission-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -1419,8 +1530,41 @@ input, select {
   color: #6b4322;
 }
 
+.dash-hud-mission-reward-icon {
+  width: 32px;
+  height: 32px;
+  max-width: 32px;
+  filter: drop-shadow(1px 2px 0 rgba(35, 16, 7, 0.55));
+}
+
+.dash-hud-mission-reward-mood {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #0672d8;
+  font-size: 1.45rem;
+  line-height: 1;
+  filter: drop-shadow(1px 2px 0 rgba(35, 16, 7, 0.45));
+}
+
+.dash-hud-mission-reward-slots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #3b210e;
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  filter: drop-shadow(1px 2px 0 rgba(35, 16, 7, 0.35));
+}
+
 .dash-hud-mission-claim {
   flex: 0 0 auto;
+  margin-left: auto;
   padding: 6px 10px;
   border: 3px solid #2c1408;
   background: #ffb55d;
