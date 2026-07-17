@@ -66,7 +66,9 @@ export const {
   syncMissions,
   submitMinigameScore,
   getMinigameLeaderboard,
-  sendGift
+  sendGift,
+  listPendingGifts,
+  claimPendingGifts
 } = createSupabaseService({
   getSupabase,
   formatError: formatApiError

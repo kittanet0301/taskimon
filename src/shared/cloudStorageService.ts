@@ -11,6 +11,11 @@ interface CloudStorageOptions {
   isSupabaseConfigured: () => boolean
 }
 
+export interface SaveGameOptions {
+  /** When true, leave the inventory table untouched (activity autosaves must not wipe claimed gifts). */
+  skipInventory?: boolean
+}
+
 export function createCloudStorageService({
   getSupabase,
   isSupabaseConfigured
@@ -54,10 +59,15 @@ export function createCloudStorageService({
     return applyOfflineDecay(save)
   }
 
-  async function saveGameSaveToDb(userId: string, save: GameSave): Promise<void> {
+  async function saveGameSaveToDb(
+    userId: string,
+    save: GameSave,
+    options?: SaveGameOptions
+  ): Promise<GameSave> {
     const supabase = getSupabase()
     if (!supabase) throw new Error('Supabase not configured')
 
+    const skipInventory = options?.skipInventory === true
     const payload = gameSaveToDbPayload(userId, {
       ...save,
       lastSaved: new Date().toISOString()
@@ -83,11 +93,13 @@ export function createCloudStorageService({
       if (error) throw error
     }
 
-    const { error: invDeleteError } = await supabase.from('inventory').delete().eq('user_id', userId)
-    if (invDeleteError) throw invDeleteError
-    if (payload.inventory.length > 0) {
-      const { error } = await supabase.from('inventory').insert(payload.inventory)
-      if (error) throw error
+    if (!skipInventory) {
+      const { error: invDeleteError } = await supabase.from('inventory').delete().eq('user_id', userId)
+      if (invDeleteError) throw invDeleteError
+      if (payload.inventory.length > 0) {
+        const { error } = await supabase.from('inventory').insert(payload.inventory)
+        if (error) throw error
+      }
     }
 
     for (const mission of payload.missions) {
@@ -101,12 +113,13 @@ export function createCloudStorageService({
       .from('player_activity')
       .upsert(payload.activity, { onConflict: 'user_id' })
     if (activityError) throw activityError
+
+    return { ...save, lastSaved: payload.activity.last_saved ?? save.lastSaved }
   }
 
   async function bootstrapGameSaveInDb(userId: string, save?: GameSave): Promise<GameSave> {
     const initial = save ?? createDefaultSave()
-    await saveGameSaveToDb(userId, initial)
-    return initial
+    return saveGameSaveToDb(userId, initial)
   }
 
   async function resetGameDataInDb(userId: string): Promise<GameSave> {
@@ -129,8 +142,7 @@ export function createCloudStorageService({
     if (activityError) throw activityError
 
     const fresh = createDefaultSave()
-    await saveGameSaveToDb(userId, fresh)
-    return fresh
+    return saveGameSaveToDb(userId, fresh)
   }
 
   async function resetSystemDataInDb(userId: string): Promise<GameSave> {

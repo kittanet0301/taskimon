@@ -511,6 +511,45 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     return data
   }
 
+  async function listPendingGifts(): Promise<
+    Array<{
+      id: string
+      senderId: string
+      senderName: string
+      itemType: string
+      quantity: number
+      createdAt: string
+    }>
+  > {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('list_pending_gifts')
+    if (error) rpcError(error)
+    return (data ?? []).map((row: Record<string, unknown>) => ({
+      id: String(row.id),
+      senderId: String(row.sender_id),
+      senderName: String(row.sender_name ?? '???'),
+      itemType: String(row.item_type),
+      quantity: Number(row.quantity) || 0,
+      createdAt: String(row.created_at)
+    }))
+  }
+
+  async function claimPendingGifts(giftId?: string | null) {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('claim_pending_gifts', {
+      p_gift_id: giftId ?? null
+    })
+    if (error) rpcError(error)
+    return (data ?? []).map((row: Record<string, unknown>) => ({
+      id: String(row.claimed_id ?? row.id),
+      senderId: String(row.claimed_sender_id ?? row.sender_id),
+      senderName: String(row.claimed_sender_name ?? row.sender_name ?? '???'),
+      itemType: String(row.claimed_item_type ?? row.item_type),
+      quantity: Number(row.claimed_quantity ?? row.quantity) || 0,
+      createdAt: String(row.claimed_created_at ?? row.created_at)
+    }))
+  }
+
   async function submitMinigameScore(gameId: string, score: number) {
     const supabase = requireSupabase()
     const { data, error } = await supabase.rpc('upsert_minigame_score', {
@@ -578,6 +617,8 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     syncMissions,
     submitMinigameScore,
     getMinigameLeaderboard,
-    sendGift
+    sendGift,
+    listPendingGifts,
+    claimPendingGifts
   }
 }

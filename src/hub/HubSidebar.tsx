@@ -12,6 +12,7 @@ interface Props {
   activeTarget: HubSidebarTarget | null
   displayName: string
   disabled?: boolean
+  badges?: Partial<Record<HubSidebarTarget, number>>
   onNavigate: (target: HubSidebarTarget) => void
 }
 
@@ -26,7 +27,7 @@ const NAV_ICON_SRC: Record<HubSidebarTarget, string> = {
   settings: '/ui/hud-icon-settings.png'
 }
 
-export function HubSidebar({ activeTarget, displayName, disabled, onNavigate }: Props) {
+export function HubSidebar({ activeTarget, displayName, disabled, badges, onNavigate }: Props) {
   const { t } = useTranslation()
 
   const items: Array<{ id: HubSidebarTarget; label: string }> = [
@@ -44,19 +45,33 @@ export function HubSidebar({ activeTarget, displayName, disabled, onNavigate }: 
         <img className="hud-icon hud-icon--large" src={AVATAR_ICON_SRC} alt="" draggable={false} />
         <span>{displayName}</span>
       </div>
-      {items.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className={`dash-hud-nav-btn${activeTarget === item.id ? ' active' : ''}`}
-          onClick={() => onNavigate(item.id)}
-          disabled={disabled}
-          title={item.label}
-          aria-label={item.label}
-        >
-          <img className="hud-icon" src={NAV_ICON_SRC[item.id]} alt="" draggable={false} />
-        </button>
-      ))}
+      {items.map((item) => {
+        const badgeCount = badges?.[item.id] ?? 0
+        const label =
+          item.id === 'inventory' && badgeCount > 0
+            ? t('gift.sidebarPending', { count: badgeCount })
+            : item.label
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className={`dash-hud-nav-btn${activeTarget === item.id ? ' active' : ''}${
+              badgeCount > 0 ? ' dash-hud-nav-btn--badge' : ''
+            }`}
+            onClick={() => onNavigate(item.id)}
+            disabled={disabled}
+            title={label}
+            aria-label={label}
+          >
+            <img className="hud-icon" src={NAV_ICON_SRC[item.id]} alt="" draggable={false} />
+            {badgeCount > 0 && (
+              <span className="dash-hud-nav-badge" aria-hidden>
+                {badgeCount > 9 ? '9+' : badgeCount}
+              </span>
+            )}
+          </button>
+        )
+      })}
     </aside>
   )
 }

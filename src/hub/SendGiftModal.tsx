@@ -17,6 +17,7 @@ export function SendGiftModal({ save, recipientId, recipientName, onClose, onSen
   const [picks, setPicks] = useState<Partial<Record<ItemType, number>>>({})
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sentSummary, setSentSummary] = useState<Array<{ type: ItemType; quantity: number }> | null>(null)
 
   const items = save.inventory.filter((item) => item.quantity > 0)
   const totalPicked = Object.values(picks).reduce((sum, qty) => sum + (qty ?? 0), 0)
@@ -38,12 +39,41 @@ export function SendGiftModal({ save, recipientId, recipientName, onClose, onSen
         await window.electronAPI.sendGift(recipientId, type, qty)
       }
       await onSent()
-      onClose()
+      setSentSummary(toSend.map(([type, quantity]) => ({ type, quantity })))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
       setSending(false)
     }
+  }
+
+  if (sentSummary) {
+    return (
+      <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+        <div className="hub-modal gift-modal gift-success-modal card" onClick={(e) => e.stopPropagation()}>
+          <div className="hub-modal-head">
+            <h2>{t('gift.sentTitle')}</h2>
+            <button type="button" className="hub-modal-close" onClick={onClose} aria-label={t('common.cancel')}>
+              ×
+            </button>
+          </div>
+          <p className="gift-success-message">{t('gift.sentBody', { name: recipientName })}</p>
+          <ul className="gift-success-list">
+            {sentSummary.map((item) => (
+              <li key={item.type} className="gift-success-row">
+                <img className="hud-icon" src={ITEM_ICON_SRC[item.type]} alt="" draggable={false} />
+                <strong>
+                  {tItemLabel(item.type)} ×{item.quantity}
+                </strong>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="dash-hud-action dash-hud-action--inline gift-send-btn" onClick={onClose}>
+            {t('gift.sentOk')}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -67,9 +97,7 @@ export function SendGiftModal({ save, recipientId, recipientName, onClose, onSen
                   <img className="hud-icon" src={ITEM_ICON_SRC[item.type]} alt="" draggable={false} />
                   <div className="gift-item-info">
                     <strong>{tItemLabel(item.type)}</strong>
-                    <span>
-                      {t('gift.owned', { count: item.quantity })}
-                    </span>
+                    <span>{t('gift.owned', { count: item.quantity })}</span>
                   </div>
                   <div className="gift-item-stepper">
                     <button

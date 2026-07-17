@@ -52,7 +52,9 @@ import {
   syncMissions,
   submitMinigameScore,
   getMinigameLeaderboard,
-  sendGift
+  sendGift,
+  listPendingGifts,
+  claimPendingGifts
 } from './supabase'
 import { applyFinishMinigame } from '@shared/minigame'
 import type { MinigameId } from '@shared/types'
@@ -212,6 +214,15 @@ export function createWebApi(): GameAPI {
     sendGift: async (recipientId, itemType, quantity) => {
       await sendGift(recipientId, itemType, quantity)
       return patchSave('sendGiftLocal', [itemType, quantity])
+    },
+    listPendingGifts: async () => {
+      if (!(await isDbMode())) return []
+      return listPendingGifts()
+    },
+    claimPendingGifts: async (giftId) => {
+      const claimed = await claimPendingGifts(giftId)
+      const save = await hydrateFromSession()
+      return { claimed, save }
     }
   }
 }

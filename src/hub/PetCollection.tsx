@@ -8,7 +8,6 @@ import { displaySizeForPet } from '../shared/petSprites'
 import { tCharacter, tStage } from '../i18n/labels'
 import { getCollectionPageCount, getUsedSlots } from '../shared/petCollection'
 import { getPetLevel, getStageLabel } from '../shared/activityScore'
-import { canEvolveToAdult, canHatchEgg } from '../shared/stats'
 
 const COLLECTION_PREVIEW_SIZE = 88
 const DETAIL_PREVIEW_SIZE = 120
@@ -70,21 +69,11 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
     if (navigate) onSelect()
   }
 
-  const runDetailAction = async (pet: PetData) => {
+  const selectToPlay = async (pet: PetData) => {
     setBusy(true)
     try {
-      const wasActive = save.pet?.id === pet.id
-      if (!wasActive) {
-        await setActive(pet.id, false)
-      }
-      if (canHatchEgg(pet)) {
-        await window.electronAPI.patchGame('hatch')
-      } else if (canEvolveToAdult(pet)) {
-        await window.electronAPI.patchGame('evolve')
-      }
-      onUpdated()
+      await setActive(pet.id, true)
       setDetailPet(null)
-      onSelect()
     } finally {
       setBusy(false)
     }
@@ -97,14 +86,6 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
     setDetailPet(null)
     onUpdated()
   }
-
-  const detailActionLabel = detailPet
-    ? canHatchEgg(detailPet)
-      ? t('pet.hatch')
-      : canEvolveToAdult(detailPet)
-        ? t('pet.evolveToAdult')
-        : t('collection.select')
-    : ''
 
   const stageFilters: StageFilter[] = ['all', 'egg', 'baby', 'adult']
 
@@ -189,11 +170,6 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                     {tCharacter(pet.character)} · <GenderTag gender={pet.gender} /> · {tStage(pet.stage)}
                   </span>
                 </div>
-                {(canHatchEgg(pet) || canEvolveToAdult(pet)) && (
-                  <span className="collection-slot-ready-badge">
-                    {canHatchEgg(pet) ? t('pet.hatch') : t('pet.evolveToAdult')}
-                  </span>
-                )}
               </button>
               <button
                 type="button"
@@ -292,10 +268,10 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               <button
                 type="button"
                 className="dash-hud-action dash-hud-action--inline"
-                onClick={() => runDetailAction(detailPet)}
+                onClick={() => selectToPlay(detailPet)}
                 disabled={busy}
               >
-                {detailActionLabel}
+                {t('collection.select')}
               </button>
             </div>
           </div>

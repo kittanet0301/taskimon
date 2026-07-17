@@ -31,19 +31,29 @@ function broadcast(): void {
   for (const listener of listeners) listener(saveRef)
 }
 
-async function persistCloudIfCurrent(generation: number): Promise<void> {
+async function persistCloudIfCurrent(
+  generation: number,
+  options?: { syncInventory?: boolean }
+): Promise<void> {
   if (!currentUserId || generation !== cloudSaveGeneration) return
-  await saveGameSaveToDb(currentUserId, saveRef)
+  const saved = await saveGameSaveToDb(currentUserId, saveRef, {
+    skipInventory: !options?.syncInventory
+  })
+  if (generation === cloudSaveGeneration && saved !== saveRef) {
+    saveRef = saved
+    writeSave(saveRef)
+    broadcast()
+  }
 }
 
-function scheduleCloudPersist(): void {
+function scheduleCloudPersist(options?: { syncInventory?: boolean }): void {
   if (!currentUserId || !canUseCloudStorage()) return
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer)
   cloudSaveTimer = setTimeout(() => {
     cloudSaveTimer = null
     const generation = cloudSaveGeneration
     cloudSyncing = true
-    const promise = persistCloudIfCurrent(generation)
+    const promise = persistCloudIfCurrent(generation, options)
       .then(() => {
         if (generation === cloudSaveGeneration) console.log('[cloud] saved')
       })
@@ -80,10 +90,13 @@ export function onSaveChange(listener: SaveListener): () => void {
   return () => listeners.delete(listener)
 }
 
-export function setGameSave(save: GameSave, options?: { skipCloud?: boolean }): GameSave {
+export function setGameSave(
+  save: GameSave,
+  options?: { skipCloud?: boolean; syncInventory?: boolean }
+): GameSave {
   saveRef = save
   writeSave(saveRef)
-  if (!options?.skipCloud) scheduleCloudPersist()
+  if (!options?.skipCloud) scheduleCloudPersist({ syncInventory: options?.syncInventory })
   broadcast()
   return saveRef
 }
@@ -93,7 +106,10 @@ export function updateSave(mutator: (save: GameSave) => GameSave): GameSave {
   const minigameReset = applyMinigameDailyReset(reset)
   if (minigameReset !== reset) reset = minigameReset
   if (reset !== saveRef) saveRef = reset
-  return setGameSave(mutator(saveRef))
+  const prevInventory = JSON.stringify(saveRef.inventory)
+  const next = mutator(saveRef)
+  const syncInventory = JSON.stringify(next.inventory) !== prevInventory
+  return setGameSave(next, { syncInventory })
 }
 
 export function patchSave(mutatorName: string, args: unknown[] = []): GameSave {
@@ -112,7 +128,9 @@ export async function forceCloudSave(): Promise<void> {
   }
   cloudSyncing = true
   try {
-    await saveGameSaveToDb(currentUserId, saveRef)
+    saveRef = await saveGameSaveToDb(currentUserId, saveRef)
+    writeSave(saveRef)
+    broadcast()
   } finally {
     cloudSyncing = false
   }
@@ -175,7 +193,8 @@ export async function setCurrentUser(userId: string | null): Promise<GameSave> {
       saveRef = migrateSave(cloudSave)
       writeSave(saveRef)
       if (priorVersion < SAVE_VERSION) {
-        await saveGameSaveToDb(userId, saveRef)
+        saveRef = await saveGameSaveToDb(userId, saveRef)
+        writeSave(saveRef)
       }
     } else {
       saveRef = await bootstrapGameSaveInDb(userId, createDefaultSave())

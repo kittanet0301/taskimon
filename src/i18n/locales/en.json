@@ -127,14 +127,25 @@
   "inventory": {
     "title": "Item Bag",
     "empty": "No items yet",
-    "use": "Use"
+    "use": "Use",
+    "itemsTab": "Items",
+    "giftsTab": "Gifts"
   },
   "gift": {
     "sendGift": "Send Gift",
     "titleTo": "Send a gift to {{name}}",
     "owned": "Owned: {{count}}",
     "send": "Send Gift",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "noPending": "No gifts waiting to claim",
+    "from": "From {{name}}",
+    "claim": "Claim",
+    "claimAll": "Claim all",
+    "claiming": "Claiming...",
+    "sidebarPending": "Item Bag — {{count}} gifts to claim",
+    "sentTitle": "Gift sent!",
+    "sentBody": "Your gift was sent to {{name}}. They can claim it from their Item Bag.",
+    "sentOk": "OK"
   },
   "missions": {
     "title": "Daily / Weekly Missions",

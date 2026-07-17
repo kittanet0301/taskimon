@@ -67,6 +67,29 @@ export interface GameAPI {
   submitMinigameScore: (gameId: string, score: number) => Promise<unknown>
   getMinigameLeaderboard: (gameId: string, limit?: number) => Promise<MinigameLeaderboardRow[]>
   sendGift: (recipientId: string, itemType: string, quantity: number) => Promise<GameSave>
+  listPendingGifts: () => Promise<
+    Array<{
+      id: string
+      senderId: string
+      senderName: string
+      itemType: string
+      quantity: number
+      createdAt: string
+    }>
+  >
+  claimPendingGifts: (
+    giftId?: string | null
+  ) => Promise<{
+    claimed: Array<{
+      id: string
+      senderId: string
+      senderName: string
+      itemType: string
+      quantity: number
+      createdAt: string
+    }>
+    save: GameSave
+  }>
 }
 
 /** @deprecated use GameAPI — kept for Electron preload compatibility */

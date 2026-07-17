@@ -70,7 +70,9 @@ import {
   syncMissions,
   submitMinigameScore,
   getMinigameLeaderboard,
-  sendGift
+  sendGift,
+  listPendingGifts,
+  claimPendingGifts
 } from './supabase'
 
 let activeBattleRoomId: string | null = null
@@ -298,6 +300,13 @@ function setupIpc(): void {
       return updateSave((save) => applyGamePatch(save, 'sendGiftLocal', [itemType, quantity]))
     }
   )
+  ipcMain.handle('gift:listPending', async () => listPendingGifts())
+  ipcMain.handle('gift:claimPending', async (_e, giftId?: string | null) => {
+    const claimed = await claimPendingGifts(giftId)
+    // Pull claimed items into the local save from cloud inventory.
+    await hydrateFromSession()
+    return { claimed, save: getGameSave() }
+  })
 
   ipcMain.handle('cloud:syncMissions', async (_e, userId: string, missions: GameSave['missions']) =>
     syncMissions(

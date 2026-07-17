@@ -59,6 +59,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [showCommunity, setShowCommunity] = useState(false)
   const [showMinigame, setShowMinigame] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [pendingGiftCount, setPendingGiftCount] = useState(0)
   const [showCover, setShowCover] = useState(() => !isOnboardingComplete())
   const [session, setSession] = useState<Session>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -72,7 +73,24 @@ function AppContent({ variant = 'desktop' }: Props) {
     setSave(data)
   }, [])
 
+  const refreshPendingGifts = useCallback(async () => {
+    if (!window.electronAPI?.listPendingGifts) return
+    try {
+      const rows = await window.electronAPI.listPendingGifts()
+      setPendingGiftCount(rows.length)
+    } catch {
+      // keep last known count; gift API may be briefly unavailable
+    }
+  }, [])
+
   const syncOnTabChange = useCallback(async () => {
+    if (!window.electronAPI) return
+    // Pull first — never push stale local inventory over gifts sitting on the server.
+    await window.electronAPI.reloadFromCloud()
+    await refresh()
+  }, [refresh])
+
+  const pushThenPull = useCallback(async () => {
     if (!window.electronAPI) return
     await window.electronAPI.forceCloudSave()
     await window.electronAPI.reloadFromCloud()
@@ -90,7 +108,8 @@ function AppContent({ variant = 'desktop' }: Props) {
       }
       setTabSyncing(true)
       try {
-        await syncOnTabChange()
+        // Leaving/entering battle may have local progress worth pushing first.
+        await pushThenPull()
         setMainView(nextView)
       } catch (e) {
         console.error('[view] sync failed:', e)
@@ -99,7 +118,7 @@ function AppContent({ variant = 'desktop' }: Props) {
         setTabSyncing(false)
       }
     },
-    [mainView, tabSyncing, syncOnTabChange, isInRoom, confirmLeave]
+    [mainView, tabSyncing, pushThenPull, isInRoom, confirmLeave]
   )
 
   const openPopup = useCallback(
@@ -108,6 +127,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       setTabSyncing(true)
       try {
         await syncOnTabChange()
+        await refreshPendingGifts()
       } catch (e) {
         console.error('[popup] sync failed:', e)
       } finally {
@@ -115,7 +135,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       }
       setter(true)
     },
-    [tabSyncing, syncOnTabChange]
+    [tabSyncing, syncOnTabChange, refreshPendingGifts]
   )
 
   const goToProfile = useCallback(
@@ -151,10 +171,12 @@ function AppContent({ variant = 'desktop' }: Props) {
       }
       await window.electronAPI.reloadFromCloud()
       await refresh()
+      await refreshPendingGifts()
     } else {
       setProfile(null)
+      setPendingGiftCount(0)
     }
-  }, [refresh])
+  }, [refresh, refreshPendingGifts])
 
   useEffect(() => {
     if (!window.electronAPI) return
@@ -185,11 +207,22 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   useEffect(() => {
     if (!session?.user?.id || showCover || !window.electronAPI) return
+    void refreshPendingGifts()
     const id = setInterval(() => {
       refresh()
+      void refreshPendingGifts()
     }, 60_000)
     return () => clearInterval(id)
-  }, [session, showCover, refresh])
+  }, [session, showCover, refresh, refreshPendingGifts])
+
+  useEffect(() => {
+    if (!window.electronAPI) return
+    const onFocus = () => {
+      void refreshPendingGifts()
+    }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [refreshPendingGifts])
 
   const handleGetStarted = () => {
     localStorage.setItem(ONBOARDING_KEY, '1')
@@ -329,6 +362,7 @@ function AppContent({ variant = 'desktop' }: Props) {
         activeTarget={sidebarTarget}
         displayName={displayName}
         disabled={tabSyncing}
+        badges={{ inventory: pendingGiftCount }}
         onNavigate={handleSidebarNavigate}
       />
 
@@ -363,7 +397,19 @@ function AppContent({ variant = 'desktop' }: Props) {
         </main>
       </div>
 
-      {showInventory && <Inventory save={save} onClose={() => setShowInventory(false)} />}
+      {showInventory && (
+        <Inventory
+          save={save}
+          onClose={() => {
+            setShowInventory(false)
+            void refreshPendingGifts()
+          }}
+          onUpdated={async () => {
+            await refresh()
+            await refreshPendingGifts()
+          }}
+        />
+      )}
       {showCollection && (
         <PetCollection
           save={save}
