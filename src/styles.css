@@ -1529,17 +1529,20 @@ input, select {
   display: flex;
   flex-direction: column;
   border: 4px solid #2c1408;
-  background: rgba(255, 226, 179, 0.94);
+  background: rgba(255, 226, 179, 0.42);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   box-shadow:
-    inset 0 0 0 3px #d08a22,
-    6px 6px 0 rgba(30, 14, 4, 0.78);
+    inset 0 0 0 3px rgba(208, 138, 34, 0.7),
+    6px 6px 0 rgba(30, 14, 4, 0.55);
   color: #3b210e;
   font-family: 'Mali', 'Noto Sans Thai', sans-serif;
 }
 
 .dash-hud-missions-tabs {
   display: flex;
-  border-bottom: 3px solid #2c1408;
+  border-bottom: 3px solid rgba(44, 20, 8, 0.85);
+  background: rgba(255, 236, 200, 0.28);
 }
 
 .dash-hud-missions-tabs button {
@@ -1556,7 +1559,7 @@ input, select {
 }
 
 .dash-hud-missions-tabs button.active {
-  background: #ffb55d;
+  background: rgba(255, 181, 93, 0.72);
   color: #3b210e;
 }
 
@@ -1656,7 +1659,7 @@ input, select {
   margin-left: auto;
   padding: 7px 12px;
   border: 3px solid #2c1408;
-  background: #ffb55d;
+  background: rgba(255, 181, 93, 0.78);
   color: #3b210e;
   font-family: inherit;
   font-weight: 800;
@@ -1664,13 +1667,13 @@ input, select {
   line-height: 1.2;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.65);
+  box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.55);
 }
 
 .dash-hud-mission-claim:disabled {
   opacity: 1;
   cursor: not-allowed;
-  background: #e8dfc8;
+  background: rgba(232, 223, 200, 0.55);
   color: #7a6248;
   box-shadow: none;
 }
