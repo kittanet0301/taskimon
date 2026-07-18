@@ -23,7 +23,6 @@ import {
 
 interface Props {
   save: GameSave
-  syncing: boolean
   focusMode?: boolean
   onUpdated: () => void | Promise<void>
 }
@@ -34,7 +33,7 @@ function statPercent(value: number, max: number): string {
   return `${Math.max(0, Math.min(100, (value / max) * 100))}%`
 }
 
-export function HomeDashboard({ save, syncing, focusMode = false, onUpdated }: Props) {
+export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
   const { t } = useTranslation()
   const sceneRef = useRef<HTMLDivElement>(null)
   const pet = save.pet
@@ -355,8 +354,6 @@ export function HomeDashboard({ save, syncing, focusMode = false, onUpdated }: P
             </div>
           </div>
         )}
-
-        {syncing && <div className="dash-hud-sync">{t('app.syncing')}</div>}
       </div>
 
       {levelUpOpen && pet && (

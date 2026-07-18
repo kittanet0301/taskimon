@@ -441,7 +441,6 @@ function AppContent({ variant = 'desktop' }: Props) {
             <main className="hub-content hub-content--home">
               <HomeDashboard
                 save={save}
-                syncing={tabSyncing}
                 focusMode={homeFocus}
                 onUpdated={refresh}
               />
