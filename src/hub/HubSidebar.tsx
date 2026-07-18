@@ -62,8 +62,8 @@ export function HubSidebar({
         aria-label={onAvatarClick ? avatarLabel : displayName}
         aria-pressed={onAvatarClick ? focusMode : undefined}
       >
-        <img className="hud-icon hud-icon--large" src={AVATAR_ICON_SRC} alt="" draggable={false} />
         <span>{displayName}</span>
+        <img className="hud-icon hud-icon--large" src={AVATAR_ICON_SRC} alt="" draggable={false} />
       </button>
       {items.map((item) => {
         const badgeCount = badges?.[item.id] ?? 0
