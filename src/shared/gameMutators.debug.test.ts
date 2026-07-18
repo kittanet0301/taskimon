@@ -8,11 +8,28 @@ describe('TEST debug buttons', () => {
     expect(TEST_FAST_EVO).toBe(true)
   })
 
-  it('debugSetSpecies switches active pet species and name', () => {
+  it('debugSetSpecies switches species and re-rolls elements/primaries', () => {
     const save = createDefaultSave()
+    const before = save.pet!
     const next = applyGamePatch(save, 'debugSetSpecies', ['garden'])
     expect(next.pet?.character).toBe('garden')
     expect(next.pet?.name.toLowerCase()).toContain('garden')
+    expect(next.pet?.elementPrimary).toBeTruthy()
+    expect(next.pet?.primaries.str).toBeGreaterThan(0)
+    // Species change always assigns a fresh element roll (may equal by chance).
+    expect(next.pet).not.toBe(before)
+  })
+
+  it('debugSetSpecies on hatched pet also re-rolls skill loadout', () => {
+    let save = { ...createDefaultSave(), pet: createEggPet('ember-sail') }
+    save = applyGamePatch(save, 'debugSetStage', ['baby'])
+    const loadoutBefore = save.pet!.skillLoadout
+    expect(loadoutBefore?.slots.length).toBe(4)
+
+    save = applyGamePatch(save, 'debugSetSpecies', ['garden'])
+    expect(save.pet?.character).toBe('garden')
+    expect(save.pet?.skillLoadout?.slots.length).toBe(4)
+    expect(save.pet?.skillLoadout?.slots.every((s) => s.rank === 1)).toBe(true)
   })
 
   it('debugSetStage egg→baby rolls a skill loadout', () => {

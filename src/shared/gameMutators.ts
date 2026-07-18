@@ -9,15 +9,18 @@ import { TEST_FAST_EVO } from './constants'
 import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
 import { defaultPetName } from './dinoCharacters'
 import { getPetLevel } from './activityScore'
+import { rollElementSlots } from './elements'
 import {
   GROWTH_CARDS,
   applyGrowthCard as applyGrowthCardToStats,
+  primariesForElements,
   rollGrowthCardOffers,
   type GrowthCard,
   type GrowthCardId
 } from './combatStats'
 import {
   forgetSkillSlot,
+  rollSkillLoadout,
   upgradeSkillRank as upgradeSkillRankOnLoadout
 } from './battle/skillTrees'
 
@@ -118,12 +121,24 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (TEST_FAST_EVO && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
     if (!save.pet || !isCreatureSpecies(args[0])) return save
     const species = args[0] as PetSpecies
+    const { elementPrimary, elementSecondary } = rollElementSlots()
+    const primaries = primariesForElements(elementPrimary, elementSecondary)
+    const skillLoadout =
+      save.pet.stage === 'egg'
+        ? null
+        : rollSkillLoadout(elementPrimary, elementSecondary)
     return {
       ...save,
       pet: {
         ...save.pet,
         character: species,
-        name: defaultPetName(species)
+        name: defaultPetName(species),
+        elementPrimary,
+        elementSecondary,
+        primaries,
+        skillLoadout,
+        skillUpgradePoints: save.pet.stage === 'egg' ? 0 : save.pet.skillUpgradePoints,
+        pendingGrowthOffers: save.pet.stage === 'egg' ? null : save.pet.pendingGrowthOffers
       }
     }
   }
