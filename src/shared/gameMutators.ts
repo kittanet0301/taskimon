@@ -9,15 +9,18 @@ import { TEST_FAST_EVO } from './constants'
 import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
 import { defaultPetName } from './dinoCharacters'
 import { getPetLevel } from './activityScore'
+import { rollElementSlots } from './elements'
 import {
   GROWTH_CARDS,
   applyGrowthCard as applyGrowthCardToStats,
+  primariesForElements,
   rollGrowthCardOffers,
   type GrowthCard,
   type GrowthCardId
 } from './combatStats'
 import {
   forgetSkillSlot,
+  rollSkillLoadout,
   upgradeSkillRank as upgradeSkillRankOnLoadout
 } from './battle/skillTrees'
 
@@ -74,18 +77,22 @@ function replacePet(save: GameSave, petId: string, replacer: (pet: PetData) => P
 
 function debugSetPetStage(pet: NonNullable<GameSave['pet']>, stage: Stage) {
   if (stage === 'egg') return resetPetToEggStage(pet)
+
+  // Jumping out of egg must go through hatch so skill loadout is rolled.
+  let next = pet.stage === 'egg' ? hatchPet(pet) : pet
+
   if (stage === 'baby') {
     return {
-      ...pet,
+      ...next,
       stage: 'baby' as const,
-      hatchedAt: pet.hatchedAt ?? new Date().toISOString(),
+      hatchedAt: next.hatchedAt ?? new Date().toISOString(),
       animationState: 'idle' as const
     }
   }
   return {
-    ...pet,
+    ...next,
     stage: 'adult' as const,
-    hatchedAt: pet.hatchedAt ?? new Date().toISOString(),
+    hatchedAt: next.hatchedAt ?? new Date().toISOString(),
     animationState: 'idle' as const
   }
 }
@@ -114,12 +121,24 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (TEST_FAST_EVO && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
     if (!save.pet || !isCreatureSpecies(args[0])) return save
     const species = args[0] as PetSpecies
+    const { elementPrimary, elementSecondary } = rollElementSlots()
+    const primaries = primariesForElements(elementPrimary, elementSecondary)
+    const skillLoadout =
+      save.pet.stage === 'egg'
+        ? null
+        : rollSkillLoadout(elementPrimary, elementSecondary)
     return {
       ...save,
       pet: {
         ...save.pet,
         character: species,
-        name: defaultPetName(species)
+        name: defaultPetName(species),
+        elementPrimary,
+        elementSecondary,
+        primaries,
+        skillLoadout,
+        skillUpgradePoints: save.pet.stage === 'egg' ? 0 : save.pet.skillUpgradePoints,
+        pendingGrowthOffers: save.pet.stage === 'egg' ? null : save.pet.pendingGrowthOffers
       }
     }
   }
@@ -132,16 +151,15 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (TEST_FAST_EVO && mutatorName === 'debugBoostDev') {
     if (!save.pet) return save
     const amount = typeof args[0] === 'number' ? Math.max(0, Math.floor(args[0])) : 50
-    return {
-      ...save,
-      pet: {
-        ...save.pet,
-        stats: {
-          ...save.pet.stats,
-          evolution: Math.min(999, save.pet.stats.evolution + amount)
-        }
+    const prev = save.pet
+    const boosted: PetData = {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        evolution: Math.min(999, prev.stats.evolution + amount)
       }
     }
+    return { ...save, pet: applyLevelGainRewards(prev, boosted) }
   }
   if (TEST_FAST_EVO && mutatorName === 'debugCycleSpecies') {
     if (!save.pet) return save

@@ -114,7 +114,9 @@
     "claim": "รับรางวัล",
     "quickCare": "ดูแลด่วน",
     "evolveAdult": "วิวัฒนาการ -> Adult",
-    "evolveLocked": "วิวัฒนาการ (ต้องการพัฒนาร่าง {{points}}+)"
+    "evolveLocked": "วิวัฒนาการ (ต้องการพัฒนาร่าง {{points}}+)",
+    "hideMenus": "ซ่อนเมนู — โชว์แค่ตัวละคร",
+    "showMenus": "แสดงเมนู"
   },
   "inventory": {
     "title": "กระเป๋าไอเทม",
@@ -210,6 +212,7 @@
     "noSlots": "ไม่มีช่องว่าง",
     "page": "หน้า {{current}} / {{total}}",
     "active": "กำลังเล่น",
+    "viewDetails": "ดูรายละเอียดสัตว์",
     "filterAll": "ทั้งหมด",
     "sidebarHatchable": "คลังไข่ — ยังมีไข่ให้ฟัก"
   },
@@ -512,11 +515,26 @@
     "str": "STR",
     "dex": "DEX",
     "int": "INT",
-    "con": "CON"
+    "con": "CON",
+    "combatCheck": "ค่าต่อสู้",
+    "pure": "เพียว",
+    "dual": "ผสม",
+    "battleHp": "HP ดวล",
+    "battleMp": "MP",
+    "eva": "หลบ",
+    "atk": "ATK",
+    "def": "DEF"
   },
   "growth": {
     "pickTitle": "เลือกการ์ดเติบโต",
     "pickHint": "เลเวลอัพ! เลือกการ์ดหนึ่งใบเพื่อเพิ่มค่าพลังหลักถาวร",
+    "levelUpTitle": "ตอนเลเวลอัพ",
+    "levelUpBody": "ทุกเลเวลจะเสริมพลังถาวร เลือกอัปเกรดได้ที่นี่",
+    "levelUpCard": "Growth Card — เลือก 1 จาก 3 (เพิ่ม STR / DEX / INT / CON)",
+    "levelUpSkillPoint": "แต้มสกิล +1 — ใช้ยกแรงค์สกิลช่องใดช่องหนึ่ง (สูงสุด 8)",
+    "claimLevelUp": "เลเวลอัพ! รับรางวัล",
+    "pendingLevels": "รอรับรางวัลเลเวล {{count}} ครั้ง",
+    "cardClaimedHint": "เลือกการ์ดแล้ว ใช้แต้มอัปสกิลด้านล่างได้ แล้วปิดเมื่อพร้อม",
     "power_up": "เพิ่มพลัง",
     "swift": "ว่องไว",
     "focus": "สมาธิ",
@@ -529,6 +547,8 @@
     "upgrade": "อัพเกรด",
     "forget": "ลืม",
     "upgradePointsLeft": "มีแต้มอัพสกิล {{count}} แต้ม",
+    "rankLabel": "แรงค์ {{rank}}/{{max}}",
+    "eggNoSkills": "สกิลจะสุ่มหลังฟัก (สกิล 3 + Ultimate 1)",
     "forgetConfirmTitle": "ลืมสกิลนี้?",
     "forgetConfirmBody": "รีโรล {{skill}} โดยใช้ม้วนลืมสกิล 1 อัน ทำแล้วเปลี่ยนกลับไม่ได้",
     "fire_spark_bite": "Spark Bite",

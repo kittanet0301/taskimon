@@ -12,8 +12,10 @@ interface Props {
   activeTarget: HubSidebarTarget | null
   displayName: string
   disabled?: boolean
+  focusMode?: boolean
   badges?: Partial<Record<HubSidebarTarget, number>>
   onNavigate: (target: HubSidebarTarget) => void
+  onAvatarClick?: () => void
 }
 
 const AVATAR_ICON_SRC = '/ui/hud-icon-dino.png'
@@ -27,7 +29,15 @@ const NAV_ICON_SRC: Record<HubSidebarTarget, string> = {
   settings: '/ui/hud-icon-settings.png'
 }
 
-export function HubSidebar({ activeTarget, displayName, disabled, badges, onNavigate }: Props) {
+export function HubSidebar({
+  activeTarget,
+  displayName,
+  disabled,
+  focusMode = false,
+  badges,
+  onNavigate,
+  onAvatarClick
+}: Props) {
   const { t } = useTranslation()
 
   const items: Array<{ id: HubSidebarTarget; label: string }> = [
@@ -39,12 +49,21 @@ export function HubSidebar({ activeTarget, displayName, disabled, badges, onNavi
     { id: 'settings', label: t('tabs.settings') }
   ]
 
+  const avatarLabel = focusMode ? t('home.showMenus') : t('home.hideMenus')
+
   return (
     <aside className="hub-sidebar" aria-label="Main navigation">
-      <div className="dash-hud-avatar">
+      <button
+        type="button"
+        className={`dash-hud-avatar${onAvatarClick ? ' dash-hud-avatar--btn' : ''}`}
+        onClick={onAvatarClick}
+        disabled={!onAvatarClick || disabled}
+        title={onAvatarClick ? avatarLabel : displayName}
+        aria-label={onAvatarClick ? avatarLabel : displayName}
+        aria-pressed={onAvatarClick ? focusMode : undefined}
+      >
         <img className="hud-icon hud-icon--large" src={AVATAR_ICON_SRC} alt="" draggable={false} />
-        <span>{displayName}</span>
-      </div>
+      </button>
       {items.map((item) => {
         const badgeCount = badges?.[item.id] ?? 0
         const showAlert =

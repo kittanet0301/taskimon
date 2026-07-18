@@ -114,7 +114,9 @@
     "claim": "Claim",
     "quickCare": "Quick Care",
     "evolveAdult": "Evolve -> Adult",
-    "evolveLocked": "Evolve (requires {{points}}+ evolution)"
+    "evolveLocked": "Evolve (requires {{points}}+ evolution)",
+    "hideMenus": "Hide menus — show pet only",
+    "showMenus": "Show menus"
   },
   "inventory": {
     "title": "Item Bag",
@@ -210,6 +212,7 @@
     "noSlots": "No free slots",
     "page": "Page {{current}} / {{total}}",
     "active": "Playing",
+    "viewDetails": "View pet details",
     "filterAll": "All",
     "sidebarHatchable": "Collection — eggs left to hatch"
   },
@@ -512,11 +515,26 @@
     "str": "STR",
     "dex": "DEX",
     "int": "INT",
-    "con": "CON"
+    "con": "CON",
+    "combatCheck": "Combat stats",
+    "pure": "Pure",
+    "dual": "Dual",
+    "battleHp": "Battle HP",
+    "battleMp": "MP",
+    "eva": "EVA",
+    "atk": "ATK",
+    "def": "DEF"
   },
   "growth": {
     "pickTitle": "Pick a growth card",
     "pickHint": "Level up! Choose one growth card to permanently boost your primary stats.",
+    "levelUpTitle": "On level up",
+    "levelUpBody": "Each level permanently strengthens this pet. Pick your boosts here.",
+    "levelUpCard": "Growth Card — choose 1 of 3 (adds STR / DEX / INT / CON)",
+    "levelUpSkillPoint": "Skill point +1 — spend it to raise one skill rank (max 8)",
+    "claimLevelUp": "Level up! Claim reward",
+    "pendingLevels": "{{count}} level rewards waiting",
+    "cardClaimedHint": "Growth card claimed. Spend skill points below, then close when ready.",
     "power_up": "Power Up",
     "swift": "Swift",
     "focus": "Focus",
@@ -529,6 +547,8 @@
     "upgrade": "Upgrade",
     "forget": "Forget",
     "upgradePointsLeft": "{{count}} skill points available",
+    "rankLabel": "Rk {{rank}}/{{max}}",
+    "eggNoSkills": "Skills appear after hatch (3 skills + 1 Ultimate).",
     "forgetConfirmTitle": "Forget this skill?",
     "forgetConfirmBody": "Reroll {{skill}} using 1 Skill forget scroll. This cannot be undone.",
     "fire_spark_bite": "Spark Bite",

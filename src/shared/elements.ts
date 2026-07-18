@@ -26,6 +26,11 @@ export const ELEMENT_STRONG_AGAINST: Record<ElementId, ElementId[]> = {
 }
 
 export const PURE_CHANCE = 0.6
+/**
+ * Temporary rollout switch: when true, new eggs / breed / debug rolls are always
+ * pure (1 element). Set false later to re-enable dual 40% rolls.
+ */
+export const FORCE_PURE_ELEMENTS = true
 export const PURE_DAMAGE_BONUS = 1.25
 export const ELEMENT_SE_MULT = 1.5
 export const ELEMENT_RESIST_MULT = 0.75
@@ -41,14 +46,14 @@ export function normalizeElementId(value: string | null | undefined): ElementId 
   return 'neutral'
 }
 
-/** Roll pure (60%) or dual (40%) element slots. */
+/** Roll element slots. Pure-only while FORCE_PURE_ELEMENTS is true; else 60/40. */
 export function rollElementSlots(rng: () => number = Math.random): {
   elementPrimary: ElementId
   elementSecondary: ElementId | null
 } {
   const pick = (): ElementId => ELEMENT_IDS[Math.floor(rng() * ELEMENT_IDS.length)]!
   const primary = pick()
-  if (rng() < PURE_CHANCE) {
+  if (FORCE_PURE_ELEMENTS || rng() < PURE_CHANCE) {
     return { elementPrimary: primary, elementSecondary: null }
   }
   let secondary = pick()
