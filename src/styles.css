@@ -3619,8 +3619,24 @@ input, select {
 .pet-detail-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: stretch;
   gap: 10px;
   margin-top: 16px;
+}
+
+.pet-detail-actions .danger-btn,
+.pet-detail-actions .primary {
+  flex: 1 1 0;
+  min-height: 44px;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pet-detail-actions .primary {
+  flex: 1.4 1 0;
 }
 
 .collection-pagination {

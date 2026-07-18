@@ -484,7 +484,7 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               </button>
               <button
                 type="button"
-                className="dash-hud-action dash-hud-action--inline"
+                className="primary"
                 onClick={() => selectToPlay(liveDetailPet)}
                 disabled={busy}
               >
