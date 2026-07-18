@@ -24,6 +24,8 @@ let currentUserId: string | null = null
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null
 let cloudSavePromise: Promise<void> | null = null
 let cloudSaveGeneration = 0
+/** Sticky until a cloud persist that includes inventory succeeds. */
+let pendingSyncInventory = false
 let cloudSyncing = false
 
 type SaveListener = (save: GameSave) => void
@@ -51,15 +53,20 @@ async function persistCloudIfCurrent(
 
 function scheduleCloudPersist(options?: { syncInventory?: boolean }): void {
   if (!currentUserId || !canUseCloudStorage()) return
+  if (options?.syncInventory) pendingSyncInventory = true
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer)
   const generation = ++cloudSaveGeneration
+  const syncInventory = pendingSyncInventory
   cloudSaveTimer = setTimeout(() => {
     cloudSaveTimer = null
     if (generation !== cloudSaveGeneration) return
     cloudSyncing = true
-    const promise = persistCloudIfCurrent(generation, options)
+    const promise = persistCloudIfCurrent(generation, { syncInventory })
       .then(() => {
-        if (generation === cloudSaveGeneration) console.log('[cloud] saved')
+        if (generation === cloudSaveGeneration) {
+          if (syncInventory) pendingSyncInventory = false
+          console.log('[cloud] saved')
+        }
       })
       .catch((err) => {
         if (generation === cloudSaveGeneration) console.error('[cloud] save failed:', err)
@@ -142,6 +149,7 @@ export async function forceCloudSave(): Promise<void> {
   try {
     saveRef = await saveGameSaveToDb(currentUserId, saveRef)
     writeSave(saveRef)
+    pendingSyncInventory = false
     broadcast()
   } finally {
     cloudSyncing = false

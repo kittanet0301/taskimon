@@ -469,28 +469,30 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               onPickGrowthCard={(cardId) => patchDetail('applyGrowthCard', [liveDetailPet.id, cardId])}
             />
 
-            <div className="pet-detail-actions">
-              <button
-                type="button"
-                className="danger-btn"
-                onClick={() => {
-                  const target = liveDetailPet
-                  setDetailPet(null)
-                  setPendingDelete(target)
-                }}
-                disabled={busy}
-              >
-                {t('collection.delete')}
-              </button>
-              <button
-                type="button"
-                className="primary"
-                onClick={() => selectToPlay(liveDetailPet)}
-                disabled={busy}
-              >
-                {t('collection.select')}
-              </button>
-            </div>
+            {save.pet?.id !== liveDetailPet.id && (
+              <div className="pet-detail-actions">
+                <button
+                  type="button"
+                  className="danger-btn"
+                  onClick={() => {
+                    const target = liveDetailPet
+                    setDetailPet(null)
+                    setPendingDelete(target)
+                  }}
+                  disabled={busy}
+                >
+                  {t('collection.delete')}
+                </button>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => selectToPlay(liveDetailPet)}
+                  disabled={busy}
+                >
+                  {t('collection.select')}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

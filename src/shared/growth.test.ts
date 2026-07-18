@@ -10,12 +10,12 @@ import {
 import { PET_SLOT_BASE, SAVE_VERSION } from './constants'
 
 describe('growth helpers', () => {
-  it('creates a default save with ember-sail egg', () => {
+  it('creates a default save with a random creature egg', () => {
     const save = createDefaultSave()
 
     expect(save.version).toBe(SAVE_VERSION)
     expect(save.pet?.stage).toBe('egg')
-    expect(save.pet?.character).toBe('ember-sail')
+    expect(['ember-sail', 'garden']).toContain(save.pet?.character)
     expect(save.collection).toEqual([])
     expect(save.petSlotLimit).toBe(PET_SLOT_BASE)
     expect(save.inventory.length).toBeGreaterThan(0)

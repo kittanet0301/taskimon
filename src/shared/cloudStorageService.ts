@@ -52,9 +52,7 @@ export function createCloudStorageService({
     )
 
     save.missions = ensureAllMissions(save.missions)
-    if (save.inventory.length === 0) {
-      save.inventory = createDefaultSave().inventory
-    }
+    // Empty inventory is valid (player used everything). Do not refill defaults on load.
 
     return applyOfflineDecay(save)
   }

@@ -2,7 +2,8 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
 import { GROWTH_CARDS, type GrowthCard } from '../shared/combatStats'
-import { getSkillDef, SKILL_RANK_MAX } from '../shared/battle/skillTrees'
+import { SKILL_RANK_MAX } from '../shared/battle/skillTrees'
+import { SkillSlotSummary } from './SkillSlotSummary'
 
 interface Props {
   pet: PetData
@@ -108,20 +109,10 @@ export function GrowthLevelUpModal({
           ) : (
             <ul className="pet-profile-skill-list">
               {slots.map((slot, i) => {
-                const def = getSkillDef(slot.pathId)
                 const canUp = pet.skillUpgradePoints > 0 && slot.rank < SKILL_RANK_MAX
                 return (
                   <li key={`${slot.pathId}-${i}`} className="pet-profile-skill">
-                    <div className="pet-profile-skill-info">
-                      <strong>
-                        {t(`skills.${slot.pathId}`, { defaultValue: def?.pathId ?? slot.pathId })}
-                      </strong>
-                      <span>
-                        {slot.kind === 'ultimate' ? t('battle.ultimate') : t('battle.skillMenu')} ·{' '}
-                        {t(`elements.${slot.element}`)} ·{' '}
-                        {t('skills.rankLabel', { rank: slot.rank, max: SKILL_RANK_MAX })}
-                      </span>
-                    </div>
+                    <SkillSlotSummary slot={slot} />
                     <div className="pet-profile-skill-actions">
                       <button
                         type="button"

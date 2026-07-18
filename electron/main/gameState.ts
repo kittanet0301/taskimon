@@ -27,6 +27,8 @@ let currentUserId: string | null = null
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null
 let cloudSavePromise: Promise<void> | null = null
 let cloudSaveGeneration = 0
+/** Sticky until a cloud persist that includes inventory succeeds. */
+let pendingSyncInventory = false
 let cloudSyncing = false
 
 type ActivityListener = (save: GameSave) => void
@@ -112,16 +114,21 @@ export function getGameSave(): GameSave {
 
 function scheduleCloudPersist(options?: { syncInventory?: boolean }): void {
   if (!currentUserId || !canUseCloudStorage()) return
+  if (options?.syncInventory) pendingSyncInventory = true
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer)
   // Invalidate older scheduled/in-flight saves so they cannot overwrite a newer local state.
   const generation = ++cloudSaveGeneration
+  const syncInventory = pendingSyncInventory
   cloudSaveTimer = setTimeout(() => {
     cloudSaveTimer = null
     if (generation !== cloudSaveGeneration) return
     cloudSyncing = true
-    const promise = persistCloudIfCurrent(generation, options)
+    const promise = persistCloudIfCurrent(generation, { syncInventory })
       .then(() => {
-        if (generation === cloudSaveGeneration) console.log('[cloud] saved')
+        if (generation === cloudSaveGeneration) {
+          if (syncInventory) pendingSyncInventory = false
+          console.log('[cloud] saved')
+        }
       })
       .catch((err) => {
         if (generation === cloudSaveGeneration) console.error('[cloud] save failed:', err)
@@ -363,6 +370,7 @@ export async function forceCloudSave(): Promise<void> {
     // Full save including inventory, reconciling any gifts received since last pull.
     saveRef = await saveGameSaveToDb(currentUserId, saveRef)
     writeSave(saveRef)
+    pendingSyncInventory = false
     broadcast()
     refreshTray(getGameSave)
   } finally {

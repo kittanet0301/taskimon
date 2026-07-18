@@ -1,6 +1,6 @@
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { GameSave } from './shared/types'
+import type { GameSave, ItemType } from './shared/types'
 import { getActivityScore, isOnboardingComplete, ONBOARDING_KEY } from './shared/activityScore'
 import { countHatchableEggs } from './shared/petCollection'
 import './i18n'
@@ -56,6 +56,8 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [cloudReady, setCloudReady] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
   const [showInventory, setShowInventory] = useState(false)
+  const [carePulse, setCarePulse] = useState<{ type: ItemType; key: number } | null>(null)
+  const carePulseKeyRef = useRef(0)
   const [showCollection, setShowCollection] = useState(false)
   const [showCommunity, setShowCommunity] = useState(false)
   const [showMinigame, setShowMinigame] = useState(false)
@@ -102,7 +104,12 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const syncOnTabChange = useCallback(async () => {
     if (!window.electronAPI) return
-    // Pull first — never push stale local inventory over gifts sitting on the server.
+    // Push local changes (e.g. used items) before pull, or a stale cloud inventory comes back.
+    try {
+      await window.electronAPI.forceCloudSave()
+    } catch (e) {
+      console.warn('[sync] force save skipped:', e)
+    }
     await window.electronAPI.reloadFromCloud()
     await refresh()
   }, [refresh])
@@ -443,6 +450,7 @@ function AppContent({ variant = 'desktop' }: Props) {
                 save={save}
                 focusMode={homeFocus}
                 onUpdated={refresh}
+                carePulse={carePulse}
               />
             </main>
           </div>
@@ -475,6 +483,10 @@ function AppContent({ variant = 'desktop' }: Props) {
           onUpdated={async () => {
             await refresh()
             await refreshPendingGifts()
+          }}
+          onCareUsed={(type) => {
+            carePulseKeyRef.current += 1
+            setCarePulse({ type, key: carePulseKeyRef.current })
           }}
         />
       )}

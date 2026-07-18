@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { AnimationState, GameSave, ItemType } from '../shared/types'
 import { DinoSprite } from '../components/DinoSprite'
@@ -31,6 +31,8 @@ interface Props {
   save: GameSave
   focusMode?: boolean
   onUpdated: () => void | Promise<void>
+  /** External care-use pulse (e.g. from Inventory click). Item already consumed. */
+  carePulse?: { type: ItemType; key: number } | null
 }
 
 interface CareFxState {
@@ -40,34 +42,46 @@ interface CareFxState {
 }
 
 const QUICK_ITEM_TYPES: ItemType[] = ALL_ITEM_TYPES
+const LEVEL_UP_FX_MS = 2200
+const EVOLVE_CHARGE_MS = 750
+const EVOLVE_FX_MS = 2400
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
 
 function statPercent(value: number, max: number): string {
   return `${Math.max(0, Math.min(100, (value / max) * 100))}%`
 }
 
-export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
+export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = null }: Props) {
   const { t } = useTranslation()
   const sceneRef = useRef<HTMLDivElement>(null)
   const careClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const levelUpFxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const evolveFxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const careFxKeyRef = useRef(0)
+  const lastCarePulseKeyRef = useRef(0)
+  const prevLevelRef = useRef<number | null>(null)
+  const prevStageRef = useRef<string | null>(null)
   const pet = save.pet
   const isEgg = pet?.stage === 'egg'
   const [layout, setLayout] = useState({ leftPct: 50, topPct: 50, spriteSize: 96 })
   const [editingSlot, setEditingSlot] = useState<number | null>(null)
   const [hatching, setHatching] = useState(false)
+  const [evolving, setEvolving] = useState(false)
+  const [evolvePhase, setEvolvePhase] = useState<'charge' | 'reveal' | null>(null)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
   const [levelUpBusy, setLevelUpBusy] = useState(false)
   const [careAnim, setCareAnim] = useState<AnimationState | null>(null)
   const [careFx, setCareFx] = useState<CareFxState | null>(null)
+  const [levelUpFx, setLevelUpFx] = useState<{ key: number; level: number } | null>(null)
+  const [evolveFx, setEvolveFx] = useState<{ key: number } | null>(null)
   const hatchDoneRef = useRef<(() => void) | null>(null)
   const sceneKey = 'hatch'
   const hasPendingLevelUp = (pet?.pendingGrowthOffers?.length ?? 0) > 0
-
-  // Auto-open when a new level-up reward arrives. Do not auto-close after a
-  // growth card pick — the same popup also lets the player upgrade skills.
-  useEffect(() => {
-    if (hasPendingLevelUp) setLevelUpOpen(true)
-  }, [hasPendingLevelUp])
 
   const quickSlots = useMemo(
     () => normalizeQuickItemSlots(save.quickItemSlots).slice(0, QUICK_ITEM_SLOT_COUNT),
@@ -108,8 +122,111 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
   useEffect(() => {
     return () => {
       if (careClearTimerRef.current) clearTimeout(careClearTimerRef.current)
+      if (levelUpFxTimerRef.current) clearTimeout(levelUpFxTimerRef.current)
+      if (evolveFxTimerRef.current) clearTimeout(evolveFxTimerRef.current)
     }
   }, [])
+
+  const clearCareFeedback = useCallback(async () => {
+    setCareAnim(null)
+    setCareFx(null)
+    await window.electronAPI.patchGame('setPetAnimation', ['idle'])
+    await onUpdated()
+  }, [onUpdated])
+
+  const playCareFeedback = useCallback(
+    (type: ItemType) => {
+      const feedback = getCareFeedback(type)
+      if (!feedback) return
+      if (careClearTimerRef.current) clearTimeout(careClearTimerRef.current)
+      careFxKeyRef.current += 1
+      setCareAnim(feedback.anim)
+      setCareFx({
+        key: careFxKeyRef.current,
+        itemType: type,
+        deltas: feedback.deltas
+      })
+      careClearTimerRef.current = setTimeout(() => {
+        careClearTimerRef.current = null
+        void clearCareFeedback()
+      }, CARE_FEEDBACK_MS)
+    },
+    [clearCareFeedback]
+  )
+
+  const playLevelUpFx = useCallback((level: number) => {
+    if (careClearTimerRef.current) {
+      clearTimeout(careClearTimerRef.current)
+      careClearTimerRef.current = null
+    }
+    if (levelUpFxTimerRef.current) clearTimeout(levelUpFxTimerRef.current)
+    careFxKeyRef.current += 1
+    setCareFx(null)
+    setEvolveFx(null)
+    setCareAnim('happy')
+    setLevelUpFx({ key: careFxKeyRef.current, level })
+    levelUpFxTimerRef.current = setTimeout(() => {
+      levelUpFxTimerRef.current = null
+      setCareAnim(null)
+      setLevelUpFx(null)
+    }, LEVEL_UP_FX_MS)
+  }, [])
+
+  const finishEvolveFx = useCallback(async () => {
+    setCareAnim(null)
+    setEvolveFx(null)
+    setEvolvePhase(null)
+    setEvolving(false)
+    await window.electronAPI.patchGame('setPetAnimation', ['idle'])
+    await onUpdated()
+  }, [onUpdated])
+
+  const playEvolveRevealFx = useCallback(() => {
+    if (careClearTimerRef.current) {
+      clearTimeout(careClearTimerRef.current)
+      careClearTimerRef.current = null
+    }
+    if (levelUpFxTimerRef.current) {
+      clearTimeout(levelUpFxTimerRef.current)
+      levelUpFxTimerRef.current = null
+    }
+    if (evolveFxTimerRef.current) clearTimeout(evolveFxTimerRef.current)
+    careFxKeyRef.current += 1
+    setCareFx(null)
+    setLevelUpFx(null)
+    setEvolvePhase('reveal')
+    setCareAnim('happy')
+    setEvolveFx({ key: careFxKeyRef.current })
+    evolveFxTimerRef.current = setTimeout(() => {
+      evolveFxTimerRef.current = null
+      void finishEvolveFx()
+    }, EVOLVE_FX_MS)
+  }, [finishEvolveFx])
+
+  useEffect(() => {
+    if (!carePulse || carePulse.key === lastCarePulseKeyRef.current) return
+    if (!pet || pet.stage === 'egg' || hatching || evolving) return
+    lastCarePulseKeyRef.current = carePulse.key
+    playCareFeedback(carePulse.type)
+  }, [carePulse, pet, hatching, evolving, playCareFeedback])
+
+  useEffect(() => {
+    if (!pet || pet.stage === 'egg') {
+      prevLevelRef.current = null
+      prevStageRef.current = pet?.stage ?? null
+      return
+    }
+    const level = getPetLevel(pet.stage, pet.stats.evolution)
+    const prev = prevLevelRef.current
+    const prevStage = prevStageRef.current
+    prevLevelRef.current = level
+    prevStageRef.current = pet.stage
+    // Stage change (baby → adult) recalculates level; don't treat as a level-up claim.
+    if (prevStage != null && prevStage !== pet.stage) return
+    if (prev != null && level > prev && !hatching && !evolving) {
+      playLevelUpFx(level)
+    }
+  }, [pet?.id, pet?.stage, pet?.stats.evolution, hatching, evolving, playLevelUpFx, pet])
 
   if (!pet) return null
 
@@ -117,34 +234,15 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
   const canHatch = canHatchEgg(pet)
   const canEvolve = canEvolveToAdult(pet)
 
-  const clearCareFeedback = async () => {
-    setCareAnim(null)
-    setCareFx(null)
-    await window.electronAPI.patchGame('setPetAnimation', ['idle'])
-    await onUpdated()
-  }
-
   const useQuickItem = async (type: ItemType | null) => {
     if (!type || !inventoryByType.get(type)) return
-    if (pet.stage === 'egg' || hatching) return
+    if (pet.stage === 'egg' || hatching || evolving) return
     const feedback = getCareFeedback(type)
     if (!feedback) return
 
     await window.electronAPI.patchGame('useItem', [type])
     await onUpdated()
-
-    if (careClearTimerRef.current) clearTimeout(careClearTimerRef.current)
-    careFxKeyRef.current += 1
-    setCareAnim(feedback.anim)
-    setCareFx({
-      key: careFxKeyRef.current,
-      itemType: type,
-      deltas: feedback.deltas
-    })
-    careClearTimerRef.current = setTimeout(() => {
-      careClearTimerRef.current = null
-      void clearCareFeedback()
-    }, CARE_FEEDBACK_MS)
+    playCareFeedback(type)
   }
 
   const setQuickItem = async (slotIndex: number, type: ItemType | null) => {
@@ -154,6 +252,7 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
   }
 
   const runPetAction = async () => {
+    if (hatching || evolving) return
     if (canHatch) {
       setHatching(true)
       await waitForHatchAnimation(pet.character, (finish) => {
@@ -166,8 +265,21 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
       return
     }
     if (canEvolve) {
-      await window.electronAPI.patchGame('evolve')
-      onUpdated()
+      setEvolving(true)
+      setEvolvePhase('charge')
+      setCareFx(null)
+      setLevelUpFx(null)
+      setCareAnim(null)
+      try {
+        await delay(EVOLVE_CHARGE_MS)
+        await window.electronAPI.patchGame('evolve')
+        await onUpdated()
+        playEvolveRevealFx()
+      } catch {
+        setEvolving(false)
+        setEvolvePhase(null)
+        setEvolveFx(null)
+      }
     }
   }
 
@@ -250,17 +362,25 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
                 className="dash-hud-cta dash-hud-cta--levelup"
                 onClick={() => setLevelUpOpen(true)}
               >
-                {t('growth.claimLevelUp')}
+                <span className="dash-hud-cta__label">{t('growth.claimLevelUp')}</span>
               </button>
             )}
-            {(canHatch || canEvolve) && (
+            {(canHatch || canEvolve || evolving) && (
               <button
                 type="button"
                 className="dash-hud-cta dash-hud-cta--evolve"
                 onClick={runPetAction}
-                disabled={hatching}
+                disabled={hatching || evolving}
               >
-                {hatching ? t('pet.hatching') : canHatch ? t('pet.hatch') : t('pet.evolveToAdult')}
+                <span className="dash-hud-cta__label">
+                  {hatching
+                    ? t('pet.hatching')
+                    : evolving
+                      ? t('pet.evolving')
+                      : canHatch
+                        ? t('pet.hatch')
+                        : t('pet.evolveToAdult')}
+                </span>
               </button>
             )}
             {TEST_FAST_EVO && (
@@ -323,16 +443,24 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
         <HomeMissionsPanel save={save} onUpdated={onUpdated} />
 
         <div
-          className={`dash-scene-pet dash-scene-pet--${isEgg ? 'egg' : 'pedestal'}`}
+          className={[
+            `dash-scene-pet dash-scene-pet--${isEgg ? 'egg' : 'pedestal'}`,
+            evolving && evolvePhase ? `dash-scene-pet--evolve-${evolvePhase}` : ''
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{ left: `${layout.leftPct}%`, top: `${layout.topPct}%` }}
         >
-          <DinoSprite
-            pet={pet}
-            size={layout.spriteSize}
-            hatching={hatching}
-            careAnim={careAnim}
-            onHatchComplete={() => hatchDoneRef.current?.()}
-          />
+          {evolving && <div className="dash-evolve-burst" aria-hidden />}
+          <div className="dash-evolve-sprite">
+            <DinoSprite
+              pet={pet}
+              size={layout.spriteSize}
+              hatching={hatching}
+              careAnim={careAnim}
+              onHatchComplete={() => hatchDoneRef.current?.()}
+            />
+          </div>
           {careFx && (
             <div key={careFx.key} className="dash-care-fx" aria-hidden>
               <img
@@ -353,6 +481,18 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
               </div>
             </div>
           )}
+          {levelUpFx && (
+            <div key={levelUpFx.key} className="dash-levelup-fx" aria-hidden>
+              <strong>{t('growth.banner')}</strong>
+              <span>{t('growth.bannerLevel', { level: levelUpFx.level })}</span>
+            </div>
+          )}
+          {evolveFx && (
+            <div key={evolveFx.key} className="dash-evolve-fx" aria-hidden>
+              <strong>{t('pet.evolveBanner')}</strong>
+              <span>{t('pet.evolveBannerAdult')}</span>
+            </div>
+          )}
         </div>
 
         <section className="dash-hud-quickbar" aria-label={t('home.quickCare')}>
@@ -360,7 +500,7 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
             const quantity = type ? inventoryByType.get(type) ?? 0 : 0
             const canCare = Boolean(type && getCareFeedback(type))
             const disabled =
-              !type || !canCare || quantity <= 0 || pet.stage === 'egg' || hatching
+              !type || !canCare || quantity <= 0 || pet.stage === 'egg' || hatching || evolving
             return (
               <div key={`${type ?? 'empty'}-${index}`} className="dash-hud-slot-wrap">
                 <button

@@ -74,10 +74,10 @@ export function rollDinoCharacter(): DinoCharacter {
   return pickRandom(DINO_CHARACTERS)
 }
 
-/** New eggs use an explicit species, or the default creature POC. */
+/** New eggs use an explicit species, or a random creature from the live pool. */
 export function hatchEgg(species?: PetSpecies): HatchResult {
   return {
-    character: species && isCreatureSpecies(species) ? species : DEFAULT_CREATURE_SPECIES,
+    character: species && isCreatureSpecies(species) ? species : rollPetSpecies(),
     gender: rollGender()
   }
 }
