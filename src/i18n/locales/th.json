@@ -180,6 +180,7 @@
     "itemsLeft": "ไอเทมวันนี้: {{left}} / {{total}}",
     "distance": "ระยะทาง: {{score}}",
     "rewardItems": "ไอเทมรางวัล: {{items}}",
+    "rewardPoolLabel": "รางวัลที่เป็นไปได้",
     "scoreThreshold1000": "ได้ไอเทมเมื่อระยะทาง {{score}}+",
     "belowThreshold": "ต้องวิ่งได้ {{score}} ระยะทางขึ้นไปถึงจะได้ไอเทม",
     "noRewardsLeft": "รางวัลไอเทมหมดแล้ววันนี้ — เล่นต่อเพื่อทำคะแนนอันดับ!",

@@ -180,6 +180,7 @@
     "itemsLeft": "Items today: {{left}} / {{total}}",
     "distance": "Distance: {{score}}",
     "rewardItems": "Reward item: {{items}}",
+    "rewardPoolLabel": "Possible rewards",
     "scoreThreshold1000": "Item reward at {{score}}+ distance",
     "belowThreshold": "Reach {{score}} distance to earn a random item.",
     "noRewardsLeft": "No item rewards left today — keep playing for ranking!",

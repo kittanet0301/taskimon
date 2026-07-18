@@ -4678,20 +4678,26 @@ button.dash-hud-avatar--btn:disabled {
 .minigame-play-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
   font-size: 0.9rem;
-  color: var(--pixel-muted, #6b7280);
+  font-weight: 700;
+  color: #3b210e;
 }
 
 .minigame-stage {
   position: relative;
-  display: flex;
-  justify-content: center;
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 .minigame-canvas {
+  display: block;
   width: 100%;
-  max-width: 720px;
   aspect-ratio: 2 / 1;
   border: 3px solid var(--pixel-border, #2c1408);
   border-radius: 12px;
@@ -4707,11 +4713,64 @@ button.dash-hud-avatar--btn:disabled {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 20px;
+  padding: 16px;
   text-align: center;
-  background: rgba(15, 23, 42, 0.55);
-  color: #fff;
+  background: rgba(28, 16, 8, 0.55);
   border-radius: 12px;
+  overflow: hidden;
+}
+
+.minigame-overlay-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 420px);
+  padding: 18px 20px;
+  border: 4px solid #2c1408;
+  border-radius: 0;
+  background: #fff5eb;
+  box-shadow: 4px 4px 0 rgba(30, 14, 4, 0.86);
+  color: #3b210e;
+}
+
+.pixel-hub .minigame-overlay-panel h3 {
+  margin: 0;
+  color: #2c1408;
+  text-shadow: none;
+}
+
+.minigame-overlay-text {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #3b210e;
+  text-shadow: none;
+}
+
+.minigame-overlay-rewards {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 4px;
+}
+
+.minigame-overlay-reward-icons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.minigame-overlay-reward-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 1px 0 rgba(44, 20, 8, 0.35));
 }
 
 .minigame-overlay-actions {
@@ -4732,13 +4791,34 @@ button.dash-hud-avatar--btn:disabled {
 }
 
 .minigame-score-line {
+  margin: 0;
   font-size: 1.35rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: #2c1408;
+  text-shadow: none;
 }
 
 .minigame-reward-line {
-  color: #fef08a;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 3px solid #2c1408;
+  border-radius: 0;
+  background: #fff3c4;
+  color: #3b210e;
+  font-weight: 800;
+  text-shadow: none;
+}
+
+.minigame-reward-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 
 .ranking-header {
