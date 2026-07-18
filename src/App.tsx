@@ -381,7 +381,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   }
 
   return (
-    <div className="app pixel-hub hub-shell">
+    <div className={`app pixel-hub hub-shell${mainView === 'home' ? ' hub-shell--home' : ''}`}>
       <HubSidebar
         activeTarget={sidebarTarget}
         displayName={displayName}
