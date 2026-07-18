@@ -1012,11 +1012,12 @@ button.dash-hud-avatar--btn:disabled {
   cursor: default;
 }
 
-.dash-hud-avatar span:last-child {
+.dash-hud-avatar span {
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  order: -1;
 }
 
 /* Focus mode: collapse chrome, keep pet + avatar toggle */
