@@ -7,11 +7,14 @@ import {
   formatUltimateFallbackMessage,
   formatWinnerMessage
 } from './formatLog'
+import { normalizeElementId } from '../elements'
+import { ultimateFor } from './skillTrees'
 
 interface BattlePet {
   id: string
   name: string
   character: PetData['character']
+  pet: PetData
   hp: number
   ultimateUsed: boolean
   defending: boolean
@@ -22,9 +25,29 @@ function toLegacyAction(action: LegacyBattleAction): BattleActionType {
   return action.type
 }
 
-function calcLegacyDamage(defender: BattlePet, action: LegacyBattleAction): number {
+function calcLegacyDamage(
+  attacker: BattlePet,
+  defender: BattlePet,
+  action: LegacyBattleAction
+): number {
+  const aPet = attacker.pet
+  const dPet = defender.pet
+  const attackerElement = normalizeElementId(aPet.elementPrimary)
+  const isSkill = action.type === 'skill'
+  const skillId = isSkill ? ultimateFor(attackerElement).pathId : undefined
   return calcDamage({
-    action: toLegacyAction(action),
+    mode: isSkill ? 'skill' : 'attack',
+    skillId,
+    skillRank: 1,
+    attackerStr: aPet.primaries?.str ?? 20,
+    attackerInt: aPet.primaries?.int ?? 20,
+    defenderDef: Math.max(1, dPet.primaries?.con ?? 20),
+    attackerElement,
+    defenderElementPrimary: normalizeElementId(dPet.elementPrimary),
+    defenderElementSecondary: dPet.elementSecondary
+      ? normalizeElementId(dPet.elementSecondary)
+      : null,
+    attackerPure: aPet.elementSecondary == null,
     defenderDefending: defender.defending,
     randomFactor: randomDamageFactor()
   })
@@ -42,6 +65,7 @@ export function simulateBattle(
     id: challenger.id,
     name: challenger.name,
     character: challenger.character,
+    pet: challenger,
     hp: challenger.stats.health,
     ultimateUsed: false,
     defending: false
@@ -50,6 +74,7 @@ export function simulateBattle(
     id: defender.id,
     name: defender.name,
     character: defender.character,
+    pet: defender,
     hp: defender.stats.health,
     ultimateUsed: false,
     defending: false
@@ -64,12 +89,12 @@ export function simulateBattle(
     d.defending = dAction.type === 'defend'
 
     if (cAction.type === 'skill' && c.ultimateUsed) {
-      const dmg = calcLegacyDamage(d, { type: 'attack' })
+      const dmg = calcLegacyDamage(c, d, { type: 'attack' })
       d.hp = Math.max(0, d.hp - dmg)
       log.push(formatUltimateFallbackMessage(c.name, d.name, dmg))
     } else {
       if (cAction.type === 'skill') c.ultimateUsed = true
-      const dmg = calcLegacyDamage(d, cAction)
+      const dmg = calcLegacyDamage(c, d, cAction)
       if (cAction.type === 'defend') {
         log.push(formatDefendMessage(c.name))
       } else {
@@ -82,12 +107,12 @@ export function simulateBattle(
     if (d.hp <= 0) break
 
     if (dAction.type === 'skill' && d.ultimateUsed) {
-      const dmg = calcLegacyDamage(c, { type: 'attack' })
+      const dmg = calcLegacyDamage(d, c, { type: 'attack' })
       c.hp = Math.max(0, c.hp - dmg)
       log.push(formatUltimateFallbackMessage(d.name, c.name, dmg))
     } else {
       if (dAction.type === 'skill') d.ultimateUsed = true
-      const dmg = calcLegacyDamage(c, dAction)
+      const dmg = calcLegacyDamage(d, c, dAction)
       if (dAction.type === 'defend') {
         log.push(formatDefendMessage(d.name))
       } else {

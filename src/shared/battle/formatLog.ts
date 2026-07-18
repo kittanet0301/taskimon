@@ -23,6 +23,37 @@ export function formatActionMessage(
   return `${actorName} ${i18n.t(verbKey)} ${targetName} -${damage} HP`
 }
 
+export function formatAttackMessage(
+  actorName: string,
+  targetName: string,
+  damage: number
+): string {
+  return `${actorName} ${i18n.t('battle.bite')} ${targetName} -${damage} HP`
+}
+
+export function formatSkillMessage(
+  actorName: string,
+  skillPathId: string,
+  damage: number,
+  targetName?: string
+): string {
+  const label = i18n.t(`skills.${skillPathId}`, {
+    defaultValue: skillPathId.replace(/_/g, ' ')
+  })
+  if (damage <= 0) {
+    return `${actorName} → ${label}`
+  }
+  if (targetName) {
+    return `${actorName} → ${label} · ${targetName} -${damage} HP`
+  }
+  return `${actorName} → ${label} -${damage} HP`
+}
+
+export function formatItemShieldMessage(actorName: string): string {
+  const label = i18n.t('items.battle_shield.label', { defaultValue: 'Battle Shield' })
+  return `${actorName} → ${label}`
+}
+
 export function formatUltimateMessage(
   actorName: string,
   targetName: string,
@@ -45,6 +76,10 @@ export function formatShieldMessage(actorName: string): string {
   return `${actorName} ${i18n.t('battle.shield')}`
 }
 
+export function formatDefendMessage(actorName: string): string {
+  return `${actorName} ${i18n.t('battle.defend')}`
+}
+
 export function formatAvoidMessage(actorName: string): string {
   return `${actorName} ${i18n.t('battle.avoid')}`
 }
@@ -60,6 +95,3 @@ export function formatFleeMessage(actorName: string): string {
 export function formatWinnerMessage(winnerName: string): string {
   return i18n.t('battle.modal.subtitleWinnerNamed', { winnerName })
 }
-
-/** @deprecated use formatShieldMessage */
-export const formatDefendMessage = formatShieldMessage
