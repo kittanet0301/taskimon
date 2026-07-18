@@ -530,6 +530,8 @@
     "levelUpBody": "Each level permanently strengthens this pet. Pick your boosts here.",
     "levelUpCard": "Growth Card — choose 1 of 3 (adds STR / DEX / INT / CON)",
     "levelUpSkillPoint": "Skill point +1 — spend it to raise one skill rank (max 8)",
+    "claimLevelUp": "Level up! Claim reward",
+    "pendingLevels": "{{count}} level rewards waiting",
     "power_up": "Power Up",
     "swift": "Swift",
     "focus": "Focus",

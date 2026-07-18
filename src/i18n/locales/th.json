@@ -530,6 +530,8 @@
     "levelUpBody": "ทุกเลเวลจะเสริมพลังถาวร เลือกอัปเกรดได้ที่นี่",
     "levelUpCard": "Growth Card — เลือก 1 จาก 3 (เพิ่ม STR / DEX / INT / CON)",
     "levelUpSkillPoint": "แต้มสกิล +1 — ใช้ยกแรงค์สกิลช่องใดช่องหนึ่ง (สูงสุด 8)",
+    "claimLevelUp": "เลเวลอัพ! รับรางวัล",
+    "pendingLevels": "รอรับรางวัลเลเวล {{count}} ครั้ง",
     "power_up": "เพิ่มพลัง",
     "swift": "ว่องไว",
     "focus": "สมาธิ",

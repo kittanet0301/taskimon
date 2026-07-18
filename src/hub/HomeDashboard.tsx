@@ -12,6 +12,7 @@ import { CREATURE_SPECIES, isCreatureSpecies } from '../shared/creatureCharacter
 import { ALL_ITEM_TYPES, ITEM_ICON_SRC } from '../shared/itemIcons'
 import { HomeMissionsPanel } from './HomeMissionsPanel'
 import { CombatStatCheck } from '../components/CombatStatCheck'
+import { GrowthLevelUpModal } from '../components/GrowthLevelUpModal'
 import {
   coverImagePointToPercent,
   DASH_BG_HEIGHT,
@@ -40,8 +41,15 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
   const [layout, setLayout] = useState({ leftPct: 50, topPct: 50, spriteSize: 96 })
   const [editingSlot, setEditingSlot] = useState<number | null>(null)
   const [hatching, setHatching] = useState(false)
+  const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [levelUpBusy, setLevelUpBusy] = useState(false)
   const hatchDoneRef = useRef<(() => void) | null>(null)
   const sceneKey = 'hatch'
+  const hasPendingLevelUp = (pet?.pendingGrowthOffers?.length ?? 0) > 0
+
+  useEffect(() => {
+    if (!hasPendingLevelUp) setLevelUpOpen(false)
+  }, [hasPendingLevelUp])
 
   const quickSlots = useMemo(
     () => normalizeQuickItemSlots(save.quickItemSlots).slice(0, QUICK_ITEM_SLOT_COUNT),
@@ -120,6 +128,17 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
     onUpdated()
   }
 
+  const pickGrowthCard = async (cardId: string) => {
+    if (!pet || levelUpBusy) return
+    setLevelUpBusy(true)
+    try {
+      await window.electronAPI.patchGame('applyGrowthCard', [pet.id, cardId])
+      await onUpdated()
+    } finally {
+      setLevelUpBusy(false)
+    }
+  }
+
   return (
     <div className={`dash-hud dash-hud--${sceneKey}`}>
       <div ref={sceneRef} className="dash-hud-scene">
@@ -166,6 +185,15 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
               <b>{pet.stats.evolution}/999</b>
             </div>
             <CombatStatCheck pet={pet} variant="compact" className="dash-hud-combat-stats" />
+            {hasPendingLevelUp && (
+              <button
+                type="button"
+                className="dash-hud-levelup-btn"
+                onClick={() => setLevelUpOpen(true)}
+              >
+                {t('growth.claimLevelUp')}
+              </button>
+            )}
             {(canHatch || canEvolve) && (
               <button
                 type="button"
@@ -316,6 +344,15 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
 
         {syncing && <div className="dash-hud-sync">{t('app.syncing')}</div>}
       </div>
+
+      {levelUpOpen && pet && hasPendingLevelUp && (
+        <GrowthLevelUpModal
+          pet={pet}
+          busy={levelUpBusy}
+          onClose={() => setLevelUpOpen(false)}
+          onPickGrowthCard={pickGrowthCard}
+        />
+      )}
     </div>
   )
 }
