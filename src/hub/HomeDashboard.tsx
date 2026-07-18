@@ -434,6 +434,24 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
                   >
                     +ember egg
                   </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => runDebug('debugGrantItem', ['breed_nest', 3])}
+                    title={t('items.breed_nest.label')}
+                  >
+                    +nest
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() =>
+                      runDebug('debugSetGender', [pet.gender === 'female' ? 'male' : 'female'])
+                    }
+                    title={t('pet.gender')}
+                  >
+                    flip {pet.gender === 'female' ? 'F→M' : 'M→F'}
+                  </button>
                 </div>
               </div>
             )}

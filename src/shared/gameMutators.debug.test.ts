@@ -78,4 +78,20 @@ describe('TEST debug buttons', () => {
     expect(egg.elementPrimary).toBeTruthy()
     expect(used + 1).toBe(1 + next.collection.length)
   })
+
+  it('debugGrantItem adds breed_nest to inventory', () => {
+    const save = createDefaultSave()
+    const before = save.inventory.find((i) => i.type === 'breed_nest')?.quantity ?? 0
+    const next = applyGamePatch(save, 'debugGrantItem', ['breed_nest', 2])
+    expect(next.inventory.find((i) => i.type === 'breed_nest')?.quantity).toBe(before + 2)
+  })
+
+  it('debugSetGender flips active pet gender', () => {
+    const save = createDefaultSave()
+    expect(save.pet).toBeTruthy()
+    const flipped = applyGamePatch(save, 'debugSetGender', [
+      save.pet!.gender === 'female' ? 'male' : 'female'
+    ])
+    expect(flipped.pet?.gender).not.toBe(save.pet!.gender)
+  })
 })

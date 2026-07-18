@@ -1,4 +1,4 @@
-import { QUICK_ITEM_SLOT_COUNT } from './constants'
+import { QUICK_ITEM_SLOT_COUNT, TEST_FAST_EVO } from './constants'
 import type { InventoryItem, ItemType, PetStats } from './types'
 import { addDevPoints, clampStat, feedPet, healPet } from './stats'
 
@@ -51,11 +51,14 @@ export function useItem(type: ItemType, stats: PetStats): PetStats {
 }
 
 export function getDefaultInventory(): { type: ItemType; quantity: number }[] {
-  return [
+  const base: { type: ItemType; quantity: number }[] = [
     { type: 'food_basic', quantity: 2 },
     { type: 'water', quantity: 2 },
     { type: 'medicine', quantity: 1 }
   ]
+  // Test mode: seed nests so breeding is tryable without weekly mission grind.
+  if (TEST_FAST_EVO) base.push({ type: 'breed_nest', quantity: 3 })
+  return base
 }
 
 export function getDefaultQuickItemSlots(inventory: InventoryItem[] = getDefaultInventory()): Array<ItemType | null> {

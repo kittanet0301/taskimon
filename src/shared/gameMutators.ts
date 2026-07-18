@@ -175,6 +175,22 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       }
     }
   }
+  if (TEST_FAST_EVO && mutatorName === 'debugGrantItem' && typeof args[0] === 'string') {
+    const itemType = args[0] as ItemType
+    if (!(itemType in ITEMS)) return save
+    const qty = typeof args[1] === 'number' ? Math.max(1, Math.floor(args[1])) : 1
+    const inv = [...save.inventory]
+    const idx = inv.findIndex((i) => i.type === itemType)
+    if (idx >= 0) inv[idx] = { ...inv[idx], quantity: inv[idx].quantity + qty }
+    else inv.push({ type: itemType, quantity: qty })
+    return { ...save, inventory: inv }
+  }
+  if (TEST_FAST_EVO && mutatorName === 'debugSetGender' && typeof args[0] === 'string') {
+    if (!save.pet) return save
+    const gender = args[0] === 'female' ? 'female' : args[0] === 'male' ? 'male' : null
+    if (!gender) return save
+    return { ...save, pet: { ...save.pet, gender } }
+  }
   if (mutatorName === 'setActivePet' && typeof args[0] === 'string') {
     const petId = args[0] as string
     const idx = save.collection.findIndex((p) => p.id === petId)

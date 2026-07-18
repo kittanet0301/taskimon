@@ -114,6 +114,16 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
   const canBreedNow =
     petA && petB && petA.id !== petB.id && canBreed(petA, petB, now) && breedNestCount > 0 && canAddPet(save)
 
+  const breedBlockReason = ((): string | null => {
+    if (adultPets.length < 2) return t('breed.needAdults')
+    if (breedNestCount <= 0) return t('breed.needNest')
+    if (!canAddPet(save)) return t('collection.noSlots')
+    if (!petA || !petB || petA.id === petB.id) return null
+    if (petA.gender === petB.gender) return t('breed.needOppositeGender')
+    if (!canBreed(petA, petB, now)) return t('breed.notEligible')
+    return null
+  })()
+
   const maxCollectionSlots = save.pet ? save.petSlotLimit - 1 : save.petSlotLimit
 
   const filteredCollection = useMemo(
@@ -520,30 +530,48 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               {t('breed.hint')}
               {' · '}
               {t('breed.nestsOwned', { count: breedNestCount })}
-              {!canAddPet(save) && (
-                <>
-                  {' · '}
-                  <strong>{t('collection.noSlots')}</strong>
-                </>
-              )}
+              {' · '}
+              {t('breed.nestSource')}
             </p>
+            {breedBlockReason && (
+              <p className="pet-profile-hint" role="status">
+                <strong>{breedBlockReason}</strong>
+              </p>
+            )}
             <div className="breed-picker">
               {(['a', 'b'] as const).map((side) => {
                 const selected = side === 'a' ? petA : petB
                 const setId = side === 'a' ? setBreedA : setBreedB
+                const other = side === 'a' ? petB : petA
                 return (
                   <div key={side} className="breed-picker-column">
                     <strong>{t(`breed.parent${side === 'a' ? 'A' : 'B'}`)}</strong>
                     <select
                       value={selected?.id ?? ''}
-                      onChange={(e) => setId(e.target.value || null)}
+                    onChange={(e) => {
+                      const nextId = e.target.value || null
+                      setId(nextId)
+                      // Clear the other side if it becomes same-gender after this pick.
+                      if (nextId && other) {
+                        const picked = adultPets.find((p) => p.id === nextId)
+                        if (picked && picked.gender === other.gender) {
+                          if (side === 'a') setBreedB(null)
+                          else setBreedA(null)
+                        }
+                      }
+                    }}
                     >
                       <option value="">—</option>
-                      {adultPets.map((p) => (
-                        <option key={p.id} value={p.id} disabled={side === 'a' ? p.id === breedB : p.id === breedA}>
-                          {p.name} ({tCharacter(p.character)} · {p.gender === 'female' ? 'F' : 'M'})
-                        </option>
-                      ))}
+                      {adultPets.map((p) => {
+                        const taken = other?.id === p.id
+                        const wrongGender = other != null && p.gender === other.gender
+                        return (
+                          <option key={p.id} value={p.id} disabled={taken || wrongGender}>
+                            {p.name} ({tCharacter(p.character)} · {p.gender === 'female' ? 'F' : 'M'})
+                            {wrongGender ? ` — ${t('breed.sameGender')}` : ''}
+                          </option>
+                        )
+                      })}
                     </select>
                     {selected && (
                       <div className="breed-picker-info">
@@ -567,9 +595,6 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                 )
               })}
             </div>
-            {petA && petB && petA.id !== petB.id && !canBreed(petA, petB, now) && (
-              <p className="pet-profile-hint">{t('breed.notEligible')}</p>
-            )}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button type="button" className="secondary" onClick={() => setBreedOpen(false)}>
                 {t('common.cancel')}

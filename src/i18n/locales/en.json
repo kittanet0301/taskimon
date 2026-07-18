@@ -670,8 +670,13 @@
     "breed": "Breed",
     "ready": "Ready to breed",
     "cooldownLeft": "Cooldown: {{time}}",
-    "notEligible": "These pets cannot breed right now (need two adults of opposite gender).",
-    "nestsOwned": "Breeding nests: {{count}}"
+    "notEligible": "These pets cannot breed right now (need opposite-gender adults off cooldown).",
+    "nestsOwned": "Breeding nests: {{count}}",
+    "nestSource": "Nests come from the weekly mission",
+    "needNest": "You need a breeding nest first",
+    "needAdults": "You need at least two adult pets",
+    "needOppositeGender": "Pick opposite genders",
+    "sameGender": "same gender"
   },
   "months": {
     "1": "Jan",
