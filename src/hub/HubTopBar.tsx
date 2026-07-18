@@ -37,11 +37,6 @@ export function HubTopBar({
         alt={t('app.appName')}
         draggable={false}
       />
-      {displayName ? (
-        <div className="hub-topbar-player" title={displayName}>
-          <span>{displayName}</span>
-        </div>
-      ) : null}
       <div className="hub-topbar-stats">
         <div className="dash-hud-counter dash-hud-counter--gem">
           <img className="dash-hud-counter-icon" src={STAT_ICON_SRC.gems} alt="" draggable={false} />
@@ -65,7 +60,14 @@ export function HubTopBar({
         </div>
       </div>
       {syncing && <div className="hub-topbar-sync">{t('app.syncing')}</div>}
-      <div className="hub-topbar-extra">{children}</div>
+      <div className="hub-topbar-extra">
+        {displayName ? (
+          <div className="hub-topbar-player" title={displayName}>
+            <span>{displayName}</span>
+          </div>
+        ) : null}
+        {children}
+      </div>
     </div>
   )
 }
