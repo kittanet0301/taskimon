@@ -1050,7 +1050,6 @@ button.dash-hud-avatar--btn:disabled {
 .dash-hud--focus .dash-hud-quickbar,
 .dash-hud--focus .dash-hud-picker,
 .dash-hud--focus .dash-hud-debug,
-.dash-hud--focus .dash-hud-sync,
 .dash-hud--focus .dash-hud-cta,
 .dash-hud--focus .growth-levelup-overlay {
   display: none !important;
@@ -1615,19 +1614,6 @@ button.dash-hud-avatar--btn:disabled {
 .dash-hud-picker-item--clear {
   grid-template-columns: 1fr;
   text-align: center;
-}
-
-.dash-hud-sync {
-  position: absolute;
-  z-index: 7;
-  right: 16px;
-  bottom: 12px;
-  padding: 6px 10px;
-  border: 3px solid #2c1408;
-  background: #f9dfae;
-  color: #3b210e;
-  font-weight: 900;
-  box-shadow: 3px 3px 0 rgba(30, 14, 4, 0.82);
 }
 
 .dash-hud-missions {
