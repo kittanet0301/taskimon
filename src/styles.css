@@ -162,7 +162,11 @@ body {
 
 /* Home: nav sits under the top bar and floats clear over the scene */
 .hub-shell--home {
-  --hub-nav-gutter: clamp(72px, 7vw, 100px);
+  /* Match dash-hud-status right/top insets */
+  --hub-edge: clamp(16px, 2vw, 32px);
+  --hub-edge-y: clamp(16px, 2.5vh, 32px);
+  --hub-nav-width: clamp(72px, 7vw, 100px);
+  --hub-nav-gutter: calc(var(--hub-edge) + var(--hub-nav-width));
 }
 
 .hub-home-body {
@@ -174,10 +178,12 @@ body {
 
 .hub-shell--home .hub-sidebar {
   position: absolute;
-  left: 0;
+  left: var(--hub-edge);
   top: 0;
   bottom: 0;
   z-index: 30;
+  width: var(--hub-nav-width);
+  padding: var(--hub-edge-y) 0 22px;
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -192,7 +198,8 @@ body {
 }
 
 .hub-shell--home .dash-hud-missions {
-  left: calc(var(--hub-nav-gutter, 88px) + clamp(10px, 1.4vw, 20px));
+  left: calc(var(--hub-nav-gutter) + var(--hub-edge));
+  top: var(--hub-edge-y);
 }
 
 .hub-main {
@@ -2204,11 +2211,9 @@ input, select {
   }
 
   .hub-shell--home {
-    --hub-nav-gutter: 62px;
-  }
-
-  .hub-shell--home .dash-hud-missions {
-    left: calc(var(--hub-nav-gutter) + 8px);
+    --hub-edge: 8px;
+    --hub-edge-y: 8px;
+    --hub-nav-width: 62px;
   }
 }
 
