@@ -4541,7 +4541,142 @@ input, select {
 }
 
 .growth-levelup-modal {
-  max-width: 480px;
+  position: relative;
+  max-width: 560px;
+  max-height: min(88vh, 820px);
+  overflow-y: auto;
+  padding: 22px 20px 18px;
+  color: #3b210e;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  background: linear-gradient(180deg, #fffaf0 0%, #fff3dc 100%);
+  border: 3px solid #3b210e;
+  box-shadow: 6px 6px 0 rgba(30, 14, 4, 0.55);
+}
+
+.growth-levelup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+.growth-levelup-cards {
+  margin: 0 0 16px;
+  padding: 16px 14px 14px;
+  border: 2px dashed #5a3114;
+  background: rgba(255, 248, 230, 0.72);
+}
+
+.growth-levelup-cards h2 {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #3b210e;
+  font-family: inherit;
+}
+
+.growth-levelup-cards--claimed {
+  opacity: 0.92;
+}
+
+.growth-levelup-hint {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #5a3114;
+}
+
+.growth-levelup-modal .growth-card-grid {
+  margin-top: 10px;
+  gap: 12px;
+}
+
+.growth-levelup-modal .growth-card {
+  min-height: 76px;
+  padding: 14px 12px;
+  border: 2px solid #3b210e;
+  border-radius: 4px;
+  background: #ffe9a0;
+  box-shadow: none;
+  color: #3b210e;
+}
+
+.growth-levelup-modal .growth-card:hover:not(:disabled) {
+  background: #ffefb8;
+  transform: translateY(-1px);
+}
+
+.growth-levelup-modal .growth-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.growth-levelup-modal .growth-card strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.growth-levelup-modal .growth-card span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #5a3114;
+}
+
+.growth-levelup-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.growth-levelup-skills .pet-profile-skills-head strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #3b210e;
+}
+
+.growth-levelup-skills .pet-profile-skill {
+  padding: 12px 12px;
+  border: 2px solid rgba(59, 33, 14, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(59, 33, 14, 0.08);
+}
+
+.growth-levelup-skills .pet-profile-skill-info strong {
+  font-size: 0.98rem;
+  color: #3b210e;
+}
+
+.growth-levelup-skills .pet-profile-skill-info span {
+  color: #6b4a2e;
+}
+
+.growth-levelup-upgrade-btn {
+  min-width: 88px;
+  padding: 8px 12px;
+  border: 2px solid #3b210e !important;
+  border-radius: 2px;
+  background: #fff !important;
+  color: #3b210e !important;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif !important;
+  font-weight: 800;
+  box-shadow: 3px 3px 0 #3b210e !important;
+}
+
+.growth-levelup-upgrade-btn:hover:not(:disabled) {
+  background: #fff8e8 !important;
+}
+
+.growth-levelup-upgrade-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #3b210e !important;
+}
+
+.growth-levelup-upgrade-btn:disabled {
+  opacity: 0.45;
+  box-shadow: 2px 2px 0 rgba(59, 33, 14, 0.35) !important;
 }
 
 .growth-levelup-skill-note {

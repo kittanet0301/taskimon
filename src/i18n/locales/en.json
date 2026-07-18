@@ -532,6 +532,7 @@
     "levelUpSkillPoint": "Skill point +1 — spend it to raise one skill rank (max 8)",
     "claimLevelUp": "Level up! Claim reward",
     "pendingLevels": "{{count}} level rewards waiting",
+    "cardClaimedHint": "Growth card claimed. Spend skill points below, then close when ready.",
     "power_up": "Power Up",
     "swift": "Swift",
     "focus": "Focus",

@@ -47,8 +47,10 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
   const sceneKey = 'hatch'
   const hasPendingLevelUp = (pet?.pendingGrowthOffers?.length ?? 0) > 0
 
+  // Auto-open when a new level-up reward arrives. Do not auto-close after a
+  // growth card pick — the same popup also lets the player upgrade skills.
   useEffect(() => {
-    if (!hasPendingLevelUp) setLevelUpOpen(false)
+    if (hasPendingLevelUp) setLevelUpOpen(true)
   }, [hasPendingLevelUp])
 
   const quickSlots = useMemo(
@@ -133,6 +135,17 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
     setLevelUpBusy(true)
     try {
       await window.electronAPI.patchGame('applyGrowthCard', [pet.id, cardId])
+      await onUpdated()
+    } finally {
+      setLevelUpBusy(false)
+    }
+  }
+
+  const upgradeSkillFromLevelUp = async (slotIndex: number) => {
+    if (!pet || levelUpBusy) return
+    setLevelUpBusy(true)
+    try {
+      await window.electronAPI.patchGame('upgradeSkillRank', [pet.id, slotIndex])
       await onUpdated()
     } finally {
       setLevelUpBusy(false)
@@ -345,12 +358,13 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
         {syncing && <div className="dash-hud-sync">{t('app.syncing')}</div>}
       </div>
 
-      {levelUpOpen && pet && hasPendingLevelUp && (
+      {levelUpOpen && pet && (
         <GrowthLevelUpModal
           pet={pet}
           busy={levelUpBusy}
           onClose={() => setLevelUpOpen(false)}
           onPickGrowthCard={pickGrowthCard}
+          onUpgradeSkill={upgradeSkillFromLevelUp}
         />
       )}
     </div>
