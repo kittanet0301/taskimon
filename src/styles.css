@@ -2128,6 +2128,11 @@ input, select {
 }
 
 @media (max-width: 920px) {
+  .hub-topbar-logo {
+    height: 32px;
+    max-width: 120px;
+  }
+
   .hub-topbar-stats {
     gap: 10px 12px;
   }
