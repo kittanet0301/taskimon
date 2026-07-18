@@ -3522,13 +3522,62 @@ input, select {
 }
 
 .pet-detail-modal {
-  max-width: 420px;
+  max-width: 520px;
+  max-height: min(88vh, 860px);
+  overflow-y: auto;
 }
 
 .pet-detail-body {
   display: flex;
   gap: 14px;
   align-items: flex-start;
+}
+
+.pet-loadout-panel {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pet-loadout-levelup {
+  padding: 10px 12px;
+  border: 3px solid #2c1408;
+  background: linear-gradient(180deg, #fff8e8 0%, #ffe7b8 100%);
+  color: #3b210e;
+}
+
+.pet-loadout-levelup strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.pet-loadout-levelup p {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: #6b4322;
+}
+
+.pet-loadout-levelup-list {
+  margin: 0 0 8px;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: #3b210e;
+}
+
+.pet-loadout-levelup-list li {
+  margin-bottom: 2px;
+}
+
+.pet-loadout-growth {
+  padding: 10px;
+  border: 2px dashed #b97616;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.pet-loadout-confirm {
+  z-index: 1200;
 }
 
 .pet-detail-preview {

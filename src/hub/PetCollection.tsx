@@ -10,6 +10,7 @@ import { canAddPet, getCollectionPageCount, getUsedSlots } from '../shared/petCo
 import { getPetLevel, getStageLabel } from '../shared/activityScore'
 import { canBreed } from '../shared/growth'
 import { CombatStatCheck } from '../components/CombatStatCheck'
+import { PetLoadoutPanel } from '../components/PetLoadoutPanel'
 
 const COLLECTION_PREVIEW_SIZE = 88
 const DETAIL_PREVIEW_SIZE = 120
@@ -45,6 +46,29 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
   const [breedA, setBreedA] = useState<string | null>(null)
   const [breedB, setBreedB] = useState<string | null>(null)
   const [now, setNow] = useState(() => Date.now())
+
+  /** Keep detail modal in sync after growth/skill mutators. */
+  const liveDetailPet = useMemo(() => {
+    if (!detailPet) return null
+    if (save.pet?.id === detailPet.id) return save.pet
+    return save.collection.find((p) => p.id === detailPet.id) ?? detailPet
+  }, [detailPet, save.pet, save.collection])
+
+  const forgetInv = useMemo(
+    () => save.inventory.find((i) => i.type === 'skill_forget')?.quantity ?? 0,
+    [save.inventory]
+  )
+
+  const patchDetail = async (mutator: string, args: unknown[] = []) => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await window.electronAPI.patchGame(mutator, args)
+      onUpdated()
+    } finally {
+      setBusy(false)
+    }
+  }
 
   useEffect(() => {
     if (!breedOpen) return
@@ -375,11 +399,11 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
         </div>
       )}
 
-      {detailPet && (
+      {liveDetailPet && (
         <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={() => setDetailPet(null)}>
           <div className="hub-modal pet-detail-modal card" onClick={(e) => e.stopPropagation()}>
             <div className="hub-modal-head">
-              <h2>{detailPet.name}</h2>
+              <h2>{liveDetailPet.name}</h2>
               <button
                 type="button"
                 className="hub-modal-close"
@@ -393,42 +417,52 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
             <div className="pet-detail-body">
               <div
                 className="pet-detail-preview"
-                style={{ background: petPreviewColor(detailPet.character) }}
+                style={{ background: petPreviewColor(liveDetailPet.character) }}
               >
-                <DinoSprite pet={detailPet} size={Math.min(displaySizeForPet(detailPet), DETAIL_PREVIEW_SIZE)} />
+                <DinoSprite pet={liveDetailPet} size={Math.min(displaySizeForPet(liveDetailPet), DETAIL_PREVIEW_SIZE)} />
               </div>
               <div className="pet-detail-info">
                 <span className="collection-slot-info">
-                  {tCharacter(detailPet.character)} · <GenderTag gender={detailPet.gender} />
+                  {tCharacter(liveDetailPet.character)} · <GenderTag gender={liveDetailPet.gender} />
                 </span>
                 <strong>
-                  {getStageLabel(detailPet.stage)} Lv.{getPetLevel(detailPet.stage, detailPet.stats.evolution)}
+                  {getStageLabel(liveDetailPet.stage)} Lv.
+                  {getPetLevel(liveDetailPet.stage, liveDetailPet.stats.evolution)}
                 </strong>
                 <div className="hud-bar hud-bar--hp">
                   <span>{t('home.health')}</span>
-                  <div><i style={{ width: statPercent(detailPet.stats.health, 100) }} /></div>
-                  <b>{detailPet.stats.health}/100</b>
+                  <div><i style={{ width: statPercent(liveDetailPet.stats.health, 100) }} /></div>
+                  <b>{liveDetailPet.stats.health}/100</b>
                 </div>
                 <div className="hud-bar hud-bar--mood">
                   <span>{t('home.emotion')}</span>
-                  <div><i style={{ width: statPercent(detailPet.stats.emotion, 100) }} /></div>
-                  <b>{detailPet.stats.emotion}/100</b>
+                  <div><i style={{ width: statPercent(liveDetailPet.stats.emotion, 100) }} /></div>
+                  <b>{liveDetailPet.stats.emotion}/100</b>
                 </div>
                 <div className="hud-bar hud-bar--xp">
                   <span>{t('home.evolution')}</span>
-                  <div><i style={{ width: statPercent(detailPet.stats.evolution, 999) }} /></div>
-                  <b>{detailPet.stats.evolution}/999</b>
+                  <div><i style={{ width: statPercent(liveDetailPet.stats.evolution, 999) }} /></div>
+                  <b>{liveDetailPet.stats.evolution}/999</b>
                 </div>
-                <CombatStatCheck pet={detailPet} variant="compact" />
+                <CombatStatCheck pet={liveDetailPet} variant="compact" />
               </div>
             </div>
+
+            <PetLoadoutPanel
+              pet={liveDetailPet}
+              forgetCount={forgetInv}
+              busy={busy}
+              onUpgradeSkill={(slotIndex) => patchDetail('upgradeSkillRank', [liveDetailPet.id, slotIndex])}
+              onForgetSkill={(slotIndex) => patchDetail('forgetSkill', [liveDetailPet.id, slotIndex])}
+              onPickGrowthCard={(cardId) => patchDetail('applyGrowthCard', [liveDetailPet.id, cardId])}
+            />
 
             <div className="pet-detail-actions">
               <button
                 type="button"
                 className="danger-btn"
                 onClick={() => {
-                  const target = detailPet
+                  const target = liveDetailPet
                   setDetailPet(null)
                   setPendingDelete(target)
                 }}
@@ -439,7 +473,7 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               <button
                 type="button"
                 className="dash-hud-action dash-hud-action--inline"
-                onClick={() => selectToPlay(detailPet)}
+                onClick={() => selectToPlay(liveDetailPet)}
                 disabled={busy}
               >
                 {t('collection.select')}
