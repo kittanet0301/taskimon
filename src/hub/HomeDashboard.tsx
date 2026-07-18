@@ -205,8 +205,13 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
                   ))}
                 </div>
                 <div className="dash-hud-debug-row">
-                  <button type="button" className="dash-hud-debug-btn" onClick={() => runDebug('debugBoostDev', [50])}>
-                    +50 DP
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => runDebug('debugBoostDev', [50])}
+                    title={t('home.evolution')}
+                  >
+                    +50 Evo
                   </button>
                   <button
                     type="button"

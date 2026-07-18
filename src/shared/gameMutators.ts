@@ -74,18 +74,22 @@ function replacePet(save: GameSave, petId: string, replacer: (pet: PetData) => P
 
 function debugSetPetStage(pet: NonNullable<GameSave['pet']>, stage: Stage) {
   if (stage === 'egg') return resetPetToEggStage(pet)
+
+  // Jumping out of egg must go through hatch so skill loadout is rolled.
+  let next = pet.stage === 'egg' ? hatchPet(pet) : pet
+
   if (stage === 'baby') {
     return {
-      ...pet,
+      ...next,
       stage: 'baby' as const,
-      hatchedAt: pet.hatchedAt ?? new Date().toISOString(),
+      hatchedAt: next.hatchedAt ?? new Date().toISOString(),
       animationState: 'idle' as const
     }
   }
   return {
-    ...pet,
+    ...next,
     stage: 'adult' as const,
-    hatchedAt: pet.hatchedAt ?? new Date().toISOString(),
+    hatchedAt: next.hatchedAt ?? new Date().toISOString(),
     animationState: 'idle' as const
   }
 }
@@ -132,16 +136,15 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (TEST_FAST_EVO && mutatorName === 'debugBoostDev') {
     if (!save.pet) return save
     const amount = typeof args[0] === 'number' ? Math.max(0, Math.floor(args[0])) : 50
-    return {
-      ...save,
-      pet: {
-        ...save.pet,
-        stats: {
-          ...save.pet.stats,
-          evolution: Math.min(999, save.pet.stats.evolution + amount)
-        }
+    const prev = save.pet
+    const boosted: PetData = {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        evolution: Math.min(999, prev.stats.evolution + amount)
       }
     }
+    return { ...save, pet: applyLevelGainRewards(prev, boosted) }
   }
   if (TEST_FAST_EVO && mutatorName === 'debugCycleSpecies') {
     if (!save.pet) return save
