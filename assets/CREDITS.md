@@ -35,3 +35,21 @@ Copy missing files from the Dino Family pack into `assets/dino/male/{character}/
 | vita | dash, hurt, idle, kick, move |
 
 Until fixed, those male variants may show a colored circle fallback in-game.
+
+## UI assets (`assets/ui/`)
+
+Project UI art lives under `assets/ui/` (served as `/ui/...` in the app), including:
+
+- `taskino-logo.png` — top bar / title branding
+- HUD icons (nav, stats, collection, inventory, etc.)
+- Item icons used by inventory and the home quickbar
+
+Keep new UI PNGs in that folder and register required paths in `scripts/check-assets.mjs` when adding critical files.
+
+## Fonts (not in `assets/`)
+
+Loaded via Google Fonts in `src/styles.css`:
+
+- **Mali** — Thai / primary UI
+- **Press Start 2P** — pixel HUD labels, badges, quickbar quantities
+
