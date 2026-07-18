@@ -251,7 +251,15 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
       </div>
 
       {save.pet && (
-        <div className="collection-active-card">
+        <button
+          type="button"
+          className="collection-active-card collection-active-card--clickable"
+          onClick={() => {
+            if (editingName) return
+            setDetailPet(save.pet)
+          }}
+          title={t('collection.viewDetails')}
+        >
           <span className="collection-active-badge">{t('collection.active')}</span>
           <div
             className="collection-active-preview"
@@ -266,6 +274,7 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                   className="collection-active-name-input"
                   value={nameDraft}
                   onChange={(e) => setNameDraft(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
@@ -290,7 +299,10 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                   <button
                     type="button"
                     className="collection-rename-btn"
-                    onClick={startRename}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startRename()
+                    }}
                     disabled={busy}
                     title={t('pet.rename')}
                     aria-label={t('pet.rename')}
@@ -309,7 +321,7 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               {tCharacter(save.pet.character)} · <GenderTag gender={save.pet.gender} /> · {tStage(save.pet.stage)}
             </span>
           </div>
-        </div>
+        </button>
       )}
 
       <div className="collection-filter-tabs">

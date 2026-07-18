@@ -210,6 +210,7 @@
     "noSlots": "No free slots",
     "page": "Page {{current}} / {{total}}",
     "active": "Playing",
+    "viewDetails": "View pet details",
     "filterAll": "All",
     "sidebarHatchable": "Collection — eggs left to hatch"
   },

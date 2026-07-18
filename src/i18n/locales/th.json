@@ -210,6 +210,7 @@
     "noSlots": "ไม่มีช่องว่าง",
     "page": "หน้า {{current}} / {{total}}",
     "active": "กำลังเล่น",
+    "viewDetails": "ดูรายละเอียดสัตว์",
     "filterAll": "ทั้งหมด",
     "sidebarHatchable": "คลังไข่ — ยังมีไข่ให้ฟัก"
   },

@@ -3302,12 +3302,30 @@ input, select {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   margin-bottom: 16px;
   padding: 12px;
   border: 3px solid var(--pixel-accent);
   background: rgba(255, 176, 124, 0.15);
   box-shadow: 3px 3px 0 var(--pixel-shadow);
   position: relative;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+
+.collection-active-card--clickable {
+  cursor: pointer;
+}
+
+.collection-active-card--clickable:hover {
+  background: rgba(255, 176, 124, 0.28);
+}
+
+.collection-active-card--clickable:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
 }
 
 .collection-active-badge {
