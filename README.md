@@ -1,6 +1,6 @@
 # Taskino
 
-Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron) + web.
+Tamagotchi-style desktop pet game with dino characters — desktop (Electron) + web.
 
 **เวอร์ชันเว็บ (production):** [https://taskimon.vercel.app](https://taskimon.vercel.app)
 
@@ -8,17 +8,22 @@ Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron)
 
 - Transparent always-on-top pet window on desktop
 - **ก่อน login:** สัตว์แสดงเป็นไข่, tray ไม่โชว์สถิติ — **หลัง login** โหลดสัตว์จริงจาก cloud
-- Random egg hatch → 1 of 12 dino characters, male/female gender
+- Random egg hatch → dino character (รวมสายพิเศษ เช่น ember-sail / garden), male/female
 - Growth: Egg → Baby → Adult
-- Stats: HP, mood, development points
-- Global click/keyboard activity tracking for development (desktop, หลัง login เท่านั้น)
-- Items, daily/weekly missions (local + cloud sync)
-- Friends, chat, profile viewing (with Supabase)
+- **Care stats:** Health, Emotion, Evolution (เดิม HP / mood / development)
+- **RPG combat stats:** STR / DEX / INT / CON + ธาตุ (pure / dual) → Battle HP / MP / EVA
+- **เลเวลอัพ:** เลือก Growth Card 1 จาก 3 + แต้มอัปแรงค์สกิล (สูงสุด 8)
+- **สกิล:** โหลดเอาต์ 3 สกิล + 1 Ultimate ตามธาตุ (สุ่มตอนฟัก)
+- **ผสมพันธุ์ (breeding):** สร้างไข่จากสัตว์สองตัว (cooldown + nest item)
+- Global click/keyboard activity tracking for evolution (desktop, หลัง login เท่านั้น)
+- Items, quick-care slots, daily/weekly missions (local + cloud sync)
+- Gems, gifts, friends, chat, profile, collection slots
+- Mini-games (เช่น Dino Jump) + ranking
 - **ต่อสู้ (PvP แบบ async):**
   - ห้องต่อสู้ — สร้าง/เข้าร่วมด้วยรหัส, 1v1 ในห้อง
-  - การกระทำ: โจมตี, ป้องกัน, หลบหนี, ท่าไม้ตาย
-  - **พลังท่าไม้ตาย** 0–100% — สะสมจากโจมตี/ป้องกัน (สุ่ม), ใช้ได้เมื่อครบ 100% แล้วรีเซ็ต
-  - ไม่มีระบบธาตุ — ดาเมจตามสถิติและท่าไม้ตายเท่านั้น
+  - การกระทำ: Attack / Skill / Item / Defend / Flee
+  - ลำดับเทิร์นตาม DEX, ดาเมจจาก STR/INT + ธาตุ + แรงค์สกิล
+  - HP / MP / TP (เทคนิค) บน session
   - จบดวล → popup ผลชนะ/แพ้ + กลับแท็บห้องอัตโนมัติ
 
 ## UI
@@ -30,10 +35,13 @@ Tamagotchi-style desktop pet game with 12 dino characters — desktop (Electron)
 - โลโก้ **animated egg sprite** (`male/doux/egg`) จาก `assets/dino/`
 - ปุ่ม blocky 3D, input มุมคม, สลับภาษา EN/TH มุมขวาบนการ์ด
 
-**Hub (หลัง login)** — `.pixel-hub` บน shell หลัก ครอบคลุมทุกแท็บ (Home, Missions, Friends, Battle, Chat, Settings, Profile):
-- Header ท้องฟ้า + tabs สี่เหลี่ยม, พื้น content gradient อ่อน
-- การ์ด cream + ขอบ pixel, ปุ่ม 3D blocky, stat bar มุมคม
-- ฟอนต์: **Press Start 2P** (title/tab สั้นๆ) + **Mali** (ข้อความไทย/ฟอร์ม)
+**Hub (หลัง login)** — `.pixel-hub` + home scene HUD:
+- แถบบน: โลโก้ Taskino, Gems / Clicks / Typing / Activity, ชื่อผู้เล่นด้านขวา, EN/TH
+- เมนูซ้าย: ไอคอนลอยโปร่งใสบนฉาก home — กดรูปมังกรเพื่อโหมดโฟกัส (ซ่อนเมนู เหลือแค่ตัวละคร; กดอีกครั้งหรือ Esc เพื่อคืน)
+- แผง Daily/Weekly, สถานะสัตว์ + Combat stats, quickbar ไอเท็ม (ตัวเลข **Press Start 2P**)
+- เลเวลอัพ: ป๊อปอัปเลือก Growth Card + อัปสกิล (ฟอนต์ **Mali**)
+- Collection / Profile: แผงโหลดเอาต์สกิล + growth cards
+- ฟอนต์: **Mali** (ข้อความไทย / UI หลัก) + **Press Start 2P** (HUD pixel / badge / qty)
 
 Palette ร่วมกันผ่าน CSS variables (`--pixel-*`) ใน `styles.css` — desktop pet overlay ไม่ได้รับผลกระทบ
 
@@ -61,7 +69,7 @@ assets/dino/{male|female}/{character}/{base|egg|ghost}/{animation}.png
 ```
 
 3. ตรวจรายการตัวละครและ animation ที่ต้องมีใน [assets/CREDITS.md](assets/CREDITS.md)
-4. เพิ่มไฟล์ UI ภายใต้ `assets/ui/` เช่น `taskino-logo.png`
+4. เพิ่มไฟล์ UI ภายใต้ `assets/ui/` เช่น `taskino-logo.png`, HUD icons
 5. ตรวจความครบด้วย `npm run check:assets`
 
 ถ้าไฟล์บางส่วนหาย เกมจะ fallback เป็นวงกลมสีแทน sprite บางตัว
@@ -79,7 +87,11 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-or-publishable-key
 ```
 
-รัน SQL ตามลำดับใน `supabase/migrations/` แล้ว login — ข้อมูลจะบันทึกลง DB อัตโนมัติ
+รัน SQL ทุกไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (ถึง `045_force_pure_elements.sql`) แล้ว login — ข้อมูลจะบันทึกลง DB อัตโนมัติ
+
+สำคัญล่าสุด:
+- **`044_rpg_battle_stats_skills_breeding.sql`** — care rename + RPG columns + battle Attack/Skill/Item + `breed_pets`
+- **`045_force_pure_elements.sql`** — บังคับธาตุ pure ชั่วคราวตอนผสมพันธุ์ (คู่กับ `FORCE_PURE_ELEMENTS` ใน client)
 
 ### Password reset และ rate limits
 
@@ -133,6 +145,7 @@ Installer อ่าน Supabase จาก `resources/.env` (bundle จาก `.e
 
 - **Demo 1 (Jul 20):** Offline core — pet on desktop, egg, growth, stats, items, missions, save/load
 - **Demo 2 (Aug 7):** Online — auth ✅, friends, battle rooms + async PvP ✅, chat ✅, profile sync ✅
+- **หลัง Demo 2:** RPG stats / skills / growth cards / breeding, combat HUD, home focus mode
 
 ## macOS Note
 
@@ -145,16 +158,25 @@ Global input tracking requires **Accessibility** permission in System Settings.
 - `src/hub/LoginGate.tsx` — Login / sign up / forgot password (pixel theme)
 - `src/hub/PixelCoverShell.tsx` — Shared pixel cover layout (auth + Get Started)
 - `src/hub/GetStarted.tsx` — Post-login onboarding (pixel theme)
+- `src/hub/HomeDashboard.tsx` — Home scene HUD (missions, status, quickbar, level-up)
+- `src/hub/HubSidebar.tsx` / `HubTopBar.tsx` — เมนูซ้าย + แถบสถิติบน
+- `src/components/CombatStatCheck.tsx` — แผง STR/DEX/INT/CON + derived
+- `src/components/GrowthLevelUpModal.tsx` — ป๊อปอัปเลเวลอัพ (การ์ด + สกิล)
+- `src/components/PetLoadoutPanel.tsx` — สกิล / growth บน detail
 - `src/components/AuthEggSprite.tsx` — Animated egg sprite for auth screens
 - `src/hub/battle/` — ห้องต่อสู้, สนามดวล, ประวัติ, guard ออกจากห้อง
 - `src/pet/` — Desktop pet canvas renderer
 - `src/shared/` — Game logic shared across processes
-- `src/shared/battle/` — Battle engine, damage, rewards, mappers
-- `src/styles.css` — Global styles + `.pixel-cover` auth + `.pixel-hub` hub theme
+- `src/shared/combatStats.ts` — Primaries, growth cards, derived combat
+- `src/shared/elements.ts` — ธาตุ, effectiveness, `FORCE_PURE_ELEMENTS`
+- `src/shared/battle/` — Battle engine, skill trees, damage, rewards, mappers
+- `src/styles.css` — Global styles + `.pixel-cover` / `.pixel-hub` / home HUD
 - `web/` — Vite config สำหรับเวอร์ชันเบราว์เซอร์
 - `assets/dino/` — Dino Family pixel sprites (see [assets/CREDITS.md](assets/CREDITS.md))
-- `supabase/migrations/` — SQL schema + RLS + battle RPCs
+- `assets/ui/` — Logo, HUD icons, item icons
+- `supabase/migrations/` — SQL schema + RLS + battle / breed RPCs (ถึง `045`)
 
 ## Credits
 
 - **Pet sprites:** [Dino Family](https://demching.itch.io/dino-family) by DemChing — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Based on [Dino Characters](https://arks.itch.io/dino-characters) by ScissorMarks.
+- **Fonts:** [Mali](https://fonts.google.com/specimen/Mali), [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (Google Fonts)
