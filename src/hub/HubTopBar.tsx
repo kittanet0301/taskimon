@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
+  displayName?: string
   gems: number
   clicks: number
   keystrokes: number
@@ -17,7 +18,15 @@ const STAT_ICON_SRC = {
   activity: '/ui/hud-stat-activity.png'
 } as const
 
-export function HubTopBar({ gems, clicks, keystrokes, activityScore, syncing, children }: Props) {
+export function HubTopBar({
+  displayName,
+  gems,
+  clicks,
+  keystrokes,
+  activityScore,
+  syncing,
+  children
+}: Props) {
   const { t } = useTranslation()
 
   return (
@@ -28,6 +37,11 @@ export function HubTopBar({ gems, clicks, keystrokes, activityScore, syncing, ch
         alt={t('app.appName')}
         draggable={false}
       />
+      {displayName ? (
+        <div className="hub-topbar-player" title={displayName}>
+          <span>{displayName}</span>
+        </div>
+      ) : null}
       <div className="hub-topbar-stats">
         <div className="dash-hud-counter dash-hud-counter--gem">
           <img className="dash-hud-counter-icon" src={STAT_ICON_SRC.gems} alt="" draggable={false} />

@@ -425,6 +425,7 @@ function AppContent({ variant = 'desktop' }: Props) {
 
       <div className="hub-main">
         <HubTopBar
+          displayName={displayName}
           gems={save.gems ?? 0}
           clicks={save.activity.clicks}
           keystrokes={save.activity.keystrokes}
