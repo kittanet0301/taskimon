@@ -1460,11 +1460,11 @@ input, select {
 .dash-hud-missions {
   position: absolute;
   z-index: 3;
-  right: clamp(16px, 2vw, 32px);
-  bottom: clamp(120px, 17vh, 170px);
+  left: clamp(16px, 2vw, 32px);
+  top: clamp(16px, 2.5vh, 32px);
   width: min(32vw, 440px);
   min-width: 300px;
-  max-height: 38vh;
+  max-height: min(48vh, 420px);
   display: flex;
   flex-direction: column;
   border: 4px solid #2c1408;
@@ -2068,11 +2068,13 @@ input, select {
   }
 
   .dash-hud-missions {
-    right: 8px;
-    bottom: 110px;
-    width: calc(100% - 24px);
+    left: 8px;
+    top: 8px;
+    right: auto;
+    bottom: auto;
+    width: min(280px, calc(100% - 100px));
     min-width: 0;
-    max-height: 32vh;
+    max-height: 36vh;
   }
 }
 
