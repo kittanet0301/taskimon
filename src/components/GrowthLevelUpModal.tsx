@@ -65,11 +65,11 @@ export function GrowthLevelUpModal({
         </button>
 
         {cards.length > 0 ? (
-          <section className="growth-levelup-cards" aria-label={t('growth.pickTitle')}>
-            <h2>{t('growth.pickTitle')}</h2>
-            <p className="growth-levelup-hint">{t('growth.pickHint')}</p>
+          <section className="rpg-growth-box" aria-label={t('growth.pickTitle')}>
+            <h2 className="rpg-growth-title">{t('growth.pickTitle')}</h2>
+            <p className="rpg-growth-hint">{t('growth.pickHint')}</p>
             {remainingGroups > 1 && (
-              <p className="growth-levelup-hint">{t('growth.pendingLevels', { count: remainingGroups })}</p>
+              <p className="rpg-growth-hint">{t('growth.pendingLevels', { count: remainingGroups })}</p>
             )}
             <div className="growth-card-grid">
               {cards.map((card) => (
@@ -87,9 +87,9 @@ export function GrowthLevelUpModal({
             </div>
           </section>
         ) : (
-          <section className="growth-levelup-cards growth-levelup-cards--claimed">
-            <h2>{t('growth.pickTitle')}</h2>
-            <p className="growth-levelup-hint">{t('growth.cardClaimedHint')}</p>
+          <section className="rpg-growth-box rpg-growth-box--claimed">
+            <h2 className="rpg-growth-title">{t('growth.pickTitle')}</h2>
+            <p className="rpg-growth-hint">{t('growth.cardClaimedHint')}</p>
           </section>
         )}
 
@@ -104,7 +104,7 @@ export function GrowthLevelUpModal({
           </div>
 
           {pet.stage === 'egg' || slots.length === 0 ? (
-            <p className="growth-levelup-hint">{t('skills.eggNoSkills')}</p>
+            <p className="rpg-growth-hint">{t('skills.eggNoSkills')}</p>
           ) : (
             <ul className="pet-profile-skill-list">
               {slots.map((slot, i) => {
@@ -125,7 +125,7 @@ export function GrowthLevelUpModal({
                     <div className="pet-profile-skill-actions">
                       <button
                         type="button"
-                        className="secondary growth-levelup-upgrade-btn"
+                        className="secondary rpg-upgrade-btn"
                         disabled={!canUp || busy}
                         onClick={() => void onUpgradeSkill(i)}
                       >

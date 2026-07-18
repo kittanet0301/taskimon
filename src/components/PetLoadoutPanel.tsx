@@ -44,6 +44,7 @@ export function PetLoadoutPanel({
         .filter((c): c is GrowthCard => Boolean(c)),
     [pendingOffers]
   )
+  const remainingGroups = Math.ceil(pendingOffers.length / 3)
 
   if (pet.stage === 'egg') {
     return (
@@ -76,9 +77,12 @@ export function PetLoadoutPanel({
       </div>
 
       {activeOfferCards.length > 0 && (
-        <div className="pet-loadout-growth">
-          <strong>{t('growth.pickTitle')}</strong>
-          <p className="pet-profile-hint">{t('growth.pickHint')}</p>
+        <div className="pet-loadout-growth rpg-growth-box">
+          <strong className="rpg-growth-title">{t('growth.pickTitle')}</strong>
+          <p className="rpg-growth-hint">{t('growth.pickHint')}</p>
+          {remainingGroups > 1 && (
+            <p className="rpg-growth-hint">{t('growth.pendingLevels', { count: remainingGroups })}</p>
+          )}
           <div className="growth-card-grid">
             {activeOfferCards.map((card) => (
               <button
@@ -98,6 +102,11 @@ export function PetLoadoutPanel({
 
       <div className="pet-profile-skills-head">
         <strong>{t('battle.skillMenu')}</strong>
+        {pet.skillUpgradePoints > 0 && (
+          <span className="pet-profile-skill-points">
+            {t('skills.upgradePointsLeft', { count: pet.skillUpgradePoints })}
+          </span>
+        )}
       </div>
 
       {slots.length === 0 ? (
@@ -115,13 +124,14 @@ export function PetLoadoutPanel({
                   </strong>
                   <span>
                     {slot.kind === 'ultimate' ? t('battle.ultimate') : t('battle.skillMenu')} ·{' '}
-                    {t(`elements.${slot.element}`)} · {t('skills.rankLabel', { rank: slot.rank, max: SKILL_RANK_MAX })}
+                    {t(`elements.${slot.element}`)} ·{' '}
+                    {t('skills.rankLabel', { rank: slot.rank, max: SKILL_RANK_MAX })}
                   </span>
                 </div>
                 <div className="pet-profile-skill-actions">
                   <button
                     type="button"
-                    className="secondary"
+                    className="secondary rpg-upgrade-btn"
                     disabled={!canUp || busy}
                     onClick={() => void onUpgradeSkill(i)}
                     title={t('skills.upgrade')}
