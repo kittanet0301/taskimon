@@ -991,11 +991,62 @@ input, select {
   overflow: hidden;
 }
 
+button.dash-hud-avatar--btn {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+button.dash-hud-avatar--btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+button.dash-hud-avatar--btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow:
+    0 0 0 3px #b97616,
+    2px 2px 0 rgba(30, 14, 4, 0.9);
+}
+
+button.dash-hud-avatar--btn:disabled {
+  cursor: default;
+}
+
 .dash-hud-avatar span:last-child {
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Focus mode: collapse chrome, keep pet + avatar toggle */
+.hub-shell--focus .hub-topbar {
+  display: none;
+}
+
+.hub-shell--focus .hub-sidebar .dash-hud-nav-btn {
+  display: none;
+}
+
+.hub-shell--focus .hub-sidebar {
+  padding-top: var(--hub-edge-y, clamp(16px, 2.5vh, 32px));
+}
+
+.hub-shell--focus .hub-home-body,
+.hub-shell--focus .hub-content--home,
+.hub-shell--focus .dash-hud {
+  height: 100%;
+}
+
+.dash-hud--focus .dash-hud-status,
+.dash-hud--focus .dash-hud-missions,
+.dash-hud--focus .dash-hud-quickbar,
+.dash-hud--focus .dash-hud-picker,
+.dash-hud--focus .dash-hud-debug,
+.dash-hud--focus .dash-hud-sync,
+.dash-hud--focus .dash-hud-cta,
+.dash-hud--focus .growth-levelup-overlay {
+  display: none !important;
 }
 
 .dash-hud-nav-btn {

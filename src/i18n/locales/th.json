@@ -114,7 +114,9 @@
     "claim": "รับรางวัล",
     "quickCare": "ดูแลด่วน",
     "evolveAdult": "วิวัฒนาการ -> Adult",
-    "evolveLocked": "วิวัฒนาการ (ต้องการพัฒนาร่าง {{points}}+)"
+    "evolveLocked": "วิวัฒนาการ (ต้องการพัฒนาร่าง {{points}}+)",
+    "hideMenus": "ซ่อนเมนู — โชว์แค่ตัวละคร",
+    "showMenus": "แสดงเมนู"
   },
   "inventory": {
     "title": "กระเป๋าไอเทม",
