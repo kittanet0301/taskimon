@@ -1,5 +1,5 @@
-import type { GameSave, ItemType, MinigameId, PetSpecies, Stage } from './types'
-import { hatchPet, evolvePet, createEggPet, resetPetToEggStage } from './growth'
+import type { GameSave, ItemType, MinigameId, PetData, PetSpecies, Stage } from './types'
+import { hatchPet, evolvePet, createEggPet, resetPetToEggStage, breedPetsLocal, canBreed } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim, updateMissionProgress } from './missions'
@@ -8,6 +8,69 @@ import { applyFinishMinigame } from './minigame'
 import { TEST_FAST_EVO } from './constants'
 import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
 import { defaultPetName } from './dinoCharacters'
+import { getPetLevel } from './activityScore'
+import {
+  GROWTH_CARDS,
+  applyGrowthCard as applyGrowthCardToStats,
+  rollGrowthCardOffers,
+  type GrowthCard,
+  type GrowthCardId
+} from './combatStats'
+import {
+  forgetSkillSlot,
+  upgradeSkillRank as upgradeSkillRankOnLoadout
+} from './battle/skillTrees'
+
+/** Grant +1 skill upgrade point per level gained, plus fresh growth-card offers. */
+function grantLevelRewardsToPet(pet: PetData, levelsGained: number): PetData {
+  if (levelsGained <= 0) return pet
+  const nextPoints = pet.skillUpgradePoints + levelsGained
+  const pending: GrowthCardId[] = pet.pendingGrowthOffers ?? []
+  for (let i = 0; i < levelsGained; i++) {
+    const offers = rollGrowthCardOffers()
+    for (const o of offers) pending.push(o.id)
+  }
+  return {
+    ...pet,
+    skillUpgradePoints: nextPoints,
+    pendingGrowthOffers: pending.length > 0 ? pending : null
+  }
+}
+
+/**
+ * Compare pet level before/after evolution stat change and, if it grew, grant
+ * skill upgrade points + queue growth-card picks.
+ */
+function applyLevelGainRewards(prev: PetData, next: PetData): PetData {
+  if (prev.stage === 'egg' || next.stage === 'egg') return next
+  const prevLvl = getPetLevel(prev.stage, prev.stats.evolution)
+  const nextLvl = getPetLevel(next.stage, next.stats.evolution)
+  const gained = nextLvl - prevLvl
+  if (gained <= 0) return next
+  return grantLevelRewardsToPet(next, gained)
+}
+
+function findPetById(save: GameSave, petId: string): {
+  pet: PetData
+  where: 'active' | 'collection'
+  index: number
+} | null {
+  if (save.pet && save.pet.id === petId) return { pet: save.pet, where: 'active', index: -1 }
+  const idx = save.collection.findIndex((p) => p.id === petId)
+  if (idx < 0) return null
+  return { pet: save.collection[idx]!, where: 'collection', index: idx }
+}
+
+function replacePet(save: GameSave, petId: string, replacer: (pet: PetData) => PetData): GameSave {
+  if (save.pet && save.pet.id === petId) {
+    return { ...save, pet: replacer(save.pet) }
+  }
+  const idx = save.collection.findIndex((p) => p.id === petId)
+  if (idx < 0) return save
+  const collection = [...save.collection]
+  collection[idx] = replacer(collection[idx]!)
+  return { ...save, collection }
+}
 
 function debugSetPetStage(pet: NonNullable<GameSave['pet']>, stage: Stage) {
   if (stage === 'egg') return resetPetToEggStage(pet)
@@ -39,7 +102,9 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   }
   if (mutatorName === 'evolve') {
     if (!save.pet || !canEvolveToAdult(save.pet)) return save
-    return { ...save, pet: evolvePet(save.pet) }
+    const prev = save.pet
+    const evolved = evolvePet(prev)
+    return { ...save, pet: applyLevelGainRewards(prev, evolved) }
   }
   if (mutatorName === 'newEgg') {
     if (!canAddPet(save)) return save
@@ -73,7 +138,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
         ...save.pet,
         stats: {
           ...save.pet.stats,
-          devPoints: Math.min(999, save.pet.stats.devPoints + amount)
+          evolution: Math.min(999, save.pet.stats.evolution + amount)
         }
       }
     }
@@ -113,12 +178,13 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (mutatorName === 'useItem' && typeof args[0] === 'string') {
     const itemType = args[0] as ItemType
     if (!save.pet) return save
-    if (itemType === 'battle_shield') return save
+    if (itemType === 'battle_shield' || itemType === 'breed_nest' || itemType === 'skill_forget') return save
     const inv = [...save.inventory]
     const idx = inv.findIndex((i) => i.type === itemType && i.quantity > 0)
     if (idx < 0) return save
     inv[idx] = { ...inv[idx], quantity: inv[idx].quantity - 1 }
     const stats = useItem(itemType, save.pet.stats)
+    const prevPet = save.pet
     let missions = save.missions
     if (itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water') {
       missions = missions.map((m) =>
@@ -131,19 +197,21 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
           : m
       )
     }
+    let nextPet: PetData = {
+      ...save.pet,
+      stats,
+      feedCount: save.pet.feedCount + (itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water' ? 1 : 0),
+      animationState:
+        itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water'
+          ? 'eat'
+          : save.pet.animationState
+    }
+    nextPet = applyLevelGainRewards(prevPet, nextPet)
     return {
       ...save,
       inventory: inv.filter((i) => i.quantity > 0),
       missions,
-      pet: {
-        ...save.pet,
-        stats,
-        feedCount: save.pet.feedCount + (itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water' ? 1 : 0),
-        animationState:
-          itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water'
-            ? 'eat'
-            : save.pet.animationState
-      }
+      pet: nextPet
     }
   }
   if (mutatorName === 'setQuickItemSlot' && typeof args[0] === 'number') {
@@ -173,10 +241,10 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       const existing = inventory.find((i) => i.type === reward.type)
       if (existing) existing.quantity += reward.quantity
       else inventory.push({ type: reward.type, quantity: reward.quantity })
-    } else if ('mood' in reward && pet) {
-      pet = { ...pet, stats: { ...pet.stats, mood: Math.min(100, pet.stats.mood + reward.mood) } }
-    } else if ('devPoints' in reward && pet) {
-      pet = { ...pet, stats: { ...pet.stats, devPoints: Math.min(999, pet.stats.devPoints + reward.devPoints) } }
+    } else if ('emotion' in reward && pet) {
+      pet = { ...pet, stats: { ...pet.stats, emotion: Math.min(100, pet.stats.emotion + reward.emotion) } }
+    } else if ('evolution' in reward && pet) {
+      pet = { ...pet, stats: { ...pet.stats, evolution: Math.min(999, pet.stats.evolution + reward.evolution) } }
     } else if ('newEgg' in reward) {
       collection = [...collection, createEggPet()]
     } else if ('slots' in reward) {
@@ -227,6 +295,85 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     const gameId = args[0] as MinigameId
     const score = Math.max(0, Math.floor(args[1]))
     return applyFinishMinigame(save, gameId, score).save
+  }
+  if (mutatorName === 'applyGrowthCard' && typeof args[0] === 'string' && typeof args[1] === 'string') {
+    const petId = args[0] as string
+    const cardId = args[1] as GrowthCardId
+    const found = findPetById(save, petId)
+    if (!found) return save
+    const pending = found.pet.pendingGrowthOffers ?? []
+    // Offers are queued in groups of 3 (one level-up pick). Choosing a card
+    // resolves the current group and leaves later level-ups pending.
+    const pickIndex = pending.indexOf(cardId)
+    if (pickIndex < 0) return save
+    const card: GrowthCard | undefined = GROWTH_CARDS.find((c) => c.id === cardId)
+    if (!card) return save
+    const groupStart = Math.floor(pickIndex / 3) * 3
+    const remaining = [...pending.slice(0, groupStart), ...pending.slice(groupStart + 3)]
+    return replacePet(save, petId, (pet) => ({
+      ...pet,
+      primaries: applyGrowthCardToStats(pet.primaries, card),
+      pendingGrowthOffers: remaining.length > 0 ? remaining : null
+    }))
+  }
+  if (mutatorName === 'upgradeSkillRank' && typeof args[0] === 'string' && typeof args[1] === 'number') {
+    const petId = args[0] as string
+    const slotIndex = Math.max(0, Math.floor(args[1] as number))
+    const found = findPetById(save, petId)
+    if (!found) return save
+    if (found.pet.skillUpgradePoints <= 0) return save
+    if (!found.pet.skillLoadout) return save
+    const nextLoadout = upgradeSkillRankOnLoadout(found.pet.skillLoadout, slotIndex)
+    if (!nextLoadout) return save
+    return replacePet(save, petId, (pet) => ({
+      ...pet,
+      skillLoadout: nextLoadout,
+      skillUpgradePoints: Math.max(0, pet.skillUpgradePoints - 1)
+    }))
+  }
+  if (mutatorName === 'forgetSkill' && typeof args[0] === 'string' && typeof args[1] === 'number') {
+    const petId = args[0] as string
+    const slotIndex = Math.max(0, Math.floor(args[1] as number))
+    const found = findPetById(save, petId)
+    if (!found || !found.pet.skillLoadout) return save
+    const inv = [...save.inventory]
+    const idx = inv.findIndex((i) => i.type === 'skill_forget' && i.quantity > 0)
+    if (idx < 0) return save
+    const nextLoadout = forgetSkillSlot(
+      found.pet.skillLoadout,
+      slotIndex,
+      found.pet.elementPrimary,
+      found.pet.elementSecondary
+    )
+    if (nextLoadout === found.pet.skillLoadout) return save
+    inv[idx] = { ...inv[idx], quantity: inv[idx].quantity - 1 }
+    const withInventory = { ...save, inventory: inv.filter((i) => i.quantity > 0) }
+    return replacePet(withInventory, petId, (pet) => ({ ...pet, skillLoadout: nextLoadout }))
+  }
+  if (mutatorName === 'breedPets' && typeof args[0] === 'string' && typeof args[1] === 'string') {
+    const idA = args[0] as string
+    const idB = args[1] as string
+    if (idA === idB) return save
+    const foundA = findPetById(save, idA)
+    const foundB = findPetById(save, idB)
+    if (!foundA || !foundB) return save
+    if (!canBreed(foundA.pet, foundB.pet)) return save
+    if (!canAddPet(save)) return save
+    const inv = [...save.inventory]
+    const nestIdx = inv.findIndex((i) => i.type === 'breed_nest' && i.quantity > 0)
+    if (nestIdx < 0) return save
+    const { parents: [parentA, parentB], egg } = breedPetsLocal(foundA.pet, foundB.pet)
+    inv[nestIdx] = { ...inv[nestIdx], quantity: inv[nestIdx].quantity - 1 }
+    let next: GameSave = { ...save, inventory: inv.filter((i) => i.quantity > 0) }
+    next = replacePet(next, idA, () => parentA)
+    next = replacePet(next, idB, () => parentB)
+    return { ...next, collection: [...next.collection, egg] }
+  }
+  if (mutatorName === 'grantLevelRewards' && typeof args[0] === 'string' && typeof args[1] === 'number') {
+    const petId = args[0] as string
+    const gained = Math.max(0, Math.floor(args[1] as number))
+    if (gained <= 0) return save
+    return replacePet(save, petId, (pet) => grantLevelRewardsToPet(pet, gained))
   }
   return save
 }

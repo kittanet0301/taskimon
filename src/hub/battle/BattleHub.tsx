@@ -1,7 +1,8 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData } from '../../shared/types'
-import type { BattleActionType, BattleSession } from '../../shared/battle/types'
+import type { BattleCommand, BattleSession } from '../../shared/battle/types'
+import { canEnterBattle } from '../../shared/elements'
 import { mapBattleSession, mapBattleTurn, mapPetRowToPetData } from '../../shared/battle/mappers'
 import { tCharacter } from '../../i18n/labels'
 import { BattleContext } from './BattleContext'
@@ -216,10 +217,19 @@ export function BattleHub({ save, variant = 'desktop', onUpdated }: Props) {
     return () => window.removeEventListener('beforeunload', handler)
   }, [variant, isInRoom, ctx?.roomId])
 
-  const submitAction = async (action: BattleActionType) => {
+  const submitAction = async (
+    command: BattleCommand,
+    extra?: { skillId?: string; itemType?: string }
+  ) => {
     if (!sessionId) return
-    await window.electronAPI.submitBattleAction(sessionId, action)
-    if (action === 'shield') {
+    const payload =
+      command === 'skill' && extra?.skillId
+        ? `skill:${extra.skillId}`
+        : command === 'item' && extra?.itemType
+          ? `item:${extra.itemType}`
+          : command
+    await window.electronAPI.submitBattleAction(sessionId, payload)
+    if (command === 'item' && extra?.itemType === 'battle_shield') {
       await window.electronAPI.patchGame('consumeBattleShield', [])
       await onUpdated?.()
     }
@@ -227,7 +237,10 @@ export function BattleHub({ save, variant = 'desktop', onUpdated }: Props) {
   }
 
   const shieldCount = save.inventory.find((i) => i.type === 'battle_shield')?.quantity ?? 0
-  const canBattle = save.pet && save.pet.stage !== 'egg' && save.pet.stats.hp >= 10
+  const canBattle =
+    !!save.pet &&
+    save.pet.stage !== 'egg' &&
+    canEnterBattle(save.pet.stats.health, save.pet.stats.emotion)
 
   const hubTabs: { id: HubTab; label: string }[] = [
     { id: 'room', label: t('battle.tabs.room') },
@@ -240,10 +253,11 @@ export function BattleHub({ save, variant = 'desktop', onUpdated }: Props) {
       <div className="card" style={{ marginBottom: 12 }}>
         <h2>{t('battle.title')}</h2>
         {!canBattle ? (
-          <p>{t('pet.needRaiseBeforeBattleHp')}</p>
+          <p>{t('pet.needRaiseBeforeBattleCare')}</p>
         ) : (
           <p>
-            {t('pet.yourPet')}: {save.pet!.name} ({tCharacter(save.pet!.character)}) · HP {save.pet!.stats.hp}
+            {t('pet.yourPet')}: {save.pet!.name} ({tCharacter(save.pet!.character)}) ·{' '}
+            {t('home.health')} {save.pet!.stats.health} · {t('home.emotion')} {save.pet!.stats.emotion}
           </p>
         )}
       </div>

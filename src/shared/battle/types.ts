@@ -1,17 +1,17 @@
 /**
- * Bite/Jump/Tailwhip are attack variants, Shield/Avoid are defensive stances,
- * Ultimate needs a full energy meter. Flee is internal-only (room forfeit),
- * never a visible arena button. 'attack'/'defend' are legacy aliases kept only
- * so historical battle_turns rows (pre-6-action) still satisfy this type.
+ * New RPG commands (Attack / Skill / Item / Defend).
+ * Legacy bite/jump/... kept so historical battle_turns rows still type-check.
  */
+export type BattleCommand = 'attack' | 'skill' | 'item' | 'defend' | 'flee'
+
 export type BattleActionType =
+  | BattleCommand
   | 'bite'
   | 'jump'
   | 'tailwhip'
   | 'shield'
   | 'avoid'
   | 'ultimate'
-  | 'flee'
   | 'attack'
   | 'defend'
 
@@ -35,10 +35,19 @@ export interface BattleCombatant {
   character: string
   hp: number
   hpStart: number
-  energy: number
+  /** Magic points */
+  mp: number
+  mpStart: number
+  /** Technique / ultimate gauge 0–100 (replaces energy) */
+  tp: number
   defending: boolean
-  /** Set by the Avoid action; gives a chance to fully dodge the opponent's next hit. */
   avoiding: boolean
+  str: number
+  dex: number
+  int: number
+  con: number
+  elementPrimary: string
+  elementSecondary: string | null
 }
 
 export interface BattleSession {
@@ -52,6 +61,11 @@ export interface BattleSession {
   defenderHp: number
   challengerHpStart: number
   defenderHpStart: number
+  challengerMp: number
+  defenderMp: number
+  challengerTp: number
+  defenderTp: number
+  /** @deprecated mapped from tp for older clients */
   challengerEnergy: number
   defenderEnergy: number
   challengerDefending: boolean
@@ -71,6 +85,8 @@ export interface BattleTurn {
   sessionId: string
   actorUserId: string
   action: BattleActionType
+  /** Optional skill path id when action is skill */
+  skillId?: string | null
   damage: number
   challengerHpAfter: number
   defenderHpAfter: number
@@ -128,7 +144,7 @@ export interface ApplyActionResult {
   finished: boolean
 }
 
-/** @deprecated Use BattleActionType */
+/** @deprecated Use BattleCommand */
 export type LegacyBattleAction = { type: 'attack' | 'defend' | 'skill' }
 
 export interface BattleResult {
@@ -136,4 +152,11 @@ export interface BattleResult {
   log: string[]
   challengerHp: number
   defenderHp: number
+}
+
+/** Payload for submitting a turn */
+export interface BattleActionPayload {
+  command: BattleCommand
+  skillId?: string
+  itemType?: string
 }

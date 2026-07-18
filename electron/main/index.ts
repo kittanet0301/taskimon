@@ -192,9 +192,9 @@ function setupIpc(): void {
       species: pet.character,
       gender: pet.gender,
       stage: pet.stage,
-      hp: pet.stats.hp,
-      mood: pet.stats.mood,
-      dev_points: pet.stats.devPoints,
+      hp: pet.stats.health,
+      mood: pet.stats.emotion,
+      dev_points: pet.stats.evolution,
       hatched_at: pet.hatchedAt,
       created_at: pet.createdAt
     }

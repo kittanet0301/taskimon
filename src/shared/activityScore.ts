@@ -12,10 +12,11 @@ export function getStageLabel(stage: Stage): string {
   return tStage('adult')
 }
 
-export function getPetLevel(stage: Stage, devPoints: number): number {
-  if (stage === 'egg') return 1 + Math.floor(devPoints / Math.max(1, DEV_POINTS_HATCH))
-  if (stage === 'baby') return 2 + Math.floor(devPoints / 200)
-  return 5 + Math.floor(devPoints / 100)
+/** Faster curve: baby /80, adult /40 (was /200 and /100). */
+export function getPetLevel(stage: Stage, evolution: number): number {
+  if (stage === 'egg') return 1 + Math.floor(evolution / Math.max(1, DEV_POINTS_HATCH))
+  if (stage === 'baby') return 2 + Math.floor(evolution / 80)
+  return 5 + Math.floor(evolution / 40)
 }
 
 export const ONBOARDING_KEY = 'taskino-onboarded'

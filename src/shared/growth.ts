@@ -1,11 +1,25 @@
 import type { GameSave, PetData } from './types'
-import { SAVE_VERSION, TEST_FAST_EVO, PET_SLOT_BASE } from './constants'
+import {
+  SAVE_VERSION,
+  TEST_FAST_EVO,
+  PET_SLOT_BASE,
+  BREED_COOLDOWN_MS,
+  BREED_PURE_BONUS
+} from './constants'
 import { createDefaultMissions, ensureAllMissions } from './missions'
 import { clampSlotLimit } from './petCollection'
 import { getDefaultInventory, getDefaultQuickItemSlots, normalizeQuickItemSlots } from './items'
 import { createDefaultMinigameState } from './minigame'
-import { DEFAULT_CREATURE_SPECIES } from './creatureCharacters'
-import { hatchEgg, defaultPetName, normalizePetSpecies } from './dinoCharacters'
+import { hatchEgg, defaultPetName } from './dinoCharacters'
+import {
+  PURE_CHANCE,
+  isPureElements,
+  rollElementSlots,
+  type ElementId
+} from './elements'
+import { primariesForElements } from './combatStats'
+import { rollSkillLoadout } from './battle/skillTrees'
+import { normalizePetData } from './petNormalize'
 
 function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -17,13 +31,22 @@ function uuid(): string {
 
 export function createEggPet(species?: PetData['character']): PetData {
   const hatch = hatchEgg(species)
+  const { elementPrimary, elementSecondary } = rollElementSlots()
+  const primaries = primariesForElements(elementPrimary, elementSecondary)
   return {
     id: uuid(),
     name: defaultPetName(hatch.character),
     character: hatch.character,
     gender: hatch.gender,
     stage: 'egg',
-    stats: { hp: 100, mood: 80, devPoints: 0 },
+    stats: { health: 100, emotion: 80, evolution: 0 },
+    primaries,
+    elementPrimary,
+    elementSecondary,
+    skillLoadout: null,
+    skillUpgradePoints: 0,
+    pendingGrowthOffers: null,
+    lastBredAt: null,
     hatchedAt: null,
     createdAt: new Date().toISOString(),
     animationState: 'egg_idle',
@@ -32,11 +55,15 @@ export function createEggPet(species?: PetData['character']): PetData {
 }
 
 export function hatchPet(pet: PetData): PetData {
+  const loadout =
+    pet.skillLoadout ?? rollSkillLoadout(pet.elementPrimary, pet.elementSecondary)
   return {
     ...pet,
     stage: 'baby',
     hatchedAt: new Date().toISOString(),
-    animationState: 'idle'
+    animationState: 'idle',
+    skillLoadout: loadout,
+    skillUpgradePoints: pet.skillUpgradePoints ?? 0
   }
 }
 
@@ -46,8 +73,75 @@ export function resetPetToEggStage(pet: PetData): PetData {
     ...pet,
     stage: 'egg',
     hatchedAt: null,
-    animationState: 'egg_idle'
+    animationState: 'egg_idle',
+    skillLoadout: null,
+    skillUpgradePoints: 0,
+    pendingGrowthOffers: null
   }
+}
+
+export function canBreed(a: PetData, b: PetData, now: number = Date.now()): boolean {
+  if (!a || !b || a.id === b.id) return false
+  if (a.stage !== 'adult' || b.stage !== 'adult') return false
+  if (a.gender === b.gender) return false
+  const cooldownOk = (pet: PetData) => {
+    if (!pet.lastBredAt) return true
+    const t = new Date(pet.lastBredAt).getTime()
+    if (!Number.isFinite(t)) return true
+    return now - t >= BREED_COOLDOWN_MS
+  }
+  return cooldownOk(a) && cooldownOk(b)
+}
+
+/**
+ * Locally breed two adult pets: produces an egg (species inherited 50/50 from
+ * parents, elements re-rolled with a small pure bonus if both parents are pure
+ * of the same element) and stamps `lastBredAt` on both parents.
+ */
+export function breedPetsLocal(
+  a: PetData,
+  b: PetData,
+  rng: () => number = Math.random,
+  now: number = Date.now()
+): { parents: [PetData, PetData]; egg: PetData } {
+  const inheritSpecies = rng() < 0.5 ? a.character : b.character
+  const egg = createEggPet(inheritSpecies)
+
+  const bothPureSame =
+    isPureElements(a.elementPrimary, a.elementSecondary) &&
+    isPureElements(b.elementPrimary, b.elementSecondary) &&
+    a.elementPrimary === b.elementPrimary
+
+  let elementPrimary: ElementId
+  let elementSecondary: ElementId | null
+  if (bothPureSame) {
+    const pureChance = Math.min(1, PURE_CHANCE + BREED_PURE_BONUS)
+    if (rng() < pureChance) {
+      elementPrimary = a.elementPrimary
+      elementSecondary = null
+    } else {
+      const rolled = rollElementSlots(rng)
+      elementPrimary = rolled.elementPrimary
+      elementSecondary = rolled.elementSecondary
+    }
+  } else {
+    const rolled = rollElementSlots(rng)
+    elementPrimary = rolled.elementPrimary
+    elementSecondary = rolled.elementSecondary
+  }
+
+  const primaries = primariesForElements(elementPrimary, elementSecondary, rng)
+  const nextEgg: PetData = {
+    ...egg,
+    elementPrimary,
+    elementSecondary,
+    primaries
+  }
+
+  const nowIso = new Date(now).toISOString()
+  const parentA: PetData = { ...a, lastBredAt: nowIso }
+  const parentB: PetData = { ...b, lastBredAt: nowIso }
+  return { parents: [parentA, parentB], egg: nextEgg }
 }
 
 export function evolvePet(pet: PetData): PetData {
@@ -59,13 +153,7 @@ export function evolvePet(pet: PetData): PetData {
 }
 
 function migratePet(pet: PetData & { species?: string; element?: string }): PetData {
-  const character = pet.character
-    ? normalizePetSpecies(pet.character)
-    : pet.species
-      ? normalizePetSpecies(pet.species)
-      : DEFAULT_CREATURE_SPECIES
-  const { species: _species, element: _element, ...rest } = pet
-  return { ...rest, character }
+  return normalizePetData(pet as PetData & Record<string, unknown>)
 }
 
 function normalizeMinigameFields(save: GameSave): GameSave {
@@ -75,17 +163,33 @@ function normalizeMinigameFields(save: GameSave): GameSave {
   }
 }
 
-function normalizeCollectionFields(save: GameSave): GameSave {
-  return normalizeMinigameFields({
+function normalizeActivity(save: GameSave): GameSave {
+  const a = save.activity
+  const evolutionThisHour = a.evolutionThisHour ?? a.devPointsThisHour ?? 0
+  return {
     ...save,
-    collection: save.collection ?? [],
-    petSlotLimit: clampSlotLimit(
-      typeof save.petSlotLimit === 'number' ? save.petSlotLimit : PET_SLOT_BASE
-    ),
-    quickItemSlots: normalizeQuickItemSlots(save.quickItemSlots),
-    missions: ensureAllMissions(save.missions),
-    gems: typeof save.gems === 'number' && Number.isFinite(save.gems) ? Math.max(0, save.gems) : 0
-  })
+    activity: {
+      clicks: a.clicks ?? 0,
+      keystrokes: a.keystrokes ?? 0,
+      evolutionThisHour,
+      hourStartedAt: a.hourStartedAt ?? new Date().toISOString()
+    }
+  }
+}
+
+function normalizeCollectionFields(save: GameSave): GameSave {
+  return normalizeActivity(
+    normalizeMinigameFields({
+      ...save,
+      collection: save.collection ?? [],
+      petSlotLimit: clampSlotLimit(
+        typeof save.petSlotLimit === 'number' ? save.petSlotLimit : PET_SLOT_BASE
+      ),
+      quickItemSlots: normalizeQuickItemSlots(save.quickItemSlots),
+      missions: ensureAllMissions(save.missions),
+      gems: typeof save.gems === 'number' && Number.isFinite(save.gems) ? Math.max(0, save.gems) : 0
+    })
+  )
 }
 
 /** One-time save upgrades (test mode egg rewind on v2; dino characters on v3; collection on v4; quick slots on v5). */
@@ -103,7 +207,7 @@ export function migrateSave(save: GameSave): GameSave {
       next = { ...next, minigame: createDefaultMinigameState() }
     }
     if (TEST_FAST_EVO && save.version < 2 && next.pet?.stage !== 'egg') {
-      next = { ...next, pet: resetPetToEggStage(next.pet) }
+      next = { ...next, pet: resetPetToEggStage(next.pet!) }
     }
     next = { ...next, version: SAVE_VERSION }
   }
@@ -132,7 +236,7 @@ export function createDefaultSave(): GameSave {
     activity: {
       clicks: 0,
       keystrokes: 0,
-      devPointsThisHour: 0,
+      evolutionThisHour: 0,
       hourStartedAt: now
     },
     sessionStartedAt: now,

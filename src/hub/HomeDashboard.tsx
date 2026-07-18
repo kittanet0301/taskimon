@@ -135,24 +135,24 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
           <div className="dash-hud-nameplate">
             <span>{pet.name}</span>
             <strong>
-              {getStageLabel(pet.stage)} Lv.{getPetLevel(pet.stage, pet.stats.devPoints)}
+              {getStageLabel(pet.stage)} Lv.{getPetLevel(pet.stage, pet.stats.evolution)}
             </strong>
           </div>
           <div className="dash-hud-status-body">
             <div className="hud-bar hud-bar--hp">
               <span>{t('home.health')}</span>
-              <div><i style={{ width: statPercent(pet.stats.hp, 100) }} /></div>
-              <b>{pet.stats.hp}/100</b>
+              <div><i style={{ width: statPercent(pet.stats.health, 100) }} /></div>
+              <b>{pet.stats.health}/100</b>
             </div>
             <div className="hud-bar hud-bar--mood">
               <span>{t('home.emotion')}</span>
-              <div><i style={{ width: statPercent(pet.stats.mood, 100) }} /></div>
-              <b>{pet.stats.mood}/100</b>
+              <div><i style={{ width: statPercent(pet.stats.emotion, 100) }} /></div>
+              <b>{pet.stats.emotion}/100</b>
             </div>
             <div className="hud-bar hud-bar--xp">
               <span>{t('home.evolution')}</span>
-              <div><i style={{ width: statPercent(pet.stats.devPoints, 999) }} /></div>
-              <b>{pet.stats.devPoints}/999</b>
+              <div><i style={{ width: statPercent(pet.stats.evolution, 999) }} /></div>
+              <b>{pet.stats.evolution}/999</b>
             </div>
             {(canHatch || canEvolve) && (
               <button

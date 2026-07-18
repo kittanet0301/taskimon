@@ -17,6 +17,11 @@ export const CLICKS_PER_DEV = TEST_FAST_EVO ? 10 : 100
 export const KEYS_PER_DEV = TEST_FAST_EVO ? 50 : 500
 export const MAX_DEV_PER_HOUR = TEST_FAST_EVO ? 999 : 10
 
+/** Cooldown before a bred pet can breed again. */
+export const BREED_COOLDOWN_MS = TEST_FAST_EVO ? 60_000 : 6 * 60 * 60 * 1000
+/** Extra pure-element chance bonus when both parents are pure of the same element. */
+export const BREED_PURE_BONUS = 0.05
+
 import type { PetSpecies } from './types'
 import { CREATURE_PREVIEW_COLORS } from './creatureCharacters'
 import { DINO_PREVIEW_COLORS } from './dinoCharacters'

@@ -1,10 +1,16 @@
 import type { DinoCharacter } from './dinoCharacters'
 import type { CreatureSpecies } from './creatureCharacters'
+import type { ElementId } from './elements'
+import type { PrimaryStats, GrowthCardId } from './combatStats'
+import type { SkillLoadout } from './battle/skillTrees'
 
 export type { DinoCharacter } from './dinoCharacters'
 export type { CreatureSpecies } from './creatureCharacters'
 export { DINO_CHARACTERS } from './dinoCharacters'
 export { CREATURE_SPECIES } from './creatureCharacters'
+export type { ElementId } from './elements'
+export type { PrimaryStats, GrowthCardId, GrowthCard } from './combatStats'
+export type { SkillLoadout, SkillSlot } from './battle/skillTrees'
 
 export type PetSpecies = DinoCharacter | CreatureSpecies
 
@@ -33,6 +39,8 @@ export type ItemType =
   | 'toy'
   | 'dev_vitamin'
   | 'battle_shield'
+  | 'breed_nest'
+  | 'skill_forget'
 
 export type MinigameId = 'dino_jump'
 
@@ -43,10 +51,17 @@ export interface MinigameSaveState {
   bestScores: Partial<Record<MinigameId, number>>
 }
 
+/** Care stats — not used in combat damage formulas. */
 export interface PetStats {
-  hp: number
-  mood: number
-  devPoints: number
+  health: number
+  emotion: number
+  evolution: number
+  /** @deprecated use health */
+  hp?: number
+  /** @deprecated use emotion */
+  mood?: number
+  /** @deprecated use evolution */
+  devPoints?: number
 }
 
 export interface PetData {
@@ -56,6 +71,15 @@ export interface PetData {
   gender: Gender
   stage: Stage
   stats: PetStats
+  /** Combat primaries — set at egg create from element table */
+  primaries: PrimaryStats
+  elementPrimary: ElementId
+  elementSecondary: ElementId | null
+  skillLoadout: SkillLoadout | null
+  skillUpgradePoints: number
+  /** Pending growth-card offer ids awaiting a pick (usually 3 at a time). */
+  pendingGrowthOffers: GrowthCardId[] | null
+  lastBredAt: string | null
   hatchedAt: string | null
   createdAt: string
   animationState: AnimationState
@@ -77,8 +101,11 @@ export interface MissionProgress {
 export interface ActivityCounters {
   clicks: number
   keystrokes: number
-  devPointsThisHour: number
+  /** Evolution points earned this hour (renamed from devPointsThisHour) */
+  evolutionThisHour: number
   hourStartedAt: string
+  /** @deprecated use evolutionThisHour */
+  devPointsThisHour?: number
 }
 
 export interface GameSave {
@@ -120,6 +147,7 @@ export interface FriendRequest {
 
 export type {
   BattleActionType,
+  BattleCommand,
   BattleSessionStatus,
   BattleRoomStatus,
   BattleRoomVisibility,

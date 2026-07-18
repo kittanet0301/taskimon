@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { BattleActionType, BattleSession } from '../../shared/battle/types'
-import type { BattleTurn } from '../../shared/battle/types'
-import { ULTIMATE_ENERGY_MAX } from '../../shared/battle/constants'
+import type { BattleCommand, BattleSession, BattleTurn } from '../../shared/battle/types'
+import { TP_MAX } from '../../shared/battle/constants'
 import type { PetData } from '../../shared/types'
 import { DinoSprite } from '../../components/DinoSprite'
+import { getSkillDef } from '../../shared/battle/skillTrees'
+import { deriveCombatStats } from '../../shared/combatStats'
+
+type MenuView = 'commands' | 'skills' | 'items'
 
 interface Props {
   session: BattleSession
@@ -15,76 +18,46 @@ interface Props {
   challengerPet?: PetData | null
   defenderPet?: PetData | null
   shieldCount?: number
-  onAction: (action: BattleActionType) => Promise<void>
+  onAction: (command: BattleCommand, extra?: { skillId?: string; itemType?: string }) => Promise<void>
 }
 
-function HpBar({ label, hp, hpStart, color }: { label: string; hp: number; hpStart: number; color: string }) {
-  const pct = hpStart > 0 ? Math.max(0, Math.min(100, (hp / hpStart) * 100)) : 0
-  return (
-    <div className="hp-bar">
-      <div className="hp-bar-label">
-        <span>{label}</span>
-        <span>{hp} / {hpStart}</span>
-      </div>
-      <div className="hp-bar-track">
-        <div className="hp-bar-fill" style={{ width: `${pct}%`, background: color }} />
-      </div>
-    </div>
-  )
-}
-
-function EnergyBar({ energy }: { energy: number }) {
-  const { t } = useTranslation()
-  const pct = Math.max(0, Math.min(100, energy))
-  const ready = pct >= ULTIMATE_ENERGY_MAX
-  return (
-    <div className="energy-bar">
-      <div className="hp-bar-label">
-        <span>{t('battle.ultimateEnergy')}</span>
-        <span>{pct}% {ready ? `· ${t('battle.ultimateReady')}` : ''}</span>
-      </div>
-      <div className="hp-bar-track energy-bar-track">
-        <div
-          className={`hp-bar-fill energy-bar-fill ${ready ? 'ready' : ''}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function Fighter({
-  name,
-  pet,
-  hp,
-  hpStart,
-  color,
-  flip,
-  defending,
-  avoiding
+function ResourceBar({
+  label,
+  value,
+  max,
+  className
 }: {
-  name: string
-  pet: PetData | null | undefined
-  hp: number
-  hpStart: number
-  color: string
-  flip?: boolean
-  defending?: boolean
-  avoiding?: boolean
+  label: string
+  value: number
+  max: number
+  className: string
 }) {
-  const { t } = useTranslation()
+  const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0
   return (
-    <div className="battle-fighter">
-      <div className={`battle-fighter-sprite${flip ? ' battle-fighter-sprite--flip' : ''}`}>
-        {pet ? (
-          <DinoSprite pet={pet} size={96} />
-        ) : (
-          <div className="battle-fighter-placeholder" aria-hidden />
-        )}
-        {defending && <span className="battle-fighter-badge battle-fighter-badge--shield">{t('battle.shield')}</span>}
-        {avoiding && <span className="battle-fighter-badge battle-fighter-badge--avoid">{t('battle.avoid')}</span>}
+    <div className={`rpg-bar ${className}`}>
+      <div className="rpg-bar-label">
+        <span>{label}</span>
+        <span>
+          {value}/{max}
+        </span>
       </div>
-      <HpBar label={name} hp={hp} hpStart={hpStart} color={color} />
+      <div className="rpg-bar-track">
+        <div className="rpg-bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function ElementBadges({ pet }: { pet: PetData | null | undefined }) {
+  if (!pet) return null
+  return (
+    <div className="rpg-elements" aria-hidden>
+      <span className={`rpg-element rpg-element--${pet.elementPrimary}`}>{pet.elementPrimary}</span>
+      {pet.elementSecondary && (
+        <span className={`rpg-element rpg-element--${pet.elementSecondary}`}>
+          {pet.elementSecondary}
+        </span>
+      )}
     </div>
   )
 }
@@ -102,19 +75,51 @@ export function BattleArena({
 }: Props) {
   const { t } = useTranslation()
   const [submitting, setSubmitting] = useState(false)
+  const [menu, setMenu] = useState<MenuView>('commands')
+
   const isChallenger = session.challengerUserId === userId
   const myTurn = session.turnUserId === userId && session.status === 'active'
-  const myEnergy = isChallenger ? session.challengerEnergy : session.defenderEnergy
-  const ultimateReady = myEnergy >= ULTIMATE_ENERGY_MAX
-  const canShield = shieldCount > 0
+  const myPet = isChallenger ? challengerPet : defenderPet
+  const oppPet = isChallenger ? defenderPet : challengerPet
+  const myHp = isChallenger ? session.challengerHp : session.defenderHp
+  const myHpStart = isChallenger ? session.challengerHpStart : session.defenderHpStart
+  const oppHp = isChallenger ? session.defenderHp : session.challengerHp
+  const oppHpStart = isChallenger ? session.defenderHpStart : session.challengerHpStart
+  const myMp = isChallenger ? session.challengerMp : session.defenderMp
+  const myTp = isChallenger ? session.challengerTp : session.defenderTp
+  const myMpMax = myPet ? deriveCombatStats(myPet.primaries).maxMp : Math.max(myMp, 1)
+  const loadout = myPet?.skillLoadout?.slots ?? []
 
-  const act = async (action: BattleActionType) => {
+  const turnOrder = useMemo(() => {
+    const cDex = challengerPet?.primaries.dex ?? 0
+    const dDex = defenderPet?.primaries.dex ?? 0
+    const cFirst = cDex >= dDex
+    return cFirst
+      ? [
+          { id: 'c', name: challengerName ?? t('battle.challenger'), active: session.turnUserId === session.challengerUserId },
+          { id: 'd', name: defenderName ?? t('battle.defender'), active: session.turnUserId === session.defenderUserId }
+        ]
+      : [
+          { id: 'd', name: defenderName ?? t('battle.defender'), active: session.turnUserId === session.defenderUserId },
+          { id: 'c', name: challengerName ?? t('battle.challenger'), active: session.turnUserId === session.challengerUserId }
+        ]
+  }, [
+    challengerPet,
+    defenderPet,
+    challengerName,
+    defenderName,
+    session.turnUserId,
+    session.challengerUserId,
+    session.defenderUserId,
+    t
+  ])
+
+  const act = async (command: BattleCommand, extra?: { skillId?: string; itemType?: string }) => {
     if (!myTurn || submitting) return
-    if (action === 'ultimate' && !ultimateReady) return
-    if (action === 'shield' && !canShield) return
     setSubmitting(true)
     try {
-      await onAction(action)
+      await onAction(command, extra)
+      setMenu('commands')
     } finally {
       setSubmitting(false)
     }
@@ -131,96 +136,178 @@ export function BattleArena({
           ? t('battle.statusFled')
           : session.status
 
-  const actionButtons: Array<{
-    action: BattleActionType
-    labelKey: string
-    hintKey: string
-    className: string
-    disabled?: boolean
-    labelExtra?: string
-  }> = [
-    { action: 'bite', labelKey: 'battle.bite', hintKey: 'battle.biteHint', className: 'primary' },
-    { action: 'jump', labelKey: 'battle.jump', hintKey: 'battle.jumpHint', className: 'primary' },
-    { action: 'tailwhip', labelKey: 'battle.tailwhip', hintKey: 'battle.tailwhipHint', className: 'primary' },
-    {
-      action: 'shield',
-      labelKey: 'battle.shield',
-      hintKey: canShield ? 'battle.shieldHint' : 'battle.shieldNeedItem',
-      className: 'secondary',
-      disabled: !canShield,
-      labelExtra: `×${shieldCount}`
-    },
-    { action: 'avoid', labelKey: 'battle.avoid', hintKey: 'battle.avoidHint', className: 'secondary' },
-    {
-      action: 'ultimate',
-      labelKey: 'battle.ultimate',
-      hintKey: 'battle.ultimateHint',
-      className: `primary ultimate-ready-btn${ultimateReady ? ' ultimate-ready' : ''}`,
-      disabled: !ultimateReady
-    }
-  ]
-
   return (
-    <div className="battle-arena">
-      <h3>{t('battle.arenaTitle')}</h3>
-      <p><strong>{statusLabel}</strong></p>
+    <div className="battle-arena rpg-arena">
+      <div className="rpg-top">
+        <div className="rpg-status">
+          <div className="rpg-status-head">
+            <strong>{myPet?.name ?? (isChallenger ? challengerName : defenderName)}</strong>
+            <ElementBadges pet={myPet} />
+          </div>
+          <ResourceBar label="HP" value={myHp} max={myHpStart || 1} className="rpg-bar--hp" />
+          <ResourceBar label="MP" value={myMp} max={myMpMax || 1} className="rpg-bar--mp" />
+          <ResourceBar label="TP" value={myTp} max={TP_MAX} className="rpg-bar--tp" />
+        </div>
+        <div className="rpg-turn-order" aria-label={t('battle.turnOrder')}>
+          <span className="rpg-turn-label">{t('battle.turnOrder')}</span>
+          <div className="rpg-turn-list">
+            {turnOrder.map((entry) => (
+              <span key={entry.id} className={`rpg-turn-chip${entry.active ? ' active' : ''}`}>
+                {entry.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <div className="battle-stage">
-        <Fighter
-          name={challengerName ?? t('battle.challenger')}
-          pet={challengerPet}
-          hp={session.challengerHp}
-          hpStart={session.challengerHpStart}
-          color="var(--pixel-accent-dark)"
-          defending={session.challengerDefending}
-          avoiding={session.challengerAvoiding}
-        />
+      <p className="rpg-status-line">
+        <strong>{statusLabel}</strong>
+      </p>
+
+      <div className="battle-stage rpg-stage">
+        <div className="battle-fighter">
+          <div className="battle-fighter-sprite">
+            {challengerPet ? (
+              <DinoSprite pet={challengerPet} size={96} />
+            ) : (
+              <div className="battle-fighter-placeholder" aria-hidden />
+            )}
+            {session.challengerDefending && (
+              <span className="battle-fighter-badge">{t('battle.defend')}</span>
+            )}
+          </div>
+          <div className="rpg-mini-hp">
+            {(challengerName ?? t('battle.challenger')) + ` ${session.challengerHp}/${session.challengerHpStart}`}
+          </div>
+        </div>
         <div className="battle-vs">VS</div>
-        <Fighter
-          name={defenderName ?? t('battle.defender')}
-          pet={defenderPet}
-          hp={session.defenderHp}
-          hpStart={session.defenderHpStart}
-          color="#ef4444"
-          flip
-          defending={session.defenderDefending}
-          avoiding={session.defenderAvoiding}
-        />
+        <div className="battle-fighter">
+          <div className="battle-fighter-sprite battle-fighter-sprite--flip">
+            {defenderPet ? (
+              <DinoSprite pet={defenderPet} size={96} />
+            ) : (
+              <div className="battle-fighter-placeholder" aria-hidden />
+            )}
+            {session.defenderDefending && (
+              <span className="battle-fighter-badge">{t('battle.defend')}</span>
+            )}
+          </div>
+          <div className="rpg-mini-hp">
+            {(defenderName ?? t('battle.defender')) + ` ${oppHp}/${oppHpStart}`}
+          </div>
+        </div>
       </div>
 
       {session.status === 'active' && (
-        <>
-          <EnergyBar energy={myEnergy} />
-          <div className="battle-actions battle-actions--6">
-            {actionButtons.map(({ action, labelKey, hintKey, className, disabled, labelExtra }) => (
+        <div className="rpg-bottom">
+          {menu === 'commands' && (
+            <div className="rpg-commands">
               <button
-                key={action}
                 type="button"
-                className={className}
-                disabled={!myTurn || submitting || disabled}
-                onClick={() => void act(action)}
-                title={t(hintKey)}
+                className="primary"
+                disabled={!myTurn || submitting}
+                onClick={() => void act('attack')}
               >
-                {t(labelKey)}
-                {labelExtra ? ` ${labelExtra}` : ''}
+                {t('battle.attack')}
               </button>
-            ))}
-          </div>
-          {!ultimateReady && myTurn && (
-            <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
-              {t('battle.ultimateHint')}
-            </p>
+              <button
+                type="button"
+                className="primary"
+                disabled={!myTurn || submitting}
+                onClick={() => setMenu('skills')}
+              >
+                {t('battle.skillMenu')}
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                disabled={!myTurn || submitting}
+                onClick={() => setMenu('items')}
+              >
+                {t('battle.itemMenu')}
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                disabled={!myTurn || submitting}
+                onClick={() => void act('defend')}
+              >
+                {t('battle.defend')}
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                disabled={!myTurn || submitting}
+                onClick={() => void act('flee')}
+              >
+                {t('battle.flee')}
+              </button>
+            </div>
           )}
-          {!canShield && myTurn && (
-            <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
-              {t('battle.shieldNeedItem')}
-            </p>
+
+          {menu === 'skills' && (
+            <div className="rpg-submenu">
+              <button type="button" className="secondary rpg-back" onClick={() => setMenu('commands')}>
+                {t('battle.back')}
+              </button>
+              <div className="rpg-skill-grid">
+                {loadout.map((slot) => {
+                  const def = getSkillDef(slot.pathId)
+                  const isUlt = slot.kind === 'ultimate'
+                  const needTp = isUlt && myTp < TP_MAX
+                  const needMp = !isUlt && def != null && myMp < def.mpCost
+                  const label = t(`skills.${slot.pathId}`, {
+                    defaultValue: slot.pathId.replace(/_/g, ' ')
+                  })
+                  return (
+                    <button
+                      key={`${slot.pathId}-${slot.kind}`}
+                      type="button"
+                      className={isUlt ? 'primary ultimate-ready-btn' : 'primary'}
+                      disabled={!myTurn || submitting || needTp || needMp}
+                      title={
+                        isUlt
+                          ? t('battle.ultimateNeedEnergy', { required: TP_MAX, current: myTp })
+                          : def
+                            ? `MP ${def.mpCost} · Lv${slot.rank}`
+                            : undefined
+                      }
+                      onClick={() => void act('skill', { skillId: slot.pathId })}
+                    >
+                      {label}
+                      {isUlt ? ' ★' : ''}
+                    </button>
+                  )
+                })}
+                {loadout.length === 0 && (
+                  <p className="rpg-hint">{t('battle.noSkills')}</p>
+                )}
+              </div>
+            </div>
           )}
-        </>
+
+          {menu === 'items' && (
+            <div className="rpg-submenu">
+              <button type="button" className="secondary rpg-back" onClick={() => setMenu('commands')}>
+                {t('battle.back')}
+              </button>
+              <div className="rpg-skill-grid">
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={!myTurn || submitting || shieldCount <= 0}
+                  onClick={() => void act('item', { itemType: 'battle_shield' })}
+                >
+                  {t('items.battle_shield.label')} ×{shieldCount}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {turns.length > 0 && (
-        <div className="battle-log" style={{ marginTop: 12 }}>
+        <div className="battle-log rpg-log">
           {turns.map((turn) => (
             <div key={turn.id}>{turn.message}</div>
           ))}
