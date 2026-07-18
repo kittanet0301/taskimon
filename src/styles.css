@@ -3562,6 +3562,10 @@ input, select {
   max-width: 520px;
   max-height: min(88vh, 860px);
   overflow-y: auto;
+  color: #3b210e;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  background: #fff9f0;
+  border: 3px solid #3b210e;
 }
 
 .pet-detail-body {
@@ -3649,7 +3653,7 @@ input, select {
   min-height: 44px;
   font-family: 'Mali', 'Noto Sans Thai', sans-serif;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
 }
