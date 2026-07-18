@@ -96,7 +96,8 @@ function normalizeMinigameStateFromDb(value: MinigameSaveState | null | undefine
 }
 
 function normalizeMinigameId(key: string): MinigameId | null {
-  return key === 'dino_jump' ? 'dino_jump' : null
+  if (key === 'dino_jump' || key === 'rock_dodge') return key
+  return null
 }
 
 function normalizeMinigameCounts(

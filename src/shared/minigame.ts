@@ -20,6 +20,13 @@ export const MINIGAME_REGISTRY: MinigameDefinition[] = [
     descriptionKey: 'minigame.dinoJump.description',
     scoreThreshold: 1000,
     rewardPool: MINIGAME_REWARD_POOL
+  },
+  {
+    id: 'rock_dodge',
+    titleKey: 'minigame.rockDodge.title',
+    descriptionKey: 'minigame.rockDodge.description',
+    scoreThreshold: 1000,
+    rewardPool: MINIGAME_REWARD_POOL
   }
 ]
 

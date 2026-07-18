@@ -179,10 +179,12 @@
     "backToHub": "Back to game list",
     "itemsLeft": "Items today: {{left}} / {{total}}",
     "distance": "Distance: {{score}}",
+    "score": "Score: {{score}}",
     "rewardItems": "Reward item: {{items}}",
     "rewardPoolLabel": "Possible rewards",
     "scoreThreshold1000": "Item reward at {{score}}+ distance",
     "belowThreshold": "Reach {{score}} distance to earn a random item.",
+    "belowThresholdScore": "Reach {{score}} score to earn a random item.",
     "noRewardsLeft": "No item rewards left today — keep playing for ranking!",
     "gameOver": "Game Over",
     "yourBest": "Best: {{score}}",
@@ -191,6 +193,12 @@
     "dinoJump": {
       "title": "Dino Jump",
       "description": "Jump over obstacles. Score equals distance traveled."
+    },
+    "rockDodge": {
+      "title": "Rock Dodge",
+      "description": "Move left and right to dodge falling rocks and junk.",
+      "controlsHint": "Use ← → or A/D. On touch, hold the left or right half of the screen.",
+      "difficultyHint": "Fall speed increases every 100 points — stay alive!"
     }
   },
   "ranking": {

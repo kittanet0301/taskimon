@@ -10,6 +10,7 @@ import {
 import { ITEM_ICON_SRC } from '../../shared/itemIcons'
 import { tItemLabel } from '../../i18n/labels'
 import { DinoJumpGame } from './dino-jump/DinoJumpGame'
+import { RockDodgeGame } from './rock-dodge/RockDodgeGame'
 import { MiniGameRanking } from './MiniGameRanking'
 
 interface Props {
@@ -25,8 +26,13 @@ export function MiniGameHub({ save, onUpdated, onClose }: Props) {
   const [activeGame, setActiveGame] = useState<MinigameId | null>(null)
   const [view, setView] = useState<MinigameView>('games')
 
+  const activeDef = activeGame ? getMinigameDefinition(activeGame) : undefined
   const headTitle =
-    activeGame === 'dino_jump' ? t(getMinigameDefinition('dino_jump')?.titleKey ?? 'minigame.title') : view === 'ranking' ? t('ranking.title') : t('minigame.title')
+    activeDef != null
+      ? t(activeDef.titleKey)
+      : view === 'ranking'
+        ? t('ranking.title')
+        : t('minigame.title')
 
   return (
     <div className="hub-modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
@@ -40,6 +46,8 @@ export function MiniGameHub({ save, onUpdated, onClose }: Props) {
 
         {activeGame === 'dino_jump' ? (
           <DinoJumpGame save={save} onUpdated={onUpdated} onBack={() => setActiveGame(null)} />
+        ) : activeGame === 'rock_dodge' ? (
+          <RockDodgeGame save={save} onUpdated={onUpdated} onBack={() => setActiveGame(null)} />
         ) : view === 'ranking' ? (
           <MiniGameRanking onBack={() => setView('games')} />
         ) : (

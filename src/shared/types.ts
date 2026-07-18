@@ -42,7 +42,7 @@ export type ItemType =
   | 'breed_nest'
   | 'skill_forget'
 
-export type MinigameId = 'dino_jump'
+export type MinigameId = 'dino_jump' | 'rock_dodge'
 
 export interface MinigameSaveState {
   /** YYYY-MM-DD local calendar day for daily item reward quota */
