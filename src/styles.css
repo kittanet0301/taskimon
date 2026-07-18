@@ -3576,7 +3576,8 @@ input, select {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  /* Above nested hub-modal overlays (detail / breed) so confirm is never buried */
+  z-index: 1100;
 }
 
 .collection-dialog {

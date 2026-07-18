@@ -427,7 +427,11 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
               <button
                 type="button"
                 className="danger-btn"
-                onClick={() => setPendingDelete(detailPet)}
+                onClick={() => {
+                  const target = detailPet
+                  setDetailPet(null)
+                  setPendingDelete(target)
+                }}
                 disabled={busy}
               >
                 {t('collection.delete')}
