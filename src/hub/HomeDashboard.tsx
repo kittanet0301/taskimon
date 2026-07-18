@@ -138,6 +138,16 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
             <strong>
               {getStageLabel(pet.stage)} Lv.{getPetLevel(pet.stage, pet.stats.evolution)}
             </strong>
+            <div className="dash-hud-nameplate-elements">
+              <span className={`element-badge element-badge--${pet.elementPrimary}`}>
+                {t(`elements.${pet.elementPrimary}`)}
+              </span>
+              {pet.elementSecondary && (
+                <span className={`element-badge element-badge--${pet.elementSecondary}`}>
+                  {t(`elements.${pet.elementSecondary}`)}
+                </span>
+              )}
+            </div>
           </div>
           <div className="dash-hud-status-body">
             <div className="hud-bar hud-bar--hp">

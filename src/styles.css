@@ -1094,6 +1094,9 @@ input, select {
   right: clamp(16px, 2vw, 32px);
   width: min(35vw, 560px);
   min-width: 360px;
+  max-height: min(72vh, 720px);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .dash-hud-nameplate {
@@ -1134,6 +1137,21 @@ input, select {
   font-weight: 700;
   font-size: 0.82rem;
   color: #d9f6c5;
+}
+
+.dash-hud-nameplate-elements {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.dash-hud-nameplate-elements .element-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-color: #ffe2b1;
+  color: #1f2937;
 }
 
 .dash-hud-status-body {
@@ -4340,10 +4358,17 @@ input, select {
 }
 
 .dash-hud-combat-stats {
-  margin-top: 6px;
-  padding: 6px 8px;
+  margin-top: 2px;
+  padding: 8px;
   font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.78);
+  border: 3px solid #2c1408;
+  background: linear-gradient(180deg, #fff8e8 0%, #ffe7b8 100%);
+  box-shadow: inset 0 0 0 2px rgba(208, 138, 34, 0.55);
+}
+
+.dash-hud-combat-stats .combat-stat-check-head strong {
+  color: #3b210e;
+  font-size: 0.82rem;
 }
 
 .combat-stat-check-head {
