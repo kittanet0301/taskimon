@@ -1382,12 +1382,15 @@ input, select {
   right: 7px;
   bottom: 4px;
   min-width: 20px;
-  padding: 1px 4px;
+  padding: 3px 4px 2px;
   border: 2px solid #2c1408;
   background: #f9dfae;
   color: #3b210e;
-  font-size: 0.72rem;
-  line-height: 1.1;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.48rem;
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
 }
 
 .dash-hud-empty-slot {
@@ -1409,7 +1412,10 @@ input, select {
   border-radius: 50%;
   background: #f9dfae;
   color: #3b210e;
-  font-weight: 900;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.55rem;
+  font-weight: 400;
+  line-height: 1;
   cursor: pointer;
   box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.8);
 }
