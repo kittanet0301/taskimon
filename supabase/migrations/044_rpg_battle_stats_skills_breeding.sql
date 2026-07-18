@@ -59,6 +59,7 @@ alter table public.pets
   add column if not exists con int not null default 20,
   add column if not exists skill_loadout jsonb null,
   add column if not exists skill_upgrade_points int not null default 0,
+  add column if not exists pending_growth_offers jsonb null,
   add column if not exists last_bred_at timestamptz null;
 
 -- ---------------------------------------------------------------------------

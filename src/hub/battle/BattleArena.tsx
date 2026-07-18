@@ -234,6 +234,14 @@ export function BattleArena({
               >
                 {t('battle.defend')}
               </button>
+              <button
+                type="button"
+                className="danger-btn"
+                disabled={!myTurn || submitting}
+                onClick={() => void act('flee')}
+              >
+                {t('battle.flee')}
+              </button>
             </div>
           )}
 

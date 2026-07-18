@@ -4093,3 +4093,234 @@ input, select {
   background: rgba(255, 176, 124, 0.18);
   font-weight: 600;
 }
+
+/* ============================================================
+ * Pet profile — elements, primaries, skills, growth cards
+ * ============================================================ */
+
+.pet-profile-elements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+
+.element-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 2px solid #1f2937;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.element-badge--fire { background: #fecaca; }
+.element-badge--grass { background: #bbf7d0; }
+.element-badge--ground { background: #fde68a; }
+.element-badge--electric { background: #fef08a; }
+.element-badge--water { background: #bfdbfe; }
+.element-badge--ice { background: #e0f2fe; }
+.element-badge--dragon { background: #ddd6fe; }
+.element-badge--dark { background: #d1d5db; }
+.element-badge--neutral { background: #f3f4f6; }
+
+.pet-profile-primaries {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.pet-profile-primaries > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 2px solid rgba(31, 41, 55, 0.15);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.pet-profile-primaries span {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.pet-profile-primaries strong {
+  font-size: 1rem;
+}
+
+.pet-profile-skills {
+  margin-top: 14px;
+}
+
+.pet-profile-skills-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pet-profile-skill-points {
+  font-size: 0.8rem;
+  color: #92400e;
+}
+
+.pet-profile-skill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pet-profile-skill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid rgba(31, 41, 55, 0.12);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pet-profile-skill-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pet-profile-skill-info span {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.pet-profile-skill-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.pet-profile-hint {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 8px 0;
+}
+
+.growth-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.growth-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 12px;
+  border: 2px solid #1f2937;
+  background: linear-gradient(160deg, #fff7ed 0%, #ffedd5 100%);
+  cursor: pointer;
+}
+
+.growth-card:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.growth-card strong {
+  font-size: 0.9rem;
+}
+
+.growth-card span {
+  font-size: 0.78rem;
+  color: #78350f;
+}
+
+.breed-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.breed-pick-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.breed-parent-card {
+  border: 2px solid rgba(31, 41, 55, 0.15);
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.breed-parent-card select {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.breed-cooldown {
+  font-size: 0.78rem;
+  color: #b45309;
+}
+
+@media (max-width: 640px) {
+  .pet-profile-primaries {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .growth-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .breed-pick-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pet-profile-skill {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.breed-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.breed-picker-column {
+  border: 2px solid rgba(31, 41, 55, 0.12);
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.breed-picker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+.breed-ready {
+  color: #166534;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .breed-picker {
+    grid-template-columns: 1fr;
+  }
+}

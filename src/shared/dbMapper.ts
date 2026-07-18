@@ -125,6 +125,8 @@ function normalizeItemType(type: string): ItemType {
 }
 
 export function petToDbRow(pet: PetData, ownerId: string, isActive: boolean) {
+  // Writes post-044 column names only (health/emotion/evolution + RPG fields).
+  // Reads still accept legacy hp/mood/dev_points via petFromDbRow fallbacks.
   return {
     id: pet.id,
     owner_id: ownerId,
@@ -135,11 +137,6 @@ export function petToDbRow(pet: PetData, ownerId: string, isActive: boolean) {
     health: pet.stats.health,
     emotion: pet.stats.emotion,
     evolution: pet.stats.evolution,
-    // Legacy columns still written during the transition window so that pre-migration
-    // schemas keep receiving the correct data.
-    hp: pet.stats.health,
-    mood: pet.stats.emotion,
-    dev_points: pet.stats.evolution,
     element_primary: pet.elementPrimary,
     element_secondary: pet.elementSecondary,
     str: pet.primaries.str,
@@ -220,8 +217,6 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       clicks: save.activity.clicks,
       keystrokes: save.activity.keystrokes,
       evolution_this_hour: save.activity.evolutionThisHour,
-      // Legacy column write for pre-migration schema safety.
-      dev_points_this_hour: save.activity.evolutionThisHour,
       hour_started_at: save.activity.hourStartedAt,
       total_play_seconds: save.totalPlaySeconds,
       daily_missions_completed_days: save.dailyMissionsCompletedDays,

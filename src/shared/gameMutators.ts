@@ -302,10 +302,14 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     const found = findPetById(save, petId)
     if (!found) return save
     const pending = found.pet.pendingGrowthOffers ?? []
-    if (!pending.includes(cardId)) return save
+    // Offers are queued in groups of 3 (one level-up pick). Choosing a card
+    // resolves the current group and leaves later level-ups pending.
+    const pickIndex = pending.indexOf(cardId)
+    if (pickIndex < 0) return save
     const card: GrowthCard | undefined = GROWTH_CARDS.find((c) => c.id === cardId)
     if (!card) return save
-    const remaining = pending.filter((id) => id !== cardId)
+    const groupStart = Math.floor(pickIndex / 3) * 3
+    const remaining = [...pending.slice(0, groupStart), ...pending.slice(groupStart + 3)]
     return replacePet(save, petId, (pet) => ({
       ...pet,
       primaries: applyGrowthCardToStats(pet.primaries, card),

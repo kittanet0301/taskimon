@@ -118,6 +118,9 @@ export function mapPetRowToPetData(row: Record<string, unknown>): PetData {
     elementSecondary: row.element_secondary ?? null,
     skillLoadout: row.skill_loadout ?? null,
     skillUpgradePoints: num(row.skill_upgrade_points ?? 0),
+    pendingGrowthOffers: Array.isArray(row.pending_growth_offers)
+      ? (row.pending_growth_offers as string[])
+      : null,
     lastBredAt: row.last_bred_at ? str(row.last_bred_at) : null,
     hatchedAt: row.hatched_at ? str(row.hatched_at) : null,
     createdAt: str(row.created_at) || new Date().toISOString(),
