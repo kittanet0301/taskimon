@@ -24,6 +24,7 @@ import {
 interface Props {
   save: GameSave
   syncing: boolean
+  focusMode?: boolean
   onUpdated: () => void | Promise<void>
 }
 
@@ -33,7 +34,7 @@ function statPercent(value: number, max: number): string {
   return `${Math.max(0, Math.min(100, (value / max) * 100))}%`
 }
 
-export function HomeDashboard({ save, syncing, onUpdated }: Props) {
+export function HomeDashboard({ save, syncing, focusMode = false, onUpdated }: Props) {
   const { t } = useTranslation()
   const sceneRef = useRef<HTMLDivElement>(null)
   const pet = save.pet
@@ -153,7 +154,7 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
   }
 
   return (
-    <div className={`dash-hud dash-hud--${sceneKey}`}>
+    <div className={`dash-hud dash-hud--${sceneKey}${focusMode ? ' dash-hud--focus' : ''}`}>
       <div ref={sceneRef} className="dash-hud-scene">
         <img
           src="/ui/dash-bg-hatch-v2.png"

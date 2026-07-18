@@ -114,7 +114,9 @@
     "claim": "Claim",
     "quickCare": "Quick Care",
     "evolveAdult": "Evolve -> Adult",
-    "evolveLocked": "Evolve (requires {{points}}+ evolution)"
+    "evolveLocked": "Evolve (requires {{points}}+ evolution)",
+    "hideMenus": "Hide menus — show pet only",
+    "showMenus": "Show menus"
   },
   "inventory": {
     "title": "Item Bag",
