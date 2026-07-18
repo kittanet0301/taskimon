@@ -160,27 +160,32 @@ body {
   overflow-x: hidden;
 }
 
-/* Home: float the nav menu over the scene so it can be translucent */
+/* Home: float the nav menu over the scene, fully clear, below the top bar */
+.hub-shell--home {
+  --hub-topbar-h: 68px;
+  --hub-nav-gutter: clamp(72px, 7vw, 100px);
+}
+
 .hub-shell--home .hub-sidebar {
   position: absolute;
   left: 0;
-  top: 0;
+  top: var(--hub-topbar-h);
   bottom: 0;
   z-index: 30;
-  background: rgba(28, 14, 8, 0.28);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  border-right: 3px solid rgba(44, 20, 8, 0.35);
-  box-shadow: 4px 0 12px rgba(20, 8, 4, 0.18);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: none;
+  box-shadow: none;
 }
 
 .hub-shell--home .hub-main {
   width: 100%;
 }
 
-.hub-shell--home .hub-content--home {
-  /* Keep HUD clear of the floating nav */
-  --hub-nav-gutter: clamp(72px, 7vw, 100px);
+.hub-shell--home .hub-topbar {
+  position: relative;
+  z-index: 40;
 }
 
 .hub-shell--home .dash-hud-missions {

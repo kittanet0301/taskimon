@@ -380,19 +380,23 @@ function AppContent({ variant = 'desktop' }: Props) {
     }
   }
 
+  const sidebar = (
+    <HubSidebar
+      activeTarget={sidebarTarget}
+      displayName={displayName}
+      disabled={tabSyncing}
+      badges={{
+        inventory: pendingGiftCount,
+        collection: save ? countHatchableEggs(save) : 0,
+        community: pendingFriendCount
+      }}
+      onNavigate={handleSidebarNavigate}
+    />
+  )
+
   return (
     <div className={`app pixel-hub hub-shell${mainView === 'home' ? ' hub-shell--home' : ''}`}>
-      <HubSidebar
-        activeTarget={sidebarTarget}
-        displayName={displayName}
-        disabled={tabSyncing}
-        badges={{
-          inventory: pendingGiftCount,
-          collection: save ? countHatchableEggs(save) : 0,
-          community: pendingFriendCount
-        }}
-        onNavigate={handleSidebarNavigate}
-      />
+      {mainView !== 'home' && sidebar}
 
       <div className="hub-main">
         <HubTopBar
@@ -405,24 +409,30 @@ function AppContent({ variant = 'desktop' }: Props) {
           <LanguageSwitcher variant="pixel" />
         </HubTopBar>
 
-        <main className={`hub-content${mainView === 'home' ? ' hub-content--home' : ' hub-content--panel'}`}>
-          {mainView === 'home' && (
-            <HomeDashboard save={save} syncing={tabSyncing} onUpdated={refresh} />
-          )}
-          {mainView === 'battle' && (
-            <>
-              <button
-                type="button"
-                className="hub-back-btn"
-                onClick={() => void handleMainViewChange('home')}
-                disabled={tabSyncing}
-              >
-                ‹ {t('tabs.home')}
-              </button>
-              <BattleHub save={save} variant={variant} onUpdated={refresh} />
-            </>
-          )}
-        </main>
+        {mainView === 'home' ? (
+          <div className="hub-home-body">
+            {sidebar}
+            <main className="hub-content hub-content--home">
+              <HomeDashboard save={save} syncing={tabSyncing} onUpdated={refresh} />
+            </main>
+          </div>
+        ) : (
+          <main className="hub-content hub-content--panel">
+            {mainView === 'battle' && (
+              <>
+                <button
+                  type="button"
+                  className="hub-back-btn"
+                  onClick={() => void handleMainViewChange('home')}
+                  disabled={tabSyncing}
+                >
+                  ‹ {t('tabs.home')}
+                </button>
+                <BattleHub save={save} variant={variant} onUpdated={refresh} />
+              </>
+            )}
+          </main>
+        )}
       </div>
 
       {showInventory && (
