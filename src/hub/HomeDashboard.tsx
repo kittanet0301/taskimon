@@ -201,7 +201,7 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
             {hasPendingLevelUp && (
               <button
                 type="button"
-                className="dash-hud-levelup-btn"
+                className="dash-hud-cta dash-hud-cta--levelup"
                 onClick={() => setLevelUpOpen(true)}
               >
                 {t('growth.claimLevelUp')}
@@ -210,7 +210,7 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
             {(canHatch || canEvolve) && (
               <button
                 type="button"
-                className="dash-hud-action dash-hud-action--inline"
+                className="dash-hud-cta dash-hud-cta--evolve"
                 onClick={runPetAction}
                 disabled={hatching}
               >

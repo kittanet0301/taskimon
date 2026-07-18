@@ -1230,7 +1230,7 @@ input, select {
   color: #3b210e;
   font-family: 'Mali', 'Noto Sans Thai', sans-serif;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.25;
   box-shadow: 4px 4px 0 rgba(30, 14, 4, 0.86);
   cursor: pointer;
@@ -1244,12 +1244,56 @@ input, select {
   padding: 12px 14px;
   font-family: 'Mali', 'Noto Sans Thai', sans-serif;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.25;
 }
 
 .dash-hud-action--inline:hover {
   background: #ffd07f;
+}
+
+/* Shared home CTA: Level Up + Hatch/Evolve (same border/shadow/font) */
+.dash-hud-cta {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border: 4px solid #2c1408;
+  border-radius: 0;
+  color: #3b210e;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 rgba(30, 14, 4, 0.86);
+}
+
+.dash-hud-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dash-hud-cta:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.86);
+}
+
+.dash-hud-cta--levelup {
+  background: linear-gradient(180deg, #fff3c4 0%, #f6e08a 100%);
+  animation: dash-hud-levelup-pulse 1.4s ease-in-out infinite;
+}
+
+.dash-hud-cta--levelup:hover:not(:disabled) {
+  background: linear-gradient(180deg, #fff8d6 0%, #f9e79b 100%);
+}
+
+.dash-hud-cta--evolve {
+  background: linear-gradient(180deg, #ffc46a 0%, #ff9a3c 100%);
+}
+
+.dash-hud-cta--evolve:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffd07f 0%, #ffab55 100%);
 }
 
 .dash-hud-debug {
@@ -4597,31 +4641,6 @@ input, select {
 .dash-hud-combat-stats .combat-stat-check-head strong {
   color: #3b210e;
   font-size: 0.82rem;
-}
-
-.dash-hud-levelup-btn {
-  width: 100%;
-  margin-top: 2px;
-  padding: 12px 14px;
-  border: 4px solid #2c1408;
-  background: linear-gradient(180deg, #ffe08a 0%, #ffb55d 100%);
-  color: #3b210e;
-  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1.2;
-  cursor: pointer;
-  box-shadow: 3px 3px 0 rgba(30, 14, 4, 0.82);
-  animation: dash-hud-levelup-pulse 1.4s ease-in-out infinite;
-}
-
-.dash-hud-levelup-btn:hover {
-  background: linear-gradient(180deg, #ffe9a8 0%, #ffc56f 100%);
-}
-
-.dash-hud-levelup-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.82);
 }
 
 @keyframes dash-hud-levelup-pulse {
