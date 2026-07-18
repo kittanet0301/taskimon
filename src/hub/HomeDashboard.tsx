@@ -11,6 +11,7 @@ import { creatureDisplaySize, waitForHatchAnimation } from '../shared/petSprites
 import { CREATURE_SPECIES, isCreatureSpecies } from '../shared/creatureCharacters'
 import { ALL_ITEM_TYPES, ITEM_ICON_SRC } from '../shared/itemIcons'
 import { HomeMissionsPanel } from './HomeMissionsPanel'
+import { CombatStatCheck } from '../components/CombatStatCheck'
 import {
   coverImagePointToPercent,
   DASH_BG_HEIGHT,
@@ -154,6 +155,7 @@ export function HomeDashboard({ save, syncing, onUpdated }: Props) {
               <div><i style={{ width: statPercent(pet.stats.evolution, 999) }} /></div>
               <b>{pet.stats.evolution}/999</b>
             </div>
+            <CombatStatCheck pet={pet} variant="compact" className="dash-hud-combat-stats" />
             {(canHatch || canEvolve) && (
               <button
                 type="button"

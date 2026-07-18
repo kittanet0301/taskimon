@@ -512,7 +512,15 @@
     "str": "STR",
     "dex": "DEX",
     "int": "INT",
-    "con": "CON"
+    "con": "CON",
+    "combatCheck": "ค่าต่อสู้",
+    "pure": "เพียว",
+    "dual": "ผสม",
+    "battleHp": "HP ดวล",
+    "battleMp": "MP",
+    "eva": "หลบ",
+    "atk": "ATK",
+    "def": "DEF"
   },
   "growth": {
     "pickTitle": "เลือกการ์ดเติบโต",

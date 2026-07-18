@@ -512,7 +512,15 @@
     "str": "STR",
     "dex": "DEX",
     "int": "INT",
-    "con": "CON"
+    "con": "CON",
+    "combatCheck": "Combat stats",
+    "pure": "Pure",
+    "dual": "Dual",
+    "battleHp": "Battle HP",
+    "battleMp": "MP",
+    "eva": "EVA",
+    "atk": "ATK",
+    "def": "DEF"
   },
   "growth": {
     "pickTitle": "Pick a growth card",

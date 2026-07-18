@@ -9,6 +9,7 @@ import { tCharacter, tStage } from '../i18n/labels'
 import { canEvolveToAdult } from '../shared/stats'
 import { GROWTH_CARDS, type GrowthCard } from '../shared/combatStats'
 import { getSkillDef, SKILL_RANK_MAX } from '../shared/battle/skillTrees'
+import { CombatStatCheck } from '../components/CombatStatCheck'
 
 interface ProfileProps {
   save: Pick<GameSave, 'pet' | 'inventory'>
@@ -66,8 +67,6 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
     .map((id) => GROWTH_CARDS.find((c) => c.id === id))
     .filter((c): c is GrowthCard => Boolean(c))
 
-  const primaries = pet.primaries
-
   return (
     <div className="card">
       <h2>{pet.name}</h2>
@@ -85,17 +84,6 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
       <p>
         {tCharacter(pet.character)} · <GenderTag gender={pet.gender} /> · {tStage(pet.stage)}
       </p>
-
-      <div className="pet-profile-elements">
-        <span className={`element-badge element-badge--${pet.elementPrimary}`}>
-          {t(`elements.${pet.elementPrimary}`)}
-        </span>
-        {pet.elementSecondary && (
-          <span className={`element-badge element-badge--${pet.elementSecondary}`}>
-            {t(`elements.${pet.elementSecondary}`)}
-          </span>
-        )}
-      </div>
 
       <div className="stat-row">
         <span>{t('home.health')}</span>
@@ -124,12 +112,7 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
         />
       </div>
 
-      <div className="pet-profile-primaries" aria-label="Primary stats">
-        <div><span>{t('stats.str')}</span><strong>{primaries.str}</strong></div>
-        <div><span>{t('stats.dex')}</span><strong>{primaries.dex}</strong></div>
-        <div><span>{t('stats.int')}</span><strong>{primaries.int}</strong></div>
-        <div><span>{t('stats.con')}</span><strong>{primaries.con}</strong></div>
-      </div>
+      <CombatStatCheck pet={pet} variant="full" />
 
       {pet.skillLoadout && pet.skillLoadout.slots.length > 0 && (
         <div className="pet-profile-skills">

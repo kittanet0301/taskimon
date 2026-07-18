@@ -9,6 +9,7 @@ import { tCharacter, tStage } from '../i18n/labels'
 import { canAddPet, getCollectionPageCount, getUsedSlots } from '../shared/petCollection'
 import { getPetLevel, getStageLabel } from '../shared/activityScore'
 import { canBreed } from '../shared/growth'
+import { CombatStatCheck } from '../components/CombatStatCheck'
 
 const COLLECTION_PREVIEW_SIZE = 88
 const DETAIL_PREVIEW_SIZE = 120
@@ -418,6 +419,7 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                   <div><i style={{ width: statPercent(detailPet.stats.evolution, 999) }} /></div>
                   <b>{detailPet.stats.evolution}/999</b>
                 </div>
+                <CombatStatCheck pet={detailPet} variant="compact" />
               </div>
             </div>
 
