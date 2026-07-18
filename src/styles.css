@@ -2194,6 +2194,14 @@ input, select {
     min-width: 0;
     max-height: 36vh;
   }
+
+  .hub-shell--home {
+    --hub-nav-gutter: 62px;
+  }
+
+  .hub-shell--home .dash-hud-missions {
+    left: calc(var(--hub-nav-gutter) + 8px);
+  }
 }
 
 .dashboard-top {
