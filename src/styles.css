@@ -1640,13 +1640,27 @@ input, select {
   width: 32px;
   height: 32px;
   flex: 0 0 auto;
-  border: none;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
-  font-size: 1.1rem;
+  display: inline-grid;
+  place-items: center;
+  border: 3px solid #2c1408;
+  border-radius: 0;
+  background: #ffe2b3;
+  color: #3b210e;
+  font-size: 1.15rem;
   font-weight: 800;
+  line-height: 1;
   cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.75);
+}
+
+.hub-modal-close:hover {
+  background: #ffb55d;
+  color: #1f1209;
+}
+
+.hub-modal-close:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 rgba(30, 14, 4, 0.75);
 }
 
 .inventory-modal {
@@ -3474,16 +3488,25 @@ input, select {
   position: absolute;
   top: 4px;
   right: 4px;
+  z-index: 2;
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 2px solid var(--pixel-border);
-  background: #fee2e2;
-  color: #991b1b;
+  display: inline-grid;
+  place-items: center;
+  border: 2px solid #2c1408;
+  background: #ffe2b3;
+  color: #3b210e;
   font-size: 1rem;
+  font-weight: 800;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 2px 2px 0 var(--pixel-shadow);
+  box-shadow: 2px 2px 0 rgba(30, 14, 4, 0.75);
+}
+
+.collection-delete-btn:hover {
+  background: #ef4444;
+  color: #fff7ed;
 }
 
 .collection-slot-ready-badge {
