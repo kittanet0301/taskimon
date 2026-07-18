@@ -222,6 +222,17 @@ body {
   flex-wrap: wrap;
 }
 
+.hub-topbar-logo {
+  display: block;
+  height: clamp(36px, 4.5vh, 52px);
+  width: auto;
+  max-width: min(180px, 28vw);
+  flex-shrink: 0;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 0 rgba(30, 14, 4, 0.55));
+}
+
 .hub-topbar-stats {
   display: flex;
   flex-wrap: wrap;

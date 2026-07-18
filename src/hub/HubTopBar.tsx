@@ -22,6 +22,12 @@ export function HubTopBar({ gems, clicks, keystrokes, activityScore, syncing, ch
 
   return (
     <div className="hub-topbar" aria-label={t('home.todayActivity')}>
+      <img
+        className="hub-topbar-logo"
+        src="/ui/taskino-logo.png"
+        alt={t('app.appName')}
+        draggable={false}
+      />
       <div className="hub-topbar-stats">
         <div className="dash-hud-counter dash-hud-counter--gem">
           <img className="dash-hud-counter-icon" src={STAT_ICON_SRC.gems} alt="" draggable={false} />
