@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { GameSave, ItemType } from '../shared/types'
+import type { AnimationState, GameSave, ItemType } from '../shared/types'
 import { DinoSprite } from '../components/DinoSprite'
 import { getPetLevel, getStageLabel } from '../shared/activityScore'
 import { QUICK_ITEM_SLOT_COUNT, TEST_FAST_EVO } from '../shared/constants'
 import { normalizeQuickItemSlots } from '../shared/items'
+import {
+  CARE_FEEDBACK_MS,
+  careDeltaLabel,
+  getCareFeedback,
+  type CareStatDelta
+} from '../shared/careFeedback'
 import { canEvolveToAdult, canHatchEgg } from '../shared/stats'
 import { tCharacter, tItemDescription, tItemLabel } from '../i18n/labels'
 import { creatureDisplaySize, waitForHatchAnimation } from '../shared/petSprites'
@@ -27,6 +33,12 @@ interface Props {
   onUpdated: () => void | Promise<void>
 }
 
+interface CareFxState {
+  key: number
+  itemType: ItemType
+  deltas: CareStatDelta[]
+}
+
 const QUICK_ITEM_TYPES: ItemType[] = ALL_ITEM_TYPES
 
 function statPercent(value: number, max: number): string {
@@ -36,6 +48,8 @@ function statPercent(value: number, max: number): string {
 export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
   const { t } = useTranslation()
   const sceneRef = useRef<HTMLDivElement>(null)
+  const careClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const careFxKeyRef = useRef(0)
   const pet = save.pet
   const isEgg = pet?.stage === 'egg'
   const [layout, setLayout] = useState({ leftPct: 50, topPct: 50, spriteSize: 96 })
@@ -43,6 +57,8 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
   const [hatching, setHatching] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
   const [levelUpBusy, setLevelUpBusy] = useState(false)
+  const [careAnim, setCareAnim] = useState<AnimationState | null>(null)
+  const [careFx, setCareFx] = useState<CareFxState | null>(null)
   const hatchDoneRef = useRef<(() => void) | null>(null)
   const sceneKey = 'hatch'
   const hasPendingLevelUp = (pet?.pendingGrowthOffers?.length ?? 0) > 0
@@ -89,16 +105,46 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
     return () => ro.disconnect()
   }, [isEgg, pet])
 
+  useEffect(() => {
+    return () => {
+      if (careClearTimerRef.current) clearTimeout(careClearTimerRef.current)
+    }
+  }, [])
+
   if (!pet) return null
 
   const inventoryByType = new Map(save.inventory.map((item) => [item.type, item.quantity]))
   const canHatch = canHatchEgg(pet)
   const canEvolve = canEvolveToAdult(pet)
 
+  const clearCareFeedback = async () => {
+    setCareAnim(null)
+    setCareFx(null)
+    await window.electronAPI.patchGame('setPetAnimation', ['idle'])
+    await onUpdated()
+  }
+
   const useQuickItem = async (type: ItemType | null) => {
     if (!type || !inventoryByType.get(type)) return
+    if (pet.stage === 'egg' || hatching) return
+    const feedback = getCareFeedback(type)
+    if (!feedback) return
+
     await window.electronAPI.patchGame('useItem', [type])
-    onUpdated()
+    await onUpdated()
+
+    if (careClearTimerRef.current) clearTimeout(careClearTimerRef.current)
+    careFxKeyRef.current += 1
+    setCareAnim(feedback.anim)
+    setCareFx({
+      key: careFxKeyRef.current,
+      itemType: type,
+      deltas: feedback.deltas
+    })
+    careClearTimerRef.current = setTimeout(() => {
+      careClearTimerRef.current = null
+      void clearCareFeedback()
+    }, CARE_FEEDBACK_MS)
   }
 
   const setQuickItem = async (slotIndex: number, type: ItemType | null) => {
@@ -284,14 +330,37 @@ export function HomeDashboard({ save, focusMode = false, onUpdated }: Props) {
             pet={pet}
             size={layout.spriteSize}
             hatching={hatching}
+            careAnim={careAnim}
             onHatchComplete={() => hatchDoneRef.current?.()}
           />
+          {careFx && (
+            <div key={careFx.key} className="dash-care-fx" aria-hidden>
+              <img
+                className="dash-care-fx-icon"
+                src={ITEM_ICON_SRC[careFx.itemType]}
+                alt=""
+                draggable={false}
+              />
+              <div className="dash-care-fx-deltas">
+                {careFx.deltas.map((delta) => (
+                  <span
+                    key={`${delta.kind}-${delta.amount}`}
+                    className={`dash-care-fx-delta dash-care-fx-delta--${delta.kind}`}
+                  >
+                    +{delta.amount} {careDeltaLabel(delta.kind)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <section className="dash-hud-quickbar" aria-label={t('home.quickCare')}>
           {quickSlots.map((type, index) => {
             const quantity = type ? inventoryByType.get(type) ?? 0 : 0
-            const disabled = !type || quantity <= 0
+            const canCare = Boolean(type && getCareFeedback(type))
+            const disabled =
+              !type || !canCare || quantity <= 0 || pet.stage === 'egg' || hatching
             return (
               <div key={`${type ?? 'empty'}-${index}`} className="dash-hud-slot-wrap">
                 <button

@@ -960,6 +960,77 @@ input, select {
   transform: translate(-75%, -50%);
 }
 
+.dash-care-fx {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, 0);
+  animation: dash-care-fx-float 1.6s ease-out forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.dash-care-fx-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+}
+
+.dash-care-fx-deltas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dash-care-fx-delta {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.65),
+    0 0 6px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+.dash-care-fx-delta--health {
+  color: #7dff9a;
+}
+
+.dash-care-fx-delta--emotion {
+  color: #ffd36a;
+}
+
+.dash-care-fx-delta--evolution {
+  color: #8ec8ff;
+}
+
+@keyframes dash-care-fx-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0.9);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -28px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -48px) scale(0.96);
+  }
+}
+
 .dash-hud {
   position: relative;
   width: 100%;

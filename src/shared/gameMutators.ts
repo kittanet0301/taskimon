@@ -1,7 +1,8 @@
-import type { GameSave, ItemType, MinigameId, PetData, PetSpecies, Stage } from './types'
+import type { AnimationState, GameSave, ItemType, MinigameId, PetData, PetSpecies, Stage } from './types'
 import { hatchPet, evolvePet, createEggPet, resetPetToEggStage, breedPetsLocal, canBreed } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
+import { getCareFeedback } from './careFeedback'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim, updateMissionProgress } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
 import { applyFinishMinigame } from './minigame'
@@ -215,14 +216,12 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
           : m
       )
     }
+    const care = getCareFeedback(itemType)
     let nextPet: PetData = {
       ...save.pet,
       stats,
       feedCount: save.pet.feedCount + (itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water' ? 1 : 0),
-      animationState:
-        itemType === 'food_basic' || itemType === 'food_premium' || itemType === 'water'
-          ? 'eat'
-          : save.pet.animationState
+      animationState: care?.anim ?? save.pet.animationState
     }
     nextPet = applyLevelGainRewards(prevPet, nextPet)
     return {
@@ -231,6 +230,11 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       missions,
       pet: nextPet
     }
+  }
+  if (mutatorName === 'setPetAnimation' && typeof args[0] === 'string') {
+    if (!save.pet) return save
+    const animationState = args[0] as AnimationState
+    return { ...save, pet: { ...save.pet, animationState } }
   }
   if (mutatorName === 'setQuickItemSlot' && typeof args[0] === 'number') {
     const index = args[0] as number

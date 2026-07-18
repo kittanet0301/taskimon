@@ -25,6 +25,8 @@ interface Props {
   size?: number
   className?: string
   hatching?: boolean
+  /** Temporary care clip on the hub (eat / happy); ignored while hatching or for eggs. */
+  careAnim?: AnimationState | null
   movementAnim?: AnimationState
   onHatchComplete?: () => void
 }
@@ -46,6 +48,7 @@ export function DinoSprite({
   size,
   className,
   hatching = false,
+  careAnim = null,
   movementAnim,
   onHatchComplete
 }: Props) {
@@ -56,6 +59,8 @@ export function DinoSprite({
   const { canvasSize, drawSize } = resolveSpriteRenderSize(pet, size)
   const hubMode = movementAnim === undefined
   const feetAnchored = hubMode && isCreaturePet(pet)
+  const activeCareAnim =
+    careAnim && pet.stage !== 'egg' && !hatching ? careAnim : null
 
   useEffect(() => {
     onHatchCompleteRef.current = onHatchComplete
@@ -67,6 +72,10 @@ export function DinoSprite({
       hatchCompleteFiredRef.current = false
     }
   }, [hatching])
+
+  useEffect(() => {
+    if (activeCareAnim) frameRef.current = 0
+  }, [activeCareAnim])
 
   useEffect(() => {
     void preloadPetSprites(preloadUrlsForPet(pet))
@@ -88,10 +97,15 @@ export function DinoSprite({
       void (async () => {
         frameRef.current++
         const frame = frameRef.current
+        const carePet = activeCareAnim
+          ? { ...pet, animationState: activeCareAnim }
+          : pet
         const clip =
           hatching || !hubMode
-            ? resolvePetClip(pet, frame, movementAnim ?? 'idle', hatching)
-            : hubPreviewClip(pet, false)
+            ? resolvePetClip(carePet, frame, movementAnim ?? 'idle', hatching)
+            : activeCareAnim
+              ? resolvePetClip(carePet, frame, 'idle', false)
+              : hubPreviewClip(pet, false)
 
         const url = petSpriteUrl(pet, clip.folder, clip.clip)
         if (url !== currentUrl) {
@@ -148,7 +162,7 @@ export function DinoSprite({
 
     tick()
     return () => cancelAnimationFrame(raf)
-  }, [pet, canvasSize, drawSize, feetAnchored, hatching, hubMode, movementAnim])
+  }, [pet, canvasSize, drawSize, feetAnchored, hatching, hubMode, movementAnim, activeCareAnim])
 
   return (
     <canvas

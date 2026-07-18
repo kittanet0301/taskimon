@@ -9,9 +9,9 @@ export function mapCloudPetToPetData(pet: Record<string, unknown>): PetData {
     gender: pet.gender,
     stage: pet.stage,
     stats: {
-      health: pet.hp,
-      emotion: pet.mood,
-      evolution: pet.dev_points
+      health: Number(pet.health ?? pet.hp ?? 100),
+      emotion: Number(pet.emotion ?? pet.mood ?? 80),
+      evolution: Number(pet.evolution ?? pet.dev_points ?? 0)
     },
     hatchedAt: pet.hatched_at ? String(pet.hatched_at) : null,
     createdAt: String(pet.created_at),
