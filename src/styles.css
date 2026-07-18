@@ -1228,8 +1228,10 @@ input, select {
   border-radius: 0;
   background: #ffb55d;
   color: #3b210e;
-  font-family: 'Press Start 2P', cursive;
-  font-size: clamp(0.55rem, 0.9vw, 0.72rem);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
   box-shadow: 4px 4px 0 rgba(30, 14, 4, 0.86);
   cursor: pointer;
 }
@@ -1240,8 +1242,10 @@ input, select {
   width: 100%;
   margin-top: 4px;
   padding: 12px 14px;
-  font-size: clamp(0.5rem, 0.85vw, 0.68rem);
-  line-height: 1.5;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .dash-hud-action--inline:hover {
