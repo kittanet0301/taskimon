@@ -114,16 +114,10 @@ export function breedPetsLocal(
 
   let elementPrimary: ElementId
   let elementSecondary: ElementId | null
-  if (bothPureSame) {
-    const pureChance = Math.min(1, PURE_CHANCE + BREED_PURE_BONUS)
-    if (rng() < pureChance) {
-      elementPrimary = a.elementPrimary
-      elementSecondary = null
-    } else {
-      const rolled = rollElementSlots(rng)
-      elementPrimary = rolled.elementPrimary
-      elementSecondary = rolled.elementSecondary
-    }
+  // FORCE_PURE_ELEMENTS (via rollElementSlots) keeps dual off for now.
+  if (bothPureSame && rng() < Math.min(1, PURE_CHANCE + BREED_PURE_BONUS)) {
+    elementPrimary = a.elementPrimary
+    elementSecondary = null
   } else {
     const rolled = rollElementSlots(rng)
     elementPrimary = rolled.elementPrimary

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FORCE_PURE_ELEMENTS,
   canEnterBattle,
   elementMultiplier,
   pureBonus,
@@ -39,20 +40,16 @@ describe('elements', () => {
     expect(canEnterBattle(30, 29)).toBe(false)
   })
 
-  it('rolls pure or dual slots with distinct dual elements', () => {
-    const pure = rollElementSlots(() => 0.1) // < 0.6 → pure after primary pick
-    // First call uses rng for pick index, second for pure chance.
-    // With constant 0.1: primary = ELEMENT_IDS[floor(0.1*9)] = fire index 0; pure chance 0.1 < 0.6
-    expect(pure.elementSecondary).toBeNull()
-
+  it('rolls pure slots while FORCE_PURE_ELEMENTS is on', () => {
+    expect(FORCE_PURE_ELEMENTS).toBe(true)
+    // Even with rng that would have taken the dual branch (0.9 >= 0.6), stay pure.
     let n = 0
-    const dualRng = () => {
-      // sequence crafted so first pick, then dual branch, then secondary different
+    const dualAttemptRng = () => {
       const values = [0.0, 0.9, 0.5]
       return values[Math.min(n++, values.length - 1)]!
     }
-    const dual = rollElementSlots(dualRng)
-    expect(dual.elementSecondary).not.toBeNull()
-    expect(dual.elementSecondary).not.toBe(dual.elementPrimary)
+    const rolled = rollElementSlots(dualAttemptRng)
+    expect(rolled.elementSecondary).toBeNull()
+    expect(rolled.elementPrimary).toBeTruthy()
   })
 })
