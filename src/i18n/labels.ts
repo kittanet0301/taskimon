@@ -26,8 +26,8 @@ export function tMissionReward(def: MissionDefinition): string {
       count: reward.quantity
     })
   }
-  if ('mood' in reward) return i18n.t('missions.rewardMood', { mood: reward.mood })
-  if ('devPoints' in reward) return i18n.t('missions.rewardDevPoints', { points: reward.devPoints })
+  if ('emotion' in reward) return i18n.t('missions.rewardEmotion', { emotion: reward.emotion })
+  if ('evolution' in reward) return i18n.t('missions.rewardEvolution', { points: reward.evolution })
   if ('newEgg' in reward) return i18n.t('missions.rewardEgg')
   if ('slots' in reward) return i18n.t('missions.rewardSlots', { count: reward.slots })
   return ''

@@ -1,14 +1,16 @@
 import type {
   AnimationState,
-  DinoCharacter,
+  ElementId,
   GameSave,
   Gender,
+  GrowthCardId,
   InventoryItem,
   ItemType,
   MinigameId,
   MinigameSaveState,
   MissionProgress,
   PetData,
+  SkillLoadout,
   Stage
 } from './types'
 import { SAVE_VERSION, PET_SLOT_BASE } from './constants'
@@ -16,6 +18,7 @@ import { createDefaultSave } from './growth'
 import { createDefaultMinigameState } from './minigame'
 import { normalizePetSpecies } from './dinoCharacters'
 import { clampSlotLimit } from './petCollection'
+import { normalizePetData } from './petNormalize'
 
 type DbPet = {
   id: string
@@ -24,9 +27,24 @@ type DbPet = {
   species: string
   gender: string
   stage: string
-  hp: number
-  mood: number
-  dev_points: number
+  /** Post-migration primary care column. */
+  health?: number
+  emotion?: number
+  evolution?: number
+  /** Legacy pre-migration columns kept as fallbacks. */
+  hp?: number
+  mood?: number
+  dev_points?: number
+  element_primary?: string | null
+  element_secondary?: string | null
+  str?: number
+  dex?: number
+  int?: number
+  con?: number
+  skill_loadout?: SkillLoadout | null
+  skill_upgrade_points?: number
+  last_bred_at?: string | null
+  pending_growth_offers?: string[] | null
   feed_count?: number
   animation_state?: string
   is_active: boolean
@@ -49,7 +67,10 @@ type DbMission = {
 type DbActivity = {
   clicks: number
   keystrokes: number
-  dev_points_this_hour: number
+  /** Post-migration name. */
+  evolution_this_hour?: number
+  /** Legacy name kept as fallback. */
+  dev_points_this_hour?: number
   hour_started_at: string
   total_play_seconds: number
   daily_missions_completed_days: number
@@ -111,9 +132,24 @@ export function petToDbRow(pet: PetData, ownerId: string, isActive: boolean) {
     species: pet.character,
     gender: pet.gender,
     stage: pet.stage,
-    hp: pet.stats.hp,
-    mood: pet.stats.mood,
-    dev_points: pet.stats.devPoints,
+    health: pet.stats.health,
+    emotion: pet.stats.emotion,
+    evolution: pet.stats.evolution,
+    // Legacy columns still written during the transition window so that pre-migration
+    // schemas keep receiving the correct data.
+    hp: pet.stats.health,
+    mood: pet.stats.emotion,
+    dev_points: pet.stats.evolution,
+    element_primary: pet.elementPrimary,
+    element_secondary: pet.elementSecondary,
+    str: pet.primaries.str,
+    dex: pet.primaries.dex,
+    int: pet.primaries.int,
+    con: pet.primaries.con,
+    skill_loadout: pet.skillLoadout,
+    skill_upgrade_points: pet.skillUpgradePoints,
+    pending_growth_offers: pet.pendingGrowthOffers,
+    last_bred_at: pet.lastBredAt,
     feed_count: pet.feedCount,
     animation_state: pet.animationState,
     is_active: isActive,
@@ -123,22 +159,40 @@ export function petToDbRow(pet: PetData, ownerId: string, isActive: boolean) {
 }
 
 export function petFromDbRow(row: DbPet): PetData {
-  return {
+  const health = row.health ?? row.hp ?? 100
+  const emotion = row.emotion ?? row.mood ?? 80
+  const evolution = row.evolution ?? row.dev_points ?? 0
+  return normalizePetData({
     id: row.id,
     name: row.name,
     character: normalizePetSpecies(row.species),
     gender: row.gender as Gender,
     stage: row.stage as Stage,
     stats: {
-      hp: row.hp,
-      mood: row.mood,
-      devPoints: row.dev_points
+      health,
+      emotion,
+      evolution
     },
+    primaries:
+      row.str != null || row.dex != null || row.int != null || row.con != null
+        ? {
+            str: row.str ?? 20,
+            dex: row.dex ?? 20,
+            int: row.int ?? 20,
+            con: row.con ?? 20
+          }
+        : undefined,
+    elementPrimary: (row.element_primary ?? null) as ElementId | null,
+    elementSecondary: (row.element_secondary ?? null) as ElementId | null,
+    skillLoadout: row.skill_loadout ?? null,
+    skillUpgradePoints: row.skill_upgrade_points ?? 0,
+    pendingGrowthOffers: (row.pending_growth_offers ?? null) as GrowthCardId[] | null,
+    lastBredAt: row.last_bred_at ?? null,
     hatchedAt: row.hatched_at,
     createdAt: row.created_at,
     animationState: (row.animation_state ?? 'idle') as AnimationState,
     feedCount: row.feed_count ?? 0
-  }
+  } as PetData & Record<string, unknown>)
 }
 
 export function gameSaveToDbPayload(userId: string, save: GameSave) {
@@ -165,7 +219,9 @@ export function gameSaveToDbPayload(userId: string, save: GameSave) {
       user_id: userId,
       clicks: save.activity.clicks,
       keystrokes: save.activity.keystrokes,
-      dev_points_this_hour: save.activity.devPointsThisHour,
+      evolution_this_hour: save.activity.evolutionThisHour,
+      // Legacy column write for pre-migration schema safety.
+      dev_points_this_hour: save.activity.evolutionThisHour,
       hour_started_at: save.activity.hourStartedAt,
       total_play_seconds: save.totalPlaySeconds,
       daily_missions_completed_days: save.dailyMissionsCompletedDays,
@@ -221,7 +277,7 @@ export function gameSaveFromDbParts(
       ? {
           clicks: activity.clicks,
           keystrokes: activity.keystrokes,
-          devPointsThisHour: activity.dev_points_this_hour,
+          evolutionThisHour: activity.evolution_this_hour ?? activity.dev_points_this_hour ?? 0,
           hourStartedAt: activity.hour_started_at
         }
       : base.activity,

@@ -7,6 +7,7 @@ import type {
 } from './types'
 import type { Gender, PetData, Stage } from '../types'
 import { normalizePetSpecies } from '../dinoCharacters'
+import { normalizePetData } from '../petNormalize'
 
 function str(v: unknown): string {
   return String(v ?? '')
@@ -21,6 +22,8 @@ function bool(v: unknown): boolean {
 }
 
 export function mapBattleSession(row: Record<string, unknown>): BattleSession {
+  const challengerTp = num(row.challenger_tp ?? row.challenger_energy ?? 0)
+  const defenderTp = num(row.defender_tp ?? row.defender_energy ?? 0)
   return {
     id: str(row.id),
     roomId: row.room_id ? str(row.room_id) : null,
@@ -32,8 +35,12 @@ export function mapBattleSession(row: Record<string, unknown>): BattleSession {
     defenderHp: num(row.defender_hp),
     challengerHpStart: num(row.challenger_hp_start),
     defenderHpStart: num(row.defender_hp_start),
-    challengerEnergy: num(row.challenger_energy ?? 0),
-    defenderEnergy: num(row.defender_energy ?? 0),
+    challengerMp: num(row.challenger_mp ?? 0),
+    defenderMp: num(row.defender_mp ?? 0),
+    challengerTp,
+    defenderTp,
+    challengerEnergy: challengerTp,
+    defenderEnergy: defenderTp,
     challengerDefending: bool(row.challenger_defending),
     defenderDefending: bool(row.defender_defending),
     challengerAvoiding: bool(row.challenger_avoiding),
@@ -53,6 +60,7 @@ export function mapBattleTurn(row: Record<string, unknown>): BattleTurn {
     sessionId: str(row.session_id),
     actorUserId: str(row.actor_user_id),
     action: row.action as BattleTurn['action'],
+    skillId: row.skill_id != null ? str(row.skill_id) : null,
     damage: num(row.damage),
     challengerHpAfter: num(row.challenger_hp_after),
     defenderHpAfter: num(row.defender_hp_after),
@@ -87,24 +95,35 @@ export function mapBattleRoomMember(row: Record<string, unknown>): BattleRoomMem
   }
 }
 
-/** Maps a raw `pets` table row (as returned by getFriendPet) into a PetData for battle sprite rendering. */
+/** Maps a raw `pets` table row into PetData for battle sprite rendering. */
 export function mapPetRowToPetData(row: Record<string, unknown>): PetData {
-  return {
+  return normalizePetData({
     id: str(row.id),
     name: str(row.name) || 'Pet',
     character: normalizePetSpecies(str(row.species)),
     gender: (row.gender as Gender) === 'female' ? 'female' : 'male',
     stage: (row.stage as Stage) ?? 'baby',
     stats: {
-      hp: num(row.hp),
-      mood: num(row.mood),
-      devPoints: num(row.dev_points)
+      health: num(row.health ?? row.hp),
+      emotion: num(row.emotion ?? row.mood),
+      evolution: num(row.evolution ?? row.dev_points)
     },
+    primaries: {
+      str: num(row.str ?? 20),
+      dex: num(row.dex ?? 20),
+      int: num(row.int ?? 20),
+      con: num(row.con ?? 20)
+    },
+    elementPrimary: row.element_primary ?? row.element ?? 'neutral',
+    elementSecondary: row.element_secondary ?? null,
+    skillLoadout: row.skill_loadout ?? null,
+    skillUpgradePoints: num(row.skill_upgrade_points ?? 0),
+    lastBredAt: row.last_bred_at ? str(row.last_bred_at) : null,
     hatchedAt: row.hatched_at ? str(row.hatched_at) : null,
     createdAt: str(row.created_at) || new Date().toISOString(),
     animationState: 'idle',
     feedCount: 0
-  }
+  } as PetData & Record<string, unknown>)
 }
 
 export function mapBattleRoomSummary(row: Record<string, unknown>): BattleRoomSummary {

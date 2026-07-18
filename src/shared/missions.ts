@@ -10,8 +10,8 @@ export interface MissionDefinition {
   target: number
   reward:
     | { type: ItemType; quantity: number }
-    | { mood: number }
-    | { devPoints: number }
+    | { emotion: number }
+    | { evolution: number }
     | { newEgg: true }
     | { slots: number }
 }
@@ -33,25 +33,25 @@ export const MISSIONS: MissionDefinition[] = [
     id: 'daily_feed_3',
     kind: 'daily',
     target: 3,
-    reward: { mood: 10 }
+    reward: { emotion: 10 }
   },
   {
     id: 'daily_play_1h',
     kind: 'daily',
     target: 3600,
-    reward: { devPoints: 5 }
+    reward: { evolution: 5 }
   },
   {
     id: 'weekly_dev_100',
     kind: 'weekly',
     target: 100,
-    reward: { type: 'food_premium', quantity: 2 }
+    reward: { type: 'breed_nest', quantity: 1 }
   },
   {
     id: 'weekly_daily_5',
     kind: 'weekly',
     target: 5,
-    reward: { type: 'medicine', quantity: 1 }
+    reward: { type: 'skill_forget', quantity: 1 }
   },
   {
     id: 'weekly_hatch_1',

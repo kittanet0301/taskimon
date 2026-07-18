@@ -48,11 +48,11 @@ export function resolvePetClip(
   if (pet.animationState === 'evolve') return { folder, clip: 'jump', flipX: false }
   if (pet.animationState === 'battle_attack') return { folder, clip: 'bite', flipX: false }
   if (pet.animationState === 'battle_hurt') return { folder, clip: 'hurt', flipX: false }
-  if (pet.stats.hp <= 0) return { folder, clip: 'hurt', flipX: false }
+  if (pet.stats.health <= 0) return { folder, clip: 'hurt', flipX: false }
 
   if (shouldBeSick(pet.stats)) return { folder, clip: 'hurt', flipX: false }
 
-  const mood = getMoodLabel(pet.stats.mood)
+  const mood = getMoodLabel(pet.stats.emotion)
   if (mood === 'happy' && frame % DINO_HAPPY_CYCLE < DINO_HAPPY_BURST) return { folder, clip: 'jump', flipX: false }
   if (mood === 'sad') return { folder, clip: 'hurt', flipX: false }
 

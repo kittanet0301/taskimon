@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData } from '../shared/types'
 import { tCharacter } from '../i18n/labels'
-import { normalizePetSpecies } from '../shared/dinoCharacters'
+import { mapCloudPetToPetData } from './battle/petMapping'
 
 interface Props {
   save: GameSave
@@ -36,22 +36,7 @@ export function Battle({ save }: Props) {
       setMessage(t('pet.noCloudPetForFriend'))
       return
     }
-    setEnemyPet({
-      id: String(pet.id),
-      name: String(pet.name),
-      character: normalizePetSpecies(String(pet.species)),
-      gender: pet.gender as PetData['gender'],
-      stage: pet.stage as PetData['stage'],
-      stats: {
-        hp: Number(pet.hp ?? 100),
-        mood: Number(pet.mood ?? 80),
-        devPoints: Number(pet.dev_points ?? 0)
-      },
-      hatchedAt: pet.hatched_at ? String(pet.hatched_at) : null,
-      createdAt: String(pet.created_at),
-      animationState: 'idle',
-      feedCount: 0
-    })
+    setEnemyPet(mapCloudPetToPetData(pet))
   }
 
   const fight = async () => {

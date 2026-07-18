@@ -42,7 +42,7 @@ export function simulateBattle(
     id: challenger.id,
     name: challenger.name,
     character: challenger.character,
-    hp: challenger.stats.hp,
+    hp: challenger.stats.health,
     ultimateUsed: false,
     defending: false
   }
@@ -50,7 +50,7 @@ export function simulateBattle(
     id: defender.id,
     name: defender.name,
     character: defender.character,
-    hp: defender.stats.hp,
+    hp: defender.stats.health,
     ultimateUsed: false,
     defending: false
   }

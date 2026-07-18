@@ -35,6 +35,14 @@ export const ITEMS: Record<ItemType, ItemDefinition> = {
   battle_shield: {
     type: 'battle_shield',
     apply: (stats) => stats
+  },
+  breed_nest: {
+    type: 'breed_nest',
+    apply: (stats) => stats
+  },
+  skill_forget: {
+    type: 'skill_forget',
+    apply: (stats) => stats
   }
 }
 

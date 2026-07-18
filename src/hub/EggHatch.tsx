@@ -83,7 +83,7 @@ export function EggHatch({ pet, onHatched }: Props) {
       </p>
       <StatBar
         label={t('home.evolution')}
-        value={pet.stats.devPoints}
+        value={pet.stats.evolution}
         max={DEV_POINTS_HATCH}
         color="var(--pixel-accent)"
       />

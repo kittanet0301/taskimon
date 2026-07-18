@@ -29,9 +29,9 @@ function rebuildTrayMenu(getSave: () => GameSave): void {
       {
         label: tMain('tray.petStatsLabel', {
           name: pet.name,
-          hp: pet.stats.hp,
-          mood: pet.stats.mood,
-          devPoints: pet.stats.devPoints
+          health: pet.stats.health,
+          emotion: pet.stats.emotion,
+          evolution: pet.stats.evolution
         }),
         enabled: false
       },

@@ -5,6 +5,9 @@ import { createDefaultSave, migrateSave } from '../../src/shared/growth'
 import { addDevPoints } from '../../src/shared/stats'
 import { updateMissionProgress, applyDailyResets } from '../../src/shared/missions'
 import { applyMinigameDailyReset } from '../../src/shared/minigame'
+import { getPetLevel } from '../../src/shared/activityScore'
+import { rollGrowthCardOffers } from '../../src/shared/combatStats'
+import type { GrowthCardId } from '../../src/shared/combatStats'
 import { loadSave, writeSave } from './storage'
 import { refreshTray } from './tray'
 import {
@@ -190,7 +193,7 @@ function maybeResetHourlyCap(save: GameSave): GameSave {
       ...save,
       activity: {
         ...save.activity,
-        devPointsThisHour: 0,
+        evolutionThisHour: 0,
         hourStartedAt: new Date().toISOString()
       }
     }
@@ -200,19 +203,36 @@ function maybeResetHourlyCap(save: GameSave): GameSave {
 
 function grantDevPoint(save: GameSave): GameSave {
   save = maybeResetHourlyCap(save)
-  if (save.activity.devPointsThisHour >= MAX_DEV_PER_HOUR) return save
+  if (save.activity.evolutionThisHour >= MAX_DEV_PER_HOUR) return save
   if (!save.pet) return save
+
+  const prevPet = save.pet
+  const nextStats = addDevPoints(save.pet.stats, 1)
+  let nextPet = { ...save.pet, stats: nextStats }
+  if (prevPet.stage !== 'egg') {
+    const prevLvl = getPetLevel(prevPet.stage, prevPet.stats.evolution)
+    const nextLvl = getPetLevel(nextPet.stage, nextPet.stats.evolution)
+    const gained = nextLvl - prevLvl
+    if (gained > 0) {
+      const pending: GrowthCardId[] = nextPet.pendingGrowthOffers ?? []
+      for (let i = 0; i < gained; i++) {
+        for (const o of rollGrowthCardOffers()) pending.push(o.id)
+      }
+      nextPet = {
+        ...nextPet,
+        skillUpgradePoints: nextPet.skillUpgradePoints + gained,
+        pendingGrowthOffers: pending.length > 0 ? pending : null
+      }
+    }
+  }
 
   let next = {
     ...save,
     activity: {
       ...save.activity,
-      devPointsThisHour: save.activity.devPointsThisHour + 1
+      evolutionThisHour: save.activity.evolutionThisHour + 1
     },
-    pet: {
-      ...save.pet,
-      stats: addDevPoints(save.pet.stats, 1)
-    }
+    pet: nextPet
   }
   next.missions = updateMissionProgress(next.missions, 'weekly_dev_100', 1)
   next.missions = updateMissionProgress(next.missions, 'weekly_egg_1', 1)

@@ -1,13 +1,14 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData, Stage } from '../shared/types'
-import { petPreviewColor, PET_SLOTS_PER_PAGE } from '../shared/constants'
+import { petPreviewColor, PET_SLOTS_PER_PAGE, BREED_COOLDOWN_MS } from '../shared/constants'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
 import { displaySizeForPet } from '../shared/petSprites'
 import { tCharacter, tStage } from '../i18n/labels'
-import { getCollectionPageCount, getUsedSlots } from '../shared/petCollection'
+import { canAddPet, getCollectionPageCount, getUsedSlots } from '../shared/petCollection'
 import { getPetLevel, getStageLabel } from '../shared/activityScore'
+import { canBreed } from '../shared/growth'
 
 const COLLECTION_PREVIEW_SIZE = 88
 const DETAIL_PREVIEW_SIZE = 120
@@ -39,6 +40,54 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
   const skipRenameBlurRef = useRef(false)
+  const [breedOpen, setBreedOpen] = useState(false)
+  const [breedA, setBreedA] = useState<string | null>(null)
+  const [breedB, setBreedB] = useState<string | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (!breedOpen) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [breedOpen])
+
+  const allPets = useMemo<PetData[]>(
+    () => (save.pet ? [save.pet, ...save.collection] : [...save.collection]),
+    [save.pet, save.collection]
+  )
+  const adultPets = useMemo(() => allPets.filter((p) => p.stage === 'adult'), [allPets])
+
+  const breedNestCount = useMemo(
+    () => save.inventory.find((i) => i.type === 'breed_nest')?.quantity ?? 0,
+    [save.inventory]
+  )
+
+  const findPet = (id: string | null): PetData | null =>
+    id ? allPets.find((p) => p.id === id) ?? null : null
+
+  const petA = findPet(breedA)
+  const petB = findPet(breedB)
+
+  const breedCooldownLeft = (pet: PetData): number => {
+    if (!pet.lastBredAt) return 0
+    const t = new Date(pet.lastBredAt).getTime()
+    if (!Number.isFinite(t)) return 0
+    return Math.max(0, BREED_COOLDOWN_MS - (now - t))
+  }
+
+  const formatCooldown = (ms: number): string => {
+    if (ms <= 0) return '0s'
+    const totalSec = Math.ceil(ms / 1000)
+    const h = Math.floor(totalSec / 3600)
+    const m = Math.floor((totalSec % 3600) / 60)
+    const s = totalSec % 60
+    if (h > 0) return `${h}h ${m}m`
+    if (m > 0) return `${m}m ${s}s`
+    return `${s}s`
+  }
+
+  const canBreedNow =
+    petA && petB && petA.id !== petB.id && canBreed(petA, petB, now) && breedNestCount > 0 && canAddPet(save)
 
   const maxCollectionSlots = save.pet ? save.petSlotLimit - 1 : save.petSlotLimit
 
@@ -131,6 +180,25 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
     onUpdated()
   }
 
+  const runBreed = async () => {
+    if (!petA || !petB || !canBreedNow) return
+    setBusy(true)
+    try {
+      await window.electronAPI.patchGame('breedPets', [petA.id, petB.id])
+      try {
+        await window.electronAPI.forceCloudSave()
+      } catch (err) {
+        console.error('[collection] failed to sync after breed:', err)
+      }
+      setBreedOpen(false)
+      setBreedA(null)
+      setBreedB(null)
+      onUpdated()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const stageFilters: StageFilter[] = ['all', 'egg', 'baby', 'adult']
 
   return (
@@ -146,6 +214,15 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
         <span className="collection-slots">
           {t('collection.slots', { used: getUsedSlots(save), limit: save.petSlotLimit })}
         </span>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => setBreedOpen(true)}
+          disabled={adultPets.length < 2}
+          title={t('breed.open')}
+        >
+          {t('breed.open')} ({breedNestCount})
+        </button>
       </div>
 
       {save.pet && (
@@ -324,22 +401,22 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                   {tCharacter(detailPet.character)} · <GenderTag gender={detailPet.gender} />
                 </span>
                 <strong>
-                  {getStageLabel(detailPet.stage)} Lv.{getPetLevel(detailPet.stage, detailPet.stats.devPoints)}
+                  {getStageLabel(detailPet.stage)} Lv.{getPetLevel(detailPet.stage, detailPet.stats.evolution)}
                 </strong>
                 <div className="hud-bar hud-bar--hp">
                   <span>{t('home.health')}</span>
-                  <div><i style={{ width: statPercent(detailPet.stats.hp, 100) }} /></div>
-                  <b>{detailPet.stats.hp}/100</b>
+                  <div><i style={{ width: statPercent(detailPet.stats.health, 100) }} /></div>
+                  <b>{detailPet.stats.health}/100</b>
                 </div>
                 <div className="hud-bar hud-bar--mood">
                   <span>{t('home.emotion')}</span>
-                  <div><i style={{ width: statPercent(detailPet.stats.mood, 100) }} /></div>
-                  <b>{detailPet.stats.mood}/100</b>
+                  <div><i style={{ width: statPercent(detailPet.stats.emotion, 100) }} /></div>
+                  <b>{detailPet.stats.emotion}/100</b>
                 </div>
                 <div className="hud-bar hud-bar--xp">
                   <span>{t('home.evolution')}</span>
-                  <div><i style={{ width: statPercent(detailPet.stats.devPoints, 999) }} /></div>
-                  <b>{detailPet.stats.devPoints}/999</b>
+                  <div><i style={{ width: statPercent(detailPet.stats.evolution, 999) }} /></div>
+                  <b>{detailPet.stats.evolution}/999</b>
                 </div>
               </div>
             </div>
@@ -360,6 +437,96 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
                 disabled={busy}
               >
                 {t('collection.select')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {breedOpen && (
+        <div
+          className="hub-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setBreedOpen(false)}
+        >
+          <div className="hub-modal card" onClick={(e) => e.stopPropagation()}>
+            <div className="hub-modal-head">
+              <h2>{t('breed.title')}</h2>
+              <button
+                type="button"
+                className="hub-modal-close"
+                onClick={() => setBreedOpen(false)}
+                aria-label={t('common.cancel')}
+              >
+                ×
+              </button>
+            </div>
+            <p className="pet-profile-hint">
+              {t('breed.hint')}
+              {' · '}
+              {t('breed.nestsOwned', { count: breedNestCount })}
+              {!canAddPet(save) && (
+                <>
+                  {' · '}
+                  <strong>{t('collection.noSlots')}</strong>
+                </>
+              )}
+            </p>
+            <div className="breed-picker">
+              {(['a', 'b'] as const).map((side) => {
+                const selected = side === 'a' ? petA : petB
+                const setId = side === 'a' ? setBreedA : setBreedB
+                return (
+                  <div key={side} className="breed-picker-column">
+                    <strong>{t(`breed.parent${side === 'a' ? 'A' : 'B'}`)}</strong>
+                    <select
+                      value={selected?.id ?? ''}
+                      onChange={(e) => setId(e.target.value || null)}
+                    >
+                      <option value="">—</option>
+                      {adultPets.map((p) => (
+                        <option key={p.id} value={p.id} disabled={side === 'a' ? p.id === breedB : p.id === breedA}>
+                          {p.name} ({tCharacter(p.character)} · {p.gender === 'female' ? 'F' : 'M'})
+                        </option>
+                      ))}
+                    </select>
+                    {selected && (
+                      <div className="breed-picker-info">
+                        <span>
+                          {tCharacter(selected.character)} · <GenderTag gender={selected.gender} />
+                        </span>
+                        {(() => {
+                          const cd = breedCooldownLeft(selected)
+                          if (cd > 0) {
+                            return (
+                              <span className="breed-cooldown">
+                                {t('breed.cooldownLeft', { time: formatCooldown(cd) })}
+                              </span>
+                            )
+                          }
+                          return <span className="breed-ready">{t('breed.ready')}</span>
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            {petA && petB && petA.id !== petB.id && !canBreed(petA, petB, now) && (
+              <p className="pet-profile-hint">{t('breed.notEligible')}</p>
+            )}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button type="button" className="secondary" onClick={() => setBreedOpen(false)}>
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="primary"
+                disabled={!canBreedNow || busy}
+                onClick={runBreed}
+              >
+                {t('breed.breed')}
               </button>
             </div>
           </div>

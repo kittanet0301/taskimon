@@ -90,9 +90,9 @@ export function UserProfile({ userId, save, onUpdated, onClose }: Props) {
                 </span>
                 <span>
                   {t('profile.statsLine', {
-                    hp: String(pet.stats.hp),
-                    mood: String(pet.stats.mood),
-                    devPoints: String(pet.stats.devPoints)
+                    health: String(pet.stats.health),
+                    emotion: String(pet.stats.emotion),
+                    evolution: String(pet.stats.evolution)
                   })}
                 </span>
               </div>

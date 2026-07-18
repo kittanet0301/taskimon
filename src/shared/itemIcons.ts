@@ -8,16 +8,18 @@ export const ITEM_ICON_SRC: Record<ItemType, string> = {
   water: '/ui/item-water.png',
   toy: '/ui/item-toy.png',
   dev_vitamin: '/ui/item-dev-vitamin.png',
-  battle_shield: '/ui/item-battle-shield.png'
+  battle_shield: '/ui/item-battle-shield.png',
+  breed_nest: '/ui/item-dev-vitamin.png',
+  skill_forget: '/ui/item-medicine.png'
 }
 
-/** Pixel icon for mission rewards. Returns null for mood/slots (custom UI glyphs). */
+/** Pixel icon for mission rewards. Returns null for emotion/slots (custom UI glyphs). */
 export function missionRewardIconSrc(def: MissionDefinition): string | null {
   const reward = def.reward
   if ('type' in reward) return ITEM_ICON_SRC[reward.type]
-  if ('devPoints' in reward) return ITEM_ICON_SRC.dev_vitamin
+  if ('evolution' in reward) return ITEM_ICON_SRC.dev_vitamin
   if ('newEgg' in reward) return '/ui/hud-icon-collection.png'
-  if ('mood' in reward || 'slots' in reward) return null
+  if ('emotion' in reward || 'slots' in reward) return null
   return null
 }
 
@@ -28,5 +30,7 @@ export const ALL_ITEM_TYPES: ItemType[] = [
   'water',
   'toy',
   'dev_vitamin',
-  'battle_shield'
+  'battle_shield',
+  'breed_nest',
+  'skill_forget'
 ]
