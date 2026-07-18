@@ -191,6 +191,31 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     if (!gender) return save
     return { ...save, pet: { ...save.pet, gender } }
   }
+  if (
+    TEST_FAST_EVO &&
+    mutatorName === 'debugAdjustCare' &&
+    (args[0] === 'health' || args[0] === 'emotion') &&
+    typeof args[1] === 'number'
+  ) {
+    if (!save.pet) return save
+    const kind = args[0] as 'health' | 'emotion'
+    const delta = Math.trunc(args[1])
+    if (delta === 0) return save
+    const prev = save.pet.stats
+    const nextVal =
+      kind === 'health'
+        ? Math.max(0, Math.min(100, prev.health + delta))
+        : Math.max(0, Math.min(100, prev.emotion + delta))
+    if (nextVal === prev[kind]) return save
+    return {
+      ...save,
+      pet: {
+        ...save.pet,
+        stats: { ...prev, [kind]: nextVal },
+        animationState: delta > 0 ? 'happy' : save.pet.animationState
+      }
+    }
+  }
   if (mutatorName === 'setActivePet' && typeof args[0] === 'string') {
     const petId = args[0] as string
     const idx = save.collection.findIndex((p) => p.id === petId)

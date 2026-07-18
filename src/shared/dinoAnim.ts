@@ -45,6 +45,9 @@ export function resolvePetClip(
 
   if (pet.animationState === 'eat') return { folder, clip: 'bite', flipX: false }
   if (pet.animationState === 'happy') return { folder, clip: 'jump', flipX: false }
+  if (pet.animationState === 'sad' || pet.animationState === 'sick') {
+    return { folder, clip: 'hurt', flipX: false }
+  }
   if (pet.animationState === 'sleep') return { folder, clip: 'idle', flipX: false }
   if (pet.animationState === 'evolve') return { folder, clip: 'jump', flipX: false }
   if (pet.animationState === 'battle_attack') return { folder, clip: 'bite', flipX: false }
@@ -65,10 +68,7 @@ export function resolvePetClip(
 
 export const resolveDinoClip = resolvePetClip
 
+/** Hub/collection preview: same mood/health clips as live pet (idle facing). */
 export function hubPreviewClip(pet: PetData, hatching = false): ResolvedPetClip {
-  if (pet.stage === 'egg') {
-    if (hatching) return { folder: 'egg', clip: 'hatch', flipX: false }
-    return { folder: 'egg', clip: 'move', flipX: false }
-  }
-  return { folder: bodyFolder(pet), clip: 'idle', flipX: false }
+  return resolvePetClip(pet, 0, 'idle', hatching)
 }

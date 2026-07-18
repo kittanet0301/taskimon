@@ -94,4 +94,20 @@ describe('TEST debug buttons', () => {
     ])
     expect(flipped.pet?.gender).not.toBe(save.pet!.gender)
   })
+
+  it('debugAdjustCare changes health and emotion within 0–100', () => {
+    let save = createDefaultSave()
+    save = {
+      ...save,
+      pet: { ...save.pet!, stats: { health: 50, emotion: 50, evolution: 0 } }
+    }
+    save = applyGamePatch(save, 'debugAdjustCare', ['health', 10])
+    expect(save.pet?.stats.health).toBe(60)
+    save = applyGamePatch(save, 'debugAdjustCare', ['emotion', -20])
+    expect(save.pet?.stats.emotion).toBe(30)
+    save = applyGamePatch(save, 'debugAdjustCare', ['health', 999])
+    expect(save.pet?.stats.health).toBe(100)
+    save = applyGamePatch(save, 'debugAdjustCare', ['emotion', -999])
+    expect(save.pet?.stats.emotion).toBe(0)
+  })
 })

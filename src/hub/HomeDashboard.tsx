@@ -37,7 +37,7 @@ interface Props {
 
 interface CareFxState {
   key: number
-  itemType: ItemType
+  itemType?: ItemType
   deltas: CareStatDelta[]
 }
 
@@ -145,6 +145,24 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
         key: careFxKeyRef.current,
         itemType: type,
         deltas: feedback.deltas
+      })
+      careClearTimerRef.current = setTimeout(() => {
+        careClearTimerRef.current = null
+        void clearCareFeedback()
+      }, CARE_FEEDBACK_MS)
+    },
+    [clearCareFeedback]
+  )
+
+  const playStatFeedback = useCallback(
+    (kind: 'health' | 'emotion', amount: number) => {
+      if (amount === 0) return
+      if (careClearTimerRef.current) clearTimeout(careClearTimerRef.current)
+      careFxKeyRef.current += 1
+      setCareAnim(amount > 0 ? 'happy' : 'sad')
+      setCareFx({
+        key: careFxKeyRef.current,
+        deltas: [{ kind, amount }]
       })
       careClearTimerRef.current = setTimeout(() => {
         careClearTimerRef.current = null
@@ -288,6 +306,13 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
     onUpdated()
   }
 
+  const runDebugCare = async (kind: 'health' | 'emotion', amount: number) => {
+    if (!pet || pet.stage === 'egg' || hatching || evolving) return
+    await window.electronAPI.patchGame('debugAdjustCare', [kind, amount])
+    await onUpdated()
+    playStatFeedback(kind, amount)
+  }
+
   const pickGrowthCard = async (cardId: string) => {
     if (!pet || levelUpBusy) return
     setLevelUpBusy(true)
@@ -415,6 +440,40 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
                   <button
                     type="button"
                     className="dash-hud-debug-btn"
+                    onClick={() => void runDebugCare('health', 10)}
+                    title={t('home.health')}
+                  >
+                    HP+
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => void runDebugCare('health', -10)}
+                    title={t('home.health')}
+                  >
+                    HP-
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => void runDebugCare('emotion', 10)}
+                    title={t('home.emotion')}
+                  >
+                    Mood+
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => void runDebugCare('emotion', -10)}
+                    title={t('home.emotion')}
+                  >
+                    Mood-
+                  </button>
+                </div>
+                <div className="dash-hud-debug-row">
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
                     onClick={() => runDebug('debugBoostDev', [50])}
                     title={t('home.evolution')}
                   >
@@ -481,19 +540,22 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
           </div>
           {careFx && (
             <div key={careFx.key} className="dash-care-fx" aria-hidden>
-              <img
-                className="dash-care-fx-icon"
-                src={ITEM_ICON_SRC[careFx.itemType]}
-                alt=""
-                draggable={false}
-              />
+              {careFx.itemType && (
+                <img
+                  className="dash-care-fx-icon"
+                  src={ITEM_ICON_SRC[careFx.itemType]}
+                  alt=""
+                  draggable={false}
+                />
+              )}
               <div className="dash-care-fx-deltas">
                 {careFx.deltas.map((delta) => (
                   <span
                     key={`${delta.kind}-${delta.amount}`}
                     className={`dash-care-fx-delta dash-care-fx-delta--${delta.kind}`}
                   >
-                    +{delta.amount} {careDeltaLabel(delta.kind)}
+                    {delta.amount > 0 ? '+' : ''}
+                    {delta.amount} {careDeltaLabel(delta.kind)}
                   </span>
                 ))}
               </div>

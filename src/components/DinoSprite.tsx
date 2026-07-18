@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { AnimationState, PetData } from '../shared/types'
 import { petPreviewColor } from '../shared/constants'
-import { hubPreviewClip, resolvePetClip } from '../shared/dinoAnim'
+import { resolvePetClip } from '../shared/dinoAnim'
 import {
   DINO_BOB_PERIOD,
   DINO_BOB_PERIOD_EGG
@@ -103,9 +103,7 @@ export function DinoSprite({
         const clip =
           hatching || !hubMode
             ? resolvePetClip(carePet, frame, movementAnim ?? 'idle', hatching)
-            : activeCareAnim
-              ? resolvePetClip(carePet, frame, 'idle', false)
-              : hubPreviewClip(pet, false)
+            : resolvePetClip(carePet, frame, 'idle', false)
 
         const url = petSpriteUrl(pet, clip.folder, clip.clip)
         if (url !== currentUrl) {
