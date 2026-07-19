@@ -22,6 +22,7 @@ import { MiniGameHub } from './hub/minigame/MiniGameHub'
 import { HubSidebar, type HubSidebarTarget } from './hub/HubSidebar'
 import { HubTopBar } from './hub/HubTopBar'
 import { Inventory } from './hub/Inventory'
+import { Market } from './hub/Market'
 
 type MainView = 'home' | 'battle'
 
@@ -56,6 +57,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [cloudReady, setCloudReady] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
   const [showInventory, setShowInventory] = useState(false)
+  const [showMarket, setShowMarket] = useState(false)
   const [carePulse, setCarePulse] = useState<{ type: ItemType; key: number } | null>(null)
   const carePulseKeyRef = useRef(0)
   const [showCollection, setShowCollection] = useState(false)
@@ -272,6 +274,7 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const closeAllPopups = () => {
     setShowInventory(false)
+    setShowMarket(false)
     setShowCollection(false)
     setShowCommunity(false)
     setShowMinigame(false)
@@ -362,15 +365,17 @@ function AppContent({ variant = 'desktop' }: Props) {
     ? 'collection'
     : showInventory
       ? 'inventory'
-      : showCommunity
-        ? 'community'
-        : showMinigame
-          ? 'minigame'
-          : showSettings
-            ? 'settings'
-            : mainView === 'battle'
-              ? 'battle'
-              : null
+      : showMarket
+        ? 'market'
+        : showCommunity
+          ? 'community'
+          : showMinigame
+            ? 'minigame'
+            : showSettings
+              ? 'settings'
+              : mainView === 'battle'
+                ? 'battle'
+                : null
 
   const handleSidebarNavigate = (target: HubSidebarTarget) => {
     if (target === 'battle') {
@@ -379,6 +384,10 @@ function AppContent({ variant = 'desktop' }: Props) {
     }
     if (target === 'inventory') {
       void openPopup(setShowInventory)
+      return
+    }
+    if (target === 'market') {
+      void openPopup(setShowMarket)
       return
     }
     if (target === 'collection') {
@@ -489,6 +498,9 @@ function AppContent({ variant = 'desktop' }: Props) {
             setCarePulse({ type, key: carePulseKeyRef.current })
           }}
         />
+      )}
+      {showMarket && (
+        <Market save={save} onClose={() => setShowMarket(false)} onUpdated={refresh} />
       )}
       {showCollection && (
         <PetCollection

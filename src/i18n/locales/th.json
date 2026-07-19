@@ -28,6 +28,7 @@
     "profile": "โปรไฟล์",
     "settings": "ตั้งค่า",
     "collection": "คลังไข่",
+    "market": "ตลาด",
     "minigame": "มินิเกม",
     "ranking": "อันดับ"
   },
@@ -124,6 +125,22 @@
     "use": "ใช้",
     "itemsTab": "ไอเทม",
     "giftsTab": "ของขวัญ"
+  },
+  "market": {
+    "title": "ตลาด",
+    "sectionEgg": "ไข่",
+    "sectionSlots": "ช่องสัตว์เลี้ยง",
+    "sectionBundles": "แพ็ก",
+    "sectionItems": "ไอเทม",
+    "offerEgg": "ไข่สุ่ม",
+    "offerEggHint": "เพิ่มไข่ปริศนาเข้าคลัง",
+    "offerSlots": "+{{count}} ช่องสัตว์เลี้ยง",
+    "offerSlotsHint": "เพิ่มจำนวนสัตว์เลี้ยงที่เก็บได้",
+    "offerCareBundle": "แพ็กดูแล",
+    "slotStatus": "ช่อง {{used}} / {{max}}",
+    "notEnoughGems": "เพชรไม่พอ",
+    "slotsFull": "ช่องสัตว์เลี้ยงเต็ม",
+    "slotsMax": "ขยายช่องครบแล้ว"
   },
   "gift": {
     "sendGift": "ส่งของขวัญ",

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 export type HubSidebarTarget =
   | 'collection'
   | 'inventory'
+  | 'market'
   | 'community'
   | 'minigame'
   | 'battle'
@@ -23,6 +24,7 @@ const AVATAR_ICON_SRC = '/ui/hud-icon-dino.png'
 const NAV_ICON_SRC: Record<HubSidebarTarget, string> = {
   collection: '/ui/hud-icon-collection.png',
   inventory: '/ui/hud-icon-inventory.png',
+  market: '/ui/hud-icon-market.png',
   community: '/ui/hud-icon-community.png',
   minigame: '/ui/hud-icon-minigame.png',
   battle: '/ui/hud-icon-battle.png',
@@ -43,6 +45,7 @@ export function HubSidebar({
   const items: Array<{ id: HubSidebarTarget; label: string }> = [
     { id: 'collection', label: t('tabs.collection') },
     { id: 'inventory', label: t('inventory.title') },
+    { id: 'market', label: t('tabs.market') },
     { id: 'community', label: t('tabs.friends') },
     { id: 'minigame', label: t('tabs.minigame') },
     { id: 'battle', label: t('tabs.battle') },

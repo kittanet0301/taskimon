@@ -113,7 +113,7 @@ export interface GameSave {
   pet: PetData | null
   /** Inactive pets/eggs stored in collection slots. */
   collection: PetData[]
-  /** Max pet slots (base 5, up to 27 via weekly missions). */
+  /** Max pet slots (base 5, up to 36 via missions / market). */
   petSlotLimit: number
   /** Soft currency, earned from mission claims. */
   gems: number

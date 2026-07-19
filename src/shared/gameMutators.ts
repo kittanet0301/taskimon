@@ -1,4 +1,4 @@
-import type { AnimationState, GameSave, ItemType, MinigameId, PetData, PetSpecies, Stage } from './types'
+import type { AnimationState, GameSave, InventoryItem, ItemType, MinigameId, PetData, PetSpecies, Stage } from './types'
 import { hatchPet, evolvePet, createEggPet, resetPetToEggStage, breedPetsLocal, canBreed } from './growth'
 import { canEvolveToAdult, canHatchEgg } from './stats'
 import { ITEMS, normalizeQuickItemSlots, useItem } from './items'
@@ -6,7 +6,8 @@ import { getCareFeedback } from './careFeedback'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim, updateMissionProgress } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
 import { applyFinishMinigame } from './minigame'
-import { TEST_FAST_EVO } from './constants'
+import { PET_SLOT_MAX, TEST_FAST_EVO } from './constants'
+import { getMarketOffer } from './market'
 import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
 import { defaultPetName } from './dinoCharacters'
 import { getPetLevel } from './activityScore'
@@ -76,6 +77,20 @@ function replacePet(save: GameSave, petId: string, replacer: (pet: PetData) => P
   return { ...save, collection }
 }
 
+function addInventoryItems(
+  inventory: InventoryItem[],
+  items: Array<{ type: ItemType; quantity: number }>
+): InventoryItem[] {
+  const inv = [...inventory]
+  for (const { type, quantity } of items) {
+    if (!(type in ITEMS) || quantity <= 0) continue
+    const idx = inv.findIndex((i) => i.type === type)
+    if (idx >= 0) inv[idx] = { ...inv[idx], quantity: inv[idx].quantity + quantity }
+    else inv.push({ type, quantity })
+  }
+  return inv
+}
+
 function debugSetPetStage(pet: NonNullable<GameSave['pet']>, stage: Stage) {
   if (stage === 'egg') return resetPetToEggStage(pet)
 
@@ -118,6 +133,52 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     if (!canAddPet(save)) return save
     const speciesArg = typeof args[0] === 'string' && isCreatureSpecies(args[0]) ? args[0] : undefined
     return { ...save, collection: [...save.collection, createEggPet(speciesArg)] }
+  }
+  if (mutatorName === 'buyMarket' && typeof args[0] === 'string') {
+    const offer = getMarketOffer(args[0])
+    if (!offer) return save
+    const gems = save.gems ?? 0
+    if (gems < offer.cost) return save
+
+    if (offer.kind === 'egg') {
+      if (!canAddPet(save)) return save
+      return {
+        ...save,
+        gems: gems - offer.cost,
+        collection: [...save.collection, createEggPet()]
+      }
+    }
+
+    if (offer.kind === 'slots') {
+      if (save.petSlotLimit >= PET_SLOT_MAX) return save
+      const nextLimit = clampSlotLimit(save.petSlotLimit + offer.slots)
+      if (nextLimit <= save.petSlotLimit) return save
+      return {
+        ...save,
+        gems: gems - offer.cost,
+        petSlotLimit: nextLimit
+      }
+    }
+
+    if (offer.kind === 'item') {
+      return {
+        ...save,
+        gems: gems - offer.cost,
+        inventory: addInventoryItems(save.inventory, [
+          { type: offer.itemType, quantity: offer.quantity }
+        ])
+      }
+    }
+
+    if (offer.kind === 'bundle') {
+      return {
+        ...save,
+        gems: gems - offer.cost,
+        inventory: addInventoryItems(save.inventory, offer.items)
+      }
+    }
+
+    return save
   }
   if (TEST_FAST_EVO && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
     if (!save.pet || !isCreatureSpecies(args[0])) return save

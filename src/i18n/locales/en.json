@@ -28,6 +28,7 @@
     "profile": "Profile",
     "settings": "Settings",
     "collection": "Collection",
+    "market": "Market",
     "minigame": "Mini Games",
     "ranking": "Ranking"
   },
@@ -124,6 +125,23 @@
     "use": "Use",
     "itemsTab": "Items",
     "giftsTab": "Gifts"
+  },
+  "market": {
+    "title": "Market",
+    "sectionEgg": "Eggs",
+    "sectionSlots": "Pet Slots",
+    "sectionBundles": "Bundles",
+    "sectionItems": "Items",
+    "offerEgg": "Random Egg",
+    "offerEggHint": "Adds a mystery egg to your collection",
+    "offerSlots": "+{{count}} Pet Slot",
+    "offerSlots_plural": "+{{count}} Pet Slots",
+    "offerSlotsHint": "Expand how many pets you can keep",
+    "offerCareBundle": "Care Pack",
+    "slotStatus": "Slots {{used}} / {{max}}",
+    "notEnoughGems": "Not enough gems",
+    "slotsFull": "No free pet slots",
+    "slotsMax": "Already at max slots"
   },
   "gift": {
     "sendGift": "Send Gift",

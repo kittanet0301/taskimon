@@ -44,6 +44,7 @@ body {
 .hub-modal,
 .dash-hud-missions-body,
 .inventory-modal,
+.market-modal,
 .pixel-hub,
 .battle-log,
 .battle-hub-body {
@@ -57,6 +58,7 @@ body {
 .hub-modal::-webkit-scrollbar,
 .dash-hud-missions-body::-webkit-scrollbar,
 .inventory-modal::-webkit-scrollbar,
+.market-modal::-webkit-scrollbar,
 .pixel-hub::-webkit-scrollbar,
 .battle-log::-webkit-scrollbar,
 .battle-hub-body::-webkit-scrollbar {
@@ -70,6 +72,7 @@ body {
 .hub-modal::-webkit-scrollbar-track,
 .dash-hud-missions-body::-webkit-scrollbar-track,
 .inventory-modal::-webkit-scrollbar-track,
+.market-modal::-webkit-scrollbar-track,
 .pixel-hub::-webkit-scrollbar-track,
 .battle-log::-webkit-scrollbar-track,
 .battle-hub-body::-webkit-scrollbar-track {
@@ -84,6 +87,7 @@ body {
 .hub-modal::-webkit-scrollbar-thumb,
 .dash-hud-missions-body::-webkit-scrollbar-thumb,
 .inventory-modal::-webkit-scrollbar-thumb,
+.market-modal::-webkit-scrollbar-thumb,
 .pixel-hub::-webkit-scrollbar-thumb,
 .battle-log::-webkit-scrollbar-thumb,
 .battle-hub-body::-webkit-scrollbar-thumb {
@@ -99,6 +103,7 @@ body {
 .hub-modal::-webkit-scrollbar-thumb:hover,
 .dash-hud-missions-body::-webkit-scrollbar-thumb:hover,
 .inventory-modal::-webkit-scrollbar-thumb:hover,
+.market-modal::-webkit-scrollbar-thumb:hover,
 .pixel-hub::-webkit-scrollbar-thumb:hover,
 .battle-log::-webkit-scrollbar-thumb:hover,
 .battle-hub-body::-webkit-scrollbar-thumb:hover {
@@ -111,6 +116,7 @@ body {
 .hub-modal::-webkit-scrollbar-button,
 .dash-hud-missions-body::-webkit-scrollbar-button,
 .inventory-modal::-webkit-scrollbar-button,
+.market-modal::-webkit-scrollbar-button,
 .pixel-hub::-webkit-scrollbar-button,
 .battle-log::-webkit-scrollbar-button,
 .battle-hub-body::-webkit-scrollbar-button {
@@ -125,6 +131,7 @@ body {
 .hub-modal::-webkit-scrollbar-corner,
 .dash-hud-missions-body::-webkit-scrollbar-corner,
 .inventory-modal::-webkit-scrollbar-corner,
+.market-modal::-webkit-scrollbar-corner,
 .pixel-hub::-webkit-scrollbar-corner,
 .battle-log::-webkit-scrollbar-corner,
 .battle-hub-body::-webkit-scrollbar-corner {
@@ -2141,6 +2148,10 @@ button.dash-hud-avatar--btn:disabled {
   overflow-y: auto;
 }
 
+.collection-modal {
+  max-width: 880px;
+}
+
 .hub-modal--lg {
   max-width: 880px;
   max-height: 88vh;
@@ -2187,6 +2198,108 @@ button.dash-hud-avatar--btn:disabled {
 
 .inventory-modal {
   overflow-y: auto;
+}
+
+.market-modal {
+  overflow-y: auto;
+  max-width: 520px;
+  width: min(520px, 94vw);
+}
+
+.market-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border: 3px solid var(--pixel-border);
+  background: rgba(255, 226, 179, 0.85);
+  font-size: 0.9rem;
+}
+
+.market-balance .hud-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.market-balance-slots {
+  margin-left: auto;
+  opacity: 0.8;
+  font-size: 0.78rem;
+}
+
+.market-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.market-section-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.market-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.market-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 3px solid var(--pixel-border);
+  background: rgba(255, 226, 179, 0.9);
+}
+
+.market-row-icon {
+  width: 36px;
+  height: 36px;
+  max-width: 36px;
+}
+
+.market-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.market-row-info strong {
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.market-row-sub {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  line-height: 1.25;
+}
+
+.market-row-warn {
+  font-size: 0.72rem;
+  color: #8b2e0e;
+}
+
+.market-buy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  justify-content: center;
+}
+
+.market-buy-gem {
+  width: 16px;
+  height: 16px;
+  max-width: 16px;
 }
 
 .inventory-tabs {
@@ -4003,13 +4116,13 @@ button.dash-hud-avatar--btn:disabled {
 
 .collection-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
 .collection-slot {
   position: relative;
-  min-height: 140px;
+  min-height: 128px;
   border: 3px solid var(--pixel-border);
   background: var(--pixel-card-bg);
   box-shadow: 3px 3px 0 var(--pixel-shadow);
@@ -4047,15 +4160,18 @@ button.dash-hud-avatar--btn:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 96px;
+  min-height: 80px;
   margin-bottom: 6px;
   overflow: hidden;
 }
 
 .collection-slot-name {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .collection-slot-info {
