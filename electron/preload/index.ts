@@ -90,7 +90,12 @@ const api: GameAPI = {
   sendGift: (recipientId, itemType, quantity) =>
     ipcRenderer.invoke('gift:send', recipientId, itemType, quantity),
   listPendingGifts: () => ipcRenderer.invoke('gift:listPending'),
-  claimPendingGifts: (giftId) => ipcRenderer.invoke('gift:claimPending', giftId)
+  claimPendingGifts: (giftId) => ipcRenderer.invoke('gift:claimPending', giftId),
+  adminListPlayers: () => ipcRenderer.invoke('admin:listPlayers'),
+  adminGrantGems: (targetId, amount) => ipcRenderer.invoke('admin:grantGems', targetId, amount),
+  adminGrantItem: (targetId, itemType, qty) =>
+    ipcRenderer.invoke('admin:grantItem', targetId, itemType, qty),
+  adminClearUserData: (targetId) => ipcRenderer.invoke('admin:clearUserData', targetId)
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

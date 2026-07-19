@@ -3,8 +3,8 @@ import {
   SAVE_VERSION,
   TEST_FAST_EVO,
   PET_SLOT_BASE,
-  BREED_COOLDOWN_MS,
-  BREED_PURE_BONUS
+  BREED_PURE_BONUS,
+  getBreedCooldownMs
 } from './constants'
 import { createDefaultMissions, ensureAllMissions } from './missions'
 import { clampSlotLimit } from './petCollection'
@@ -88,7 +88,7 @@ export function canBreed(a: PetData, b: PetData, now: number = Date.now()): bool
     if (!pet.lastBredAt) return true
     const t = new Date(pet.lastBredAt).getTime()
     if (!Number.isFinite(t)) return true
-    return now - t >= BREED_COOLDOWN_MS
+    return now - t >= getBreedCooldownMs()
   }
   return cooldownOk(a) && cooldownOk(b)
 }

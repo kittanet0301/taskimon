@@ -1,4 +1,4 @@
-import { QUICK_ITEM_SLOT_COUNT, TEST_FAST_EVO } from './constants'
+import { QUICK_ITEM_SLOT_COUNT, fastEvoEnabled } from './constants'
 import type { InventoryItem, ItemType, PetStats } from './types'
 import { addDevPoints, clampStat, feedPet, healPet } from './stats'
 
@@ -57,7 +57,7 @@ export function getDefaultInventory(): { type: ItemType; quantity: number }[] {
     { type: 'medicine', quantity: 1 }
   ]
   // Test mode: seed nests so breeding is tryable without weekly mission grind.
-  if (TEST_FAST_EVO) base.push({ type: 'breed_nest', quantity: 3 })
+  if (fastEvoEnabled()) base.push({ type: 'breed_nest', quantity: 3 })
   return base
 }
 

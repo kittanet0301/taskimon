@@ -7,6 +7,7 @@ export type HubSidebarTarget =
   | 'community'
   | 'minigame'
   | 'battle'
+  | 'admin'
   | 'settings'
 
 interface Props {
@@ -14,6 +15,8 @@ interface Props {
   displayName: string
   disabled?: boolean
   focusMode?: boolean
+  /** Show Admin sidebar entry (admin accounts only). */
+  showAdmin?: boolean
   badges?: Partial<Record<HubSidebarTarget, number>>
   onNavigate: (target: HubSidebarTarget) => void
   onAvatarClick?: () => void
@@ -28,6 +31,7 @@ const NAV_ICON_SRC: Record<HubSidebarTarget, string> = {
   community: '/ui/hud-icon-community.png',
   minigame: '/ui/hud-icon-minigame.png',
   battle: '/ui/hud-icon-battle.png',
+  admin: '/ui/hud-icon-missions.png',
   settings: '/ui/hud-icon-settings.png'
 }
 
@@ -36,6 +40,7 @@ export function HubSidebar({
   displayName,
   disabled,
   focusMode = false,
+  showAdmin = false,
   badges,
   onNavigate,
   onAvatarClick
@@ -49,6 +54,7 @@ export function HubSidebar({
     { id: 'community', label: t('tabs.friends') },
     { id: 'minigame', label: t('tabs.minigame') },
     { id: 'battle', label: t('tabs.battle') },
+    ...(showAdmin ? [{ id: 'admin' as const, label: t('tabs.admin') }] : []),
     { id: 'settings', label: t('tabs.settings') }
   ]
 

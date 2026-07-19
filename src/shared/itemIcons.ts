@@ -9,8 +9,8 @@ export const ITEM_ICON_SRC: Record<ItemType, string> = {
   toy: '/ui/item-toy.png',
   dev_vitamin: '/ui/item-dev-vitamin.png',
   battle_shield: '/ui/item-battle-shield.png',
-  breed_nest: '/ui/item-dev-vitamin.png',
-  skill_forget: '/ui/item-medicine.png'
+  breed_nest: '/ui/item-breed-nest.png',
+  skill_forget: '/ui/item-skill-forget.png'
 }
 
 /** Pixel icon for mission rewards. Returns null for emotion/slots (custom UI glyphs). */

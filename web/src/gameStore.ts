@@ -1,8 +1,9 @@
 import type { GameSave } from '@shared/types'
-import { CLICKS_PER_DEV, KEYS_PER_DEV, MAX_DEV_PER_HOUR, SAVE_VERSION } from '@shared/constants'
+import { getClicksPerDev, getKeysPerDev, getMaxDevPerHour, SAVE_VERSION } from '@shared/constants'
 import { addDevPoints } from '@shared/stats'
 import { updateMissionProgress } from '@shared/missions'
-import { applyGamePatch } from '@shared/gameMutators'
+import { applyGamePatch, setSessionIsAdmin } from '@shared/gameMutators'
+import { isAdminRole } from '@shared/userRole'
 import { applyDailyResets } from '@shared/missions'
 import { applyMinigameDailyReset } from '@shared/minigame'
 import { createDefaultSave, migrateSave } from '@shared/growth'
@@ -17,7 +18,7 @@ import {
   resetGameDataInDb,
   saveGameSaveToDb
 } from './cloudStorage'
-import { getSession, setActivePet } from './supabase'
+import { getSession, getProfile, setActivePet } from './supabase'
 
 let saveRef: GameSave = loadSave()
 let currentUserId: string | null = null
@@ -180,9 +181,17 @@ export async function clearMyGameData(): Promise<GameSave> {
 export async function setCurrentUser(userId: string | null): Promise<GameSave> {
   currentUserId = userId
   if (!userId) {
+    setSessionIsAdmin(false)
     saveRef = loadSave()
     broadcast()
     return saveRef
+  }
+
+  try {
+    const profile = await getProfile(userId)
+    setSessionIsAdmin(isAdminRole((profile as { role?: string } | null)?.role))
+  } catch {
+    setSessionIsAdmin(false)
   }
 
   try {
@@ -233,7 +242,7 @@ function maybeResetHourlyCap(save: GameSave): GameSave {
 
 function grantDevPoint(save: GameSave): GameSave {
   save = maybeResetHourlyCap(save)
-  if (save.activity.evolutionThisHour >= MAX_DEV_PER_HOUR) return save
+  if (save.activity.evolutionThisHour >= getMaxDevPerHour()) return save
   if (!save.pet) return save
 
   const prevPet = save.pet
@@ -276,7 +285,7 @@ export function recordClick(): void {
       activity: { ...save.activity, clicks: save.activity.clicks + 1 }
     }
     next.missions = updateMissionProgress(next.missions, 'daily_click_200', 1)
-    if (next.activity.clicks % CLICKS_PER_DEV === 0) next = grantDevPoint(next)
+    if (next.activity.clicks % getClicksPerDev() === 0) next = grantDevPoint(next)
     return next
   })
 }
@@ -288,7 +297,7 @@ export function recordKey(): void {
       activity: { ...save.activity, keystrokes: save.activity.keystrokes + 1 }
     }
     next.missions = updateMissionProgress(next.missions, 'daily_type_500', 1)
-    if (next.activity.keystrokes % KEYS_PER_DEV === 0) next = grantDevPoint(next)
+    if (next.activity.keystrokes % getKeysPerDev() === 0) next = grantDevPoint(next)
     return next
   })
 }

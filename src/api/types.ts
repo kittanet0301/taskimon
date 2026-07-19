@@ -89,6 +89,18 @@ export interface GameAPI {
     }>
     save: GameSave
   }>
+  adminListPlayers: () => Promise<
+    Array<{
+      id: string
+      username: string
+      friend_code: string
+      role: string
+      gems: number
+    }>
+  >
+  adminGrantGems: (targetId: string, amount: number) => Promise<number>
+  adminGrantItem: (targetId: string, itemType: string, qty: number) => Promise<number>
+  adminClearUserData: (targetId: string) => Promise<void>
 }
 
 /** @deprecated use GameAPI — kept for Electron preload compatibility */

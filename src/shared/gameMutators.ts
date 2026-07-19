@@ -6,8 +6,15 @@ import { getCareFeedback } from './careFeedback'
 import { getMissionDefinition, applyDailyResets, recordDailyMissionClaim, updateMissionProgress } from './missions'
 import { canAddPet, clampSlotLimit } from './petCollection'
 import { applyFinishMinigame } from './minigame'
-import { PET_SLOT_MAX, TEST_FAST_EVO } from './constants'
+import { PET_SLOT_MAX } from './constants'
 import { getMarketOffer } from './market'
+import { getSessionIsAdmin, setSessionIsAdmin } from './sessionFlags'
+
+export { setSessionIsAdmin, getSessionIsAdmin } from './sessionFlags'
+
+function debugMutatorsEnabled(): boolean {
+  return getSessionIsAdmin()
+}
 import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
 import { defaultPetName } from './dinoCharacters'
 import { getPetLevel } from './activityScore'
@@ -180,7 +187,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
 
     return save
   }
-  if (TEST_FAST_EVO && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
+  if (debugMutatorsEnabled() && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
     if (!save.pet || !isCreatureSpecies(args[0])) return save
     const species = args[0] as PetSpecies
     const { elementPrimary, elementSecondary } = rollElementSlots()
@@ -204,13 +211,13 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       }
     }
   }
-  if (TEST_FAST_EVO && mutatorName === 'debugSetStage' && typeof args[0] === 'string') {
+  if (debugMutatorsEnabled() && mutatorName === 'debugSetStage' && typeof args[0] === 'string') {
     if (!save.pet) return save
     const stage = args[0] as Stage
     if (stage !== 'egg' && stage !== 'baby' && stage !== 'adult') return save
     return { ...save, pet: debugSetPetStage(save.pet, stage) }
   }
-  if (TEST_FAST_EVO && mutatorName === 'debugBoostDev') {
+  if (debugMutatorsEnabled() && mutatorName === 'debugBoostDev') {
     if (!save.pet) return save
     const amount = typeof args[0] === 'number' ? Math.max(0, Math.floor(args[0])) : 50
     const prev = save.pet
@@ -223,7 +230,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     }
     return { ...save, pet: applyLevelGainRewards(prev, boosted) }
   }
-  if (TEST_FAST_EVO && mutatorName === 'debugCycleSpecies') {
+  if (debugMutatorsEnabled() && mutatorName === 'debugCycleSpecies') {
     if (!save.pet) return save
     const idx = CREATURE_SPECIES.indexOf(save.pet.character as (typeof CREATURE_SPECIES)[number])
     const next = CREATURE_SPECIES[(idx + 1) % CREATURE_SPECIES.length]
@@ -236,7 +243,7 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
       }
     }
   }
-  if (TEST_FAST_EVO && mutatorName === 'debugGrantItem' && typeof args[0] === 'string') {
+  if (debugMutatorsEnabled() && mutatorName === 'debugGrantItem' && typeof args[0] === 'string') {
     const itemType = args[0] as ItemType
     if (!(itemType in ITEMS)) return save
     const qty = typeof args[1] === 'number' ? Math.max(1, Math.floor(args[1])) : 1
@@ -246,14 +253,14 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     else inv.push({ type: itemType, quantity: qty })
     return { ...save, inventory: inv }
   }
-  if (TEST_FAST_EVO && mutatorName === 'debugSetGender' && typeof args[0] === 'string') {
+  if (debugMutatorsEnabled() && mutatorName === 'debugSetGender' && typeof args[0] === 'string') {
     if (!save.pet) return save
     const gender = args[0] === 'female' ? 'female' : args[0] === 'male' ? 'male' : null
     if (!gender) return save
     return { ...save, pet: { ...save.pet, gender } }
   }
   if (
-    TEST_FAST_EVO &&
+    debugMutatorsEnabled() &&
     mutatorName === 'debugAdjustCare' &&
     (args[0] === 'health' || args[0] === 'emotion') &&
     typeof args[1] === 'number'

@@ -94,6 +94,13 @@ supabase db push
 42. [`043_battle_shield_consume.sql`](migrations/043_battle_shield_consume.sql)
 43. [`044_rpg_battle_stats_skills_breeding.sql`](migrations/044_rpg_battle_stats_skills_breeding.sql) — **RPG + breed**
 44. [`045_force_pure_elements.sql`](migrations/045_force_pure_elements.sql) — **pure elements (ชั่วคราว)**
+45. [`046_profiles_role.sql`](migrations/046_profiles_role.sql) — **admin/user roles + admin RPCs**
+
+ตั้ง admin ด้วย SQL (หลังรัน 046):
+
+```sql
+update public.profiles set role = 'admin' where username = 'YOUR_NAME';
+```
 
 > **หมายเหตุ:** ไม่มีไฟล์ `007` / `031` ใน repo — ข้ามได้ตามรายการด้านบน
 

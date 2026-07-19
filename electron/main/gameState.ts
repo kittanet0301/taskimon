@@ -1,6 +1,6 @@
 import type { BrowserWindow } from 'electron'
 import type { GameSave } from '../../src/shared/types'
-import { SAVE_VERSION, CLICKS_PER_DEV, KEYS_PER_DEV, MAX_DEV_PER_HOUR } from '../../src/shared/constants'
+import { SAVE_VERSION, getClicksPerDev, getKeysPerDev, getMaxDevPerHour } from '../../src/shared/constants'
 import { createDefaultSave, migrateSave } from '../../src/shared/growth'
 import { addDevPoints } from '../../src/shared/stats'
 import { updateMissionProgress, applyDailyResets } from '../../src/shared/missions'
@@ -17,7 +17,9 @@ import {
   saveGameSaveToDb,
   canUseCloudStorage
 } from './cloudStorage'
-import { getSession } from './supabase'
+import { getSession, getProfile } from './supabase'
+import { setSessionIsAdmin } from '../../src/shared/gameMutators'
+import { isAdminRole } from '../../src/shared/userRole'
 
 let hookStarted = false
 let rendererFallback = false
@@ -68,10 +70,18 @@ export async function hydrateFromSession(): Promise<GameSave> {
 export async function setCurrentUser(userId: string | null): Promise<GameSave> {
   currentUserId = userId
   if (!userId) {
+    setSessionIsAdmin(false)
     saveRef = loadSave()
     broadcast()
     refreshTray(getGameSave)
     return saveRef
+  }
+
+  try {
+    const profile = await getProfile(userId)
+    setSessionIsAdmin(isAdminRole((profile as { role?: string } | null)?.role))
+  } catch {
+    setSessionIsAdmin(false)
   }
 
   try {
@@ -210,7 +220,7 @@ function maybeResetHourlyCap(save: GameSave): GameSave {
 
 function grantDevPoint(save: GameSave): GameSave {
   save = maybeResetHourlyCap(save)
-  if (save.activity.evolutionThisHour >= MAX_DEV_PER_HOUR) return save
+  if (save.activity.evolutionThisHour >= getMaxDevPerHour()) return save
   if (!save.pet) return save
 
   const prevPet = save.pet
@@ -257,7 +267,7 @@ function onClick(): void {
       }
     }
     next.missions = updateMissionProgress(next.missions, 'daily_click_200', 1)
-    if (next.activity.clicks % CLICKS_PER_DEV === 0) {
+    if (next.activity.clicks % getClicksPerDev() === 0) {
       next = grantDevPoint(next)
     }
     return next
@@ -275,7 +285,7 @@ function onKey(): void {
       }
     }
     next.missions = updateMissionProgress(next.missions, 'daily_type_500', 1)
-    if (next.activity.keystrokes % KEYS_PER_DEV === 0) {
+    if (next.activity.keystrokes % getKeysPerDev() === 0) {
       next = grantDevPoint(next)
     }
     return next

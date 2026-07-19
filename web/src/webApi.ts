@@ -19,6 +19,10 @@ import {
   updatePassword,
   getProfile,
   updateProfile,
+  adminListPlayers,
+  adminGrantGems,
+  adminGrantItem,
+  adminClearUserData,
   syncPetToCloud,
   getActivePet,
   isSupabaseConfigured,
@@ -57,6 +61,8 @@ import {
 } from './supabase'
 import { applyFinishMinigame } from '@shared/minigame'
 import type { MinigameId } from '@shared/types'
+import { setSessionIsAdmin } from '@shared/gameMutators'
+import { isAdminRole } from '@shared/userRole'
 import { updateSave } from './gameStore'
 
 const chatRoomListeners = new Set<(payload: unknown) => void>()
@@ -99,7 +105,11 @@ export function createWebApi(): GameAPI {
     updatePassword: async (password) => updatePassword(password),
     updateProfile: async (userId, fields) => updateProfile(userId, fields),
     getSession: async () => getSession(),
-    getProfile: async (userId) => getProfile(userId),
+    getProfile: async (userId) => {
+      const profile = await getProfile(userId)
+      setSessionIsAdmin(isAdminRole((profile as { role?: string } | null)?.role))
+      return profile
+    },
     syncPet: async (userId, pet) => {
       const mapped = {
         id: pet.id,
@@ -220,6 +230,10 @@ export function createWebApi(): GameAPI {
       const claimed = await claimPendingGifts(giftId)
       const save = await hydrateFromSession()
       return { claimed, save }
-    }
+    },
+    adminListPlayers: async () => adminListPlayers(),
+    adminGrantGems: async (targetId, amount) => adminGrantGems(targetId, amount),
+    adminGrantItem: async (targetId, itemType, qty) => adminGrantItem(targetId, itemType, qty),
+    adminClearUserData: async (targetId) => adminClearUserData(targetId)
   }
 }

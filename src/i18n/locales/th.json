@@ -29,6 +29,7 @@
     "settings": "ตั้งค่า",
     "collection": "คลังไข่",
     "market": "ตลาด",
+    "admin": "แอดมิน",
     "minigame": "มินิเกม",
     "ranking": "อันดับ"
   },
@@ -441,6 +442,24 @@
     "done": "ล้างข้อมูลของคุณแล้ว เริ่มต้นใหม่",
     "loading": "กำลังล้าง..."
   },
+  "admin": {
+    "title": "เครื่องมือแอดมิน",
+    "badge": "แอดมิน",
+    "description": "จัดการผู้เล่น: แจกเพชร/ไอเทม หรือล้างข้อมูลเกม",
+    "searchPlaceholder": "ค้นหาชื่อหรือ friend code",
+    "gemAmount": "เพชร",
+    "itemType": "ไอเทม",
+    "itemQty": "จำนวน",
+    "grantGems": "+เพชร",
+    "grantItem": "+ไอเทม",
+    "clearData": "ล้างข้อมูล",
+    "clearConfirm": "ล้างข้อมูลเกมทั้งหมดของ {{name}}?",
+    "clearSelfBlocked": "ใช้ Clear ข้อมูลของฉันสำหรับบัญชีตัวเอง",
+    "grantGemsDone": "แจกเพชรให้ {{name}} แล้ว (ตอนนี้ {{gems}})",
+    "grantItemDone": "แจก {{item}} ให้ {{name}} แล้ว (ตอนนี้ ×{{qty}})",
+    "clearDone": "ล้างข้อมูลเกมของ {{name}} แล้ว",
+    "empty": "ไม่พบผู้เล่น"
+  },
   "tray": {
     "title": "Taskino",
     "loginToSeePetStatus": "เข้าสู่ระบบเพื่อดูสถานะสัตว์เลี้ยง",
@@ -594,6 +613,12 @@
       "ultimate": "อัลติเมท"
     },
     "eggNoSkills": "สกิลจะสุ่มหลังฟัก (สกิล 3 + Ultimate 1)",
+    "forgetPickTitle": "ลืมสกิล",
+    "forgetPickBody": "เลือกสกิลที่จะรีโรล ใช้ม้วนลืมสกิล 1 อัน (มี {{count}} อัน)",
+    "forgetNeedPet": "ต้องฟักสัตว์เลี้ยงตัวหลักก่อน — สกิลจะมีหลังฟัก",
+    "forgetNoScroll": "ต้องมีม้วนลืมสกิลก่อน",
+    "forgetPureUltimateBlocked": "อัลติเมทธาตุบริสุทธิ์รีโรลไม่ได้",
+    "forgetResult": "ได้ {{to}} (เดิม {{from}})",
     "forgetConfirmTitle": "ลืมสกิลนี้?",
     "forgetConfirmBody": "รีโรล {{skill}} โดยใช้ม้วนลืมสกิล 1 อัน ทำแล้วเปลี่ยนกลับไม่ได้",
     "fire_spark_bite": "Spark Bite",

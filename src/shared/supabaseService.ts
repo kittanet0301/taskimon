@@ -118,6 +118,46 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     return data
   }
 
+  async function adminListPlayers() {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('admin_list_players')
+    if (error) rpcError(error)
+    return (data ?? []) as Array<{
+      id: string
+      username: string
+      friend_code: string
+      role: string
+      gems: number
+    }>
+  }
+
+  async function adminGrantGems(targetId: string, amount: number) {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('admin_grant_gems', {
+      p_target_id: targetId,
+      p_amount: amount
+    })
+    if (error) rpcError(error)
+    return data as number
+  }
+
+  async function adminGrantItem(targetId: string, itemType: string, qty: number) {
+    const supabase = requireSupabase()
+    const { data, error } = await supabase.rpc('admin_grant_item', {
+      p_target_id: targetId,
+      p_item_type: itemType,
+      p_qty: qty
+    })
+    if (error) rpcError(error)
+    return data as number
+  }
+
+  async function adminClearUserData(targetId: string) {
+    const supabase = requireSupabase()
+    const { error } = await supabase.rpc('admin_clear_user_data', { target_id: targetId })
+    if (error) rpcError(error)
+  }
+
   async function updateProfile(userId: string, fields: { username?: string }) {
     const supabase = requireSupabase()
     const patch: { username?: string } = {}
@@ -634,6 +674,10 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     getSession,
     getProfile,
     updateProfile,
+    adminListPlayers,
+    adminGrantGems,
+    adminGrantItem,
+    adminClearUserData,
     syncPetToCloud,
     getActivePet,
     searchProfileByFriendCode,

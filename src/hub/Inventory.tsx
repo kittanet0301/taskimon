@@ -20,11 +20,13 @@ interface Props {
   onUpdated?: () => void | Promise<void>
   /** Called after a care item is used successfully (before close). */
   onCareUsed?: (type: ItemType) => void
+  /** Open skill-forget picker instead of consuming via useItem. */
+  onSkillForget?: () => void
 }
 
 type InventoryTab = 'items' | 'gifts'
 
-export function Inventory({ save, onClose, onUpdated, onCareUsed }: Props) {
+export function Inventory({ save, onClose, onUpdated, onCareUsed, onSkillForget }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<InventoryTab>('items')
   const [pending, setPending] = useState<PendingGift[]>([])
@@ -37,6 +39,10 @@ export function Inventory({ save, onClose, onUpdated, onCareUsed }: Props) {
   const canUseCareItems = Boolean(save.pet && save.pet.stage !== 'egg')
 
   const useItem = async (type: ItemType) => {
+    if (type === 'skill_forget') {
+      onSkillForget?.()
+      return
+    }
     if (!getCareFeedback(type) || !canUseCareItems || usingType) return
     setUsingType(type)
     setError(null)
@@ -135,7 +141,10 @@ export function Inventory({ save, onClose, onUpdated, onCareUsed }: Props) {
           ) : (
             <div className="inventory-grid">
               {items.map((item) => {
-                const usable = Boolean(getCareFeedback(item.type)) && canUseCareItems
+                const isSkillForget = item.type === 'skill_forget'
+                const usable =
+                  (Boolean(getCareFeedback(item.type)) && canUseCareItems) ||
+                  (isSkillForget && Boolean(onSkillForget))
                 const busy = usingType === item.type
                 const title = usable
                   ? `${tItemLabel(item.type)} · ${t('inventory.use')} · ${tItemDescription(item.type)}`

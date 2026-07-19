@@ -155,12 +155,12 @@ body {
 
 .hub-sidebar {
   flex: 0 0 auto;
-  width: clamp(72px, 7vw, 100px);
+  width: clamp(64px, 6vw, 88px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(12px, 1.8vh, 20px);
-  padding: 18px 10px 22px;
+  gap: clamp(8px, 1.3vh, 14px);
+  padding: 16px 8px 18px;
   background: linear-gradient(180deg, #2c1408 0%, #130f1e 100%);
   border-right: 4px solid var(--pixel-border);
   overflow-y: auto;
@@ -172,7 +172,7 @@ body {
   /* Match dash-hud-status right/top insets */
   --hub-edge: clamp(16px, 2vw, 32px);
   --hub-edge-y: clamp(16px, 2.5vh, 32px);
-  --hub-nav-width: clamp(72px, 7vw, 100px);
+  --hub-nav-width: clamp(64px, 6vw, 88px);
   --hub-nav-gutter: calc(var(--hub-edge) + var(--hub-nav-width));
 }
 
@@ -1272,12 +1272,12 @@ input, select {
 }
 
 .dash-hud-avatar {
-  width: clamp(58px, 6.5vw, 88px);
+  width: clamp(50px, 5.5vw, 76px);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  margin-bottom: 6px;
-  padding: 8px;
+  margin-bottom: 4px;
+  padding: 6px;
   border: 4px solid #2c1408;
   border-radius: 50%;
   background: #f9dfae;
@@ -1340,11 +1340,11 @@ button.dash-hud-avatar--btn:disabled {
 
 .dash-hud-nav-btn {
   position: relative;
-  width: clamp(54px, 5.8vw, 80px);
+  width: clamp(46px, 5vw, 68px);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  padding: 8px;
+  padding: 6px;
   border: 4px solid #2c1408;
   border-radius: 50%;
   background:
@@ -1413,7 +1413,7 @@ button.dash-hud-avatar--btn:disabled {
 
 .hud-icon {
   width: 100%;
-  max-width: 48px;
+  max-width: 40px;
   aspect-ratio: 1;
   display: block;
   object-fit: contain;
@@ -1422,7 +1422,7 @@ button.dash-hud-avatar--btn:disabled {
 }
 
 .hud-icon--large {
-  max-width: 54px;
+  max-width: 46px;
 }
 
 .hud-icon-emoji {
@@ -1773,8 +1773,10 @@ button.dash-hud-avatar--btn:disabled {
 }
 
 .dash-hud-debug-label {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.45rem;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: #c0392b;
 }
 
@@ -1785,13 +1787,14 @@ button.dash-hud-avatar--btn:disabled {
 }
 
 .dash-hud-debug-btn {
-  padding: 4px 6px;
+  padding: 4px 7px;
   border: 2px solid #2c1408;
   background: #fff6e8;
   color: #3b210e;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.4rem;
-  line-height: 1.4;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
   cursor: pointer;
 }
 
@@ -2302,6 +2305,188 @@ button.dash-hud-avatar--btn:disabled {
   max-width: 16px;
 }
 
+.admin-modal {
+  overflow-y: auto;
+  max-width: 720px;
+  width: min(720px, 96vw);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1.05rem;
+}
+
+.admin-modal .hub-modal-head h2 {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-panel-head h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.admin-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 2px solid var(--pixel-border);
+  background: var(--pixel-accent);
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-panel-desc {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--pixel-muted);
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-search {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 12px;
+  border: 3px solid var(--pixel-border);
+  background: #fffaf0;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1rem;
+}
+
+.admin-toolbar .secondary {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+}
+
+.admin-grant-defaults {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.admin-grant-defaults label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-grant-defaults input,
+.admin-grant-defaults select {
+  min-width: 120px;
+  padding: 8px 10px;
+  border: 2px solid var(--pixel-border);
+  background: #fffaf0;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1rem;
+}
+
+.admin-message {
+  margin: 0;
+  font-size: 1rem;
+  color: #166534;
+}
+
+.admin-confirm {
+  padding: 12px 14px;
+  border: 3px solid var(--pixel-border);
+  background: rgba(255, 176, 124, 0.2);
+  font-size: 1rem;
+}
+
+.admin-confirm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-confirm-actions button {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+}
+
+.admin-player-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.admin-player-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 3px solid var(--pixel-border);
+  background: rgba(255, 226, 179, 0.9);
+}
+
+.admin-player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-player-info strong {
+  font-size: 1.1rem;
+}
+
+.admin-player-info span {
+  font-size: 0.92rem;
+  opacity: 0.85;
+}
+
+.admin-player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-player-actions .dash-hud-action--inline {
+  width: auto;
+  margin-top: 0;
+  min-height: 44px;
+  padding: 12px 16px;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.admin-player-actions .secondary {
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1.05rem;
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
 .inventory-tabs {
   display: flex;
   gap: 8px;
@@ -2691,9 +2876,9 @@ button.dash-hud-avatar--btn:disabled {
 
 @media (max-width: 680px) {
   .hub-sidebar {
-    width: 62px;
-    gap: 10px;
-    padding: 12px 4px 16px;
+    width: 56px;
+    gap: 8px;
+    padding: 10px 4px 14px;
   }
 
   .dash-hud-avatar {
@@ -2701,8 +2886,8 @@ button.dash-hud-avatar--btn:disabled {
   }
 
   .dash-hud-nav-btn {
-    width: 46px;
-    padding: 6px;
+    width: 40px;
+    padding: 5px;
     border-width: 3px;
   }
 
@@ -4279,6 +4464,52 @@ button.dash-hud-avatar--btn:disabled {
   z-index: 1200;
 }
 
+.skill-forget-modal {
+  max-width: 520px;
+  width: min(520px, 94vw);
+}
+
+.skill-forget-modal .hub-modal-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Mali', 'Noto Sans Thai', sans-serif;
+  font-size: 1.2rem;
+}
+
+.skill-forget-modal .hub-modal-head h2 .hud-icon {
+  width: 36px;
+  height: 36px;
+  image-rendering: pixelated;
+}
+
+.skill-forget-desc {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: var(--pixel-muted);
+}
+
+.skill-forget-result {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 3px solid var(--pixel-border);
+  background: rgba(74, 222, 128, 0.22);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.skill-forget-empty-hint {
+  margin: 0 0 8px;
+}
+
+.skill-forget-list {
+  max-height: none;
+  overflow: visible;
+  padding: 2px 4px;
+  margin: 0;
+}
+
 .pet-detail-preview {
   flex-shrink: 0;
   display: flex;
@@ -5088,6 +5319,12 @@ button.dash-hud-avatar--btn:disabled {
   background: #fff;
   box-shadow: 0 2px 0 rgba(59, 33, 14, 0.08);
   color: #3b210e;
+}
+
+.pet-profile-skill.pet-profile-skill--rolled {
+  border: 3px solid #4ade80;
+  background: rgba(74, 222, 128, 0.18);
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.55);
 }
 
 .pet-profile-skill-info {

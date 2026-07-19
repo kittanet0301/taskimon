@@ -1,9 +1,16 @@
-import { describe, expect, it } from 'vitest'
-import { applyGamePatch } from './gameMutators'
+import { describe, expect, it, beforeEach, afterEach } from 'vitest'
+import { applyGamePatch, setSessionIsAdmin } from './gameMutators'
 import { createDefaultSave, createEggPet } from './growth'
 import { TEST_FAST_EVO } from './constants'
 
 describe('TEST debug buttons', () => {
+  beforeEach(() => {
+    setSessionIsAdmin(true)
+  })
+  afterEach(() => {
+    setSessionIsAdmin(false)
+  })
+
   it('is enabled in test-fast mode', () => {
     expect(TEST_FAST_EVO).toBe(true)
   })

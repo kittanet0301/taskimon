@@ -1,5 +1,5 @@
 import type { PetData, PetStats, Stage } from './types'
-import { ADULT_MIN_HOURS, DEV_POINTS_ADULT, DEV_POINTS_HATCH } from './constants'
+import { getAdultMinHours, getDevPointsAdult, getDevPointsHatch } from './constants'
 import { normalizeCareStats } from './petNormalize'
 
 export function clampStat(value: number, min = 0, max = 100): number {
@@ -28,13 +28,16 @@ export function shouldBeSick(stats: PetStats): boolean {
 }
 
 export function canHatchEgg(pet: PetData): boolean {
-  return pet.stage === 'egg' && normalizeCareStats(pet.stats).evolution >= DEV_POINTS_HATCH
+  return pet.stage === 'egg' && normalizeCareStats(pet.stats).evolution >= getDevPointsHatch()
 }
 
 export function canEvolveToAdult(pet: PetData): boolean {
   if (pet.stage !== 'baby' || !pet.hatchedAt) return false
   const hoursSinceHatch = (Date.now() - new Date(pet.hatchedAt).getTime()) / 3_600_000
-  return normalizeCareStats(pet.stats).evolution >= DEV_POINTS_ADULT && hoursSinceHatch >= ADULT_MIN_HOURS
+  return (
+    normalizeCareStats(pet.stats).evolution >= getDevPointsAdult() &&
+    hoursSinceHatch >= getAdultMinHours()
+  )
 }
 
 export function getNextStage(pet: PetData): Stage {

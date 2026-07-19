@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { AnimationState, GameSave, ItemType } from '../shared/types'
 import { DinoSprite } from '../components/DinoSprite'
 import { getPetLevel, getStageLabel } from '../shared/activityScore'
-import { QUICK_ITEM_SLOT_COUNT, TEST_FAST_EVO } from '../shared/constants'
+import { QUICK_ITEM_SLOT_COUNT } from '../shared/constants'
 import { normalizeQuickItemSlots } from '../shared/items'
 import {
   CARE_FEEDBACK_MS,
@@ -30,9 +30,13 @@ import {
 interface Props {
   save: GameSave
   focusMode?: boolean
+  /** Show TEST debug tools when the signed-in user is admin. */
+  isAdmin?: boolean
   onUpdated: () => void | Promise<void>
   /** External care-use pulse (e.g. from Inventory click). Item already consumed. */
   carePulse?: { type: ItemType; key: number } | null
+  /** Open skill-forget picker (Skill forget scroll). */
+  onSkillForget?: () => void
 }
 
 interface CareFxState {
@@ -56,7 +60,14 @@ function statPercent(value: number, max: number): string {
   return `${Math.max(0, Math.min(100, (value / max) * 100))}%`
 }
 
-export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = null }: Props) {
+export function HomeDashboard({
+  save,
+  focusMode = false,
+  isAdmin = false,
+  onUpdated,
+  carePulse = null,
+  onSkillForget
+}: Props) {
   const { t } = useTranslation()
   const sceneRef = useRef<HTMLDivElement>(null)
   const careClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -255,6 +266,10 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
   const useQuickItem = async (type: ItemType | null) => {
     if (!type || !inventoryByType.get(type)) return
     if (pet.stage === 'egg' || hatching || evolving) return
+    if (type === 'skill_forget') {
+      onSkillForget?.()
+      return
+    }
     const feedback = getCareFeedback(type)
     if (!feedback) return
 
@@ -408,7 +423,7 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
                 </span>
               </button>
             )}
-            {TEST_FAST_EVO && (
+            {isAdmin && (
               <div className="dash-hud-debug" aria-label="Test controls">
                 <span className="dash-hud-debug-label">TEST</span>
                 <div className="dash-hud-debug-row">
@@ -504,6 +519,14 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
                   <button
                     type="button"
                     className="dash-hud-debug-btn"
+                    onClick={() => runDebug('debugGrantItem', ['skill_forget', 3])}
+                    title={t('items.skill_forget.label')}
+                  >
+                    +forget
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
                     onClick={() =>
                       runDebug('debugSetGender', [pet.gender === 'female' ? 'male' : 'female'])
                     }
@@ -578,9 +601,15 @@ export function HomeDashboard({ save, focusMode = false, onUpdated, carePulse = 
         <section className="dash-hud-quickbar" aria-label={t('home.quickCare')}>
           {quickSlots.map((type, index) => {
             const quantity = type ? inventoryByType.get(type) ?? 0 : 0
+            const isSkillForget = type === 'skill_forget'
             const canCare = Boolean(type && getCareFeedback(type))
-            const disabled =
-              !type || !canCare || quantity <= 0 || pet.stage === 'egg' || hatching || evolving
+            const canUse =
+              (canCare || (isSkillForget && Boolean(onSkillForget))) &&
+              quantity > 0 &&
+              pet.stage !== 'egg' &&
+              !hatching &&
+              !evolving
+            const disabled = !type || !canUse
             return (
               <div key={`${type ?? 'empty'}-${index}`} className="dash-hud-slot-wrap">
                 <button

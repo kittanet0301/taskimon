@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import type { GameSave, ItemType } from './shared/types'
 import { getActivityScore, isOnboardingComplete, ONBOARDING_KEY } from './shared/activityScore'
 import { countHatchableEggs } from './shared/petCollection'
+import { setSessionIsAdmin } from './shared/sessionFlags'
+import { isAdminRole } from './shared/userRole'
 import './i18n'
 import { GetStarted } from './hub/GetStarted'
 import { LoginGate } from './hub/LoginGate'
@@ -22,12 +24,14 @@ import { MiniGameHub } from './hub/minigame/MiniGameHub'
 import { HubSidebar, type HubSidebarTarget } from './hub/HubSidebar'
 import { HubTopBar } from './hub/HubTopBar'
 import { Inventory } from './hub/Inventory'
+import { SkillForgetModal } from './components/SkillForgetModal'
 import { Market } from './hub/Market'
+import { AdminPanel } from './hub/AdminPanel'
 
 type MainView = 'home' | 'battle'
 
 type Session = { user: { id: string; email?: string } } | null
-type UserProfile = { username: string; friend_code: string }
+type UserProfile = { username: string; friend_code: string; role?: string }
 
 interface Props {
   variant?: 'desktop' | 'web'
@@ -57,7 +61,9 @@ function AppContent({ variant = 'desktop' }: Props) {
   const [cloudReady, setCloudReady] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
   const [showInventory, setShowInventory] = useState(false)
+  const [showSkillForget, setShowSkillForget] = useState(false)
   const [showMarket, setShowMarket] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
   const [carePulse, setCarePulse] = useState<{ type: ItemType; key: number } | null>(null)
   const carePulseKeyRef = useRef(0)
   const [showCollection, setShowCollection] = useState(false)
@@ -204,8 +210,10 @@ function AppContent({ variant = 'desktop' }: Props) {
       try {
         const p = (await window.electronAPI.getProfile(s.user.id)) as UserProfile
         setProfile(p)
+        setSessionIsAdmin(isAdminRole(p.role))
       } catch {
         setProfile(null)
+        setSessionIsAdmin(false)
       }
       await window.electronAPI.reloadFromCloud()
       await refresh()
@@ -213,6 +221,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       await refreshPendingFriends(s.user.id)
     } else {
       setProfile(null)
+      setSessionIsAdmin(false)
       setPendingGiftCount(0)
       setPendingFriendCount(0)
     }
@@ -275,6 +284,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const closeAllPopups = () => {
     setShowInventory(false)
     setShowMarket(false)
+    setShowAdmin(false)
     setShowCollection(false)
     setShowCommunity(false)
     setShowMinigame(false)
@@ -285,6 +295,7 @@ function AppContent({ variant = 'desktop' }: Props) {
   const handleLogout = () => {
     setSession(null)
     setProfile(null)
+    setSessionIsAdmin(false)
     setPendingGiftCount(0)
     setPendingFriendCount(0)
     setShowTitle(true)
@@ -360,6 +371,7 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const displayName =
     profile?.username ?? session?.user?.email?.split('@')[0] ?? ''
+  const isAdmin = profile?.role === 'admin'
 
   const sidebarTarget: HubSidebarTarget | null = showCollection
     ? 'collection'
@@ -367,15 +379,17 @@ function AppContent({ variant = 'desktop' }: Props) {
       ? 'inventory'
       : showMarket
         ? 'market'
-        : showCommunity
-          ? 'community'
-          : showMinigame
-            ? 'minigame'
-            : showSettings
-              ? 'settings'
-              : mainView === 'battle'
-                ? 'battle'
-                : null
+        : showAdmin
+          ? 'admin'
+          : showCommunity
+            ? 'community'
+            : showMinigame
+              ? 'minigame'
+              : showSettings
+                ? 'settings'
+                : mainView === 'battle'
+                  ? 'battle'
+                  : null
 
   const handleSidebarNavigate = (target: HubSidebarTarget) => {
     if (target === 'battle') {
@@ -388,6 +402,11 @@ function AppContent({ variant = 'desktop' }: Props) {
     }
     if (target === 'market') {
       void openPopup(setShowMarket)
+      return
+    }
+    if (target === 'admin') {
+      if (!isAdmin) return
+      void openPopup(setShowAdmin)
       return
     }
     if (target === 'collection') {
@@ -414,6 +433,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       displayName={displayName}
       disabled={tabSyncing}
       focusMode={mainView === 'home' ? homeFocus : false}
+      showAdmin={isAdmin}
       badges={{
         inventory: pendingGiftCount,
         collection: save ? countHatchableEggs(save) : 0,
@@ -458,8 +478,10 @@ function AppContent({ variant = 'desktop' }: Props) {
               <HomeDashboard
                 save={save}
                 focusMode={homeFocus}
+                isAdmin={isAdmin}
                 onUpdated={refresh}
                 carePulse={carePulse}
+                onSkillForget={() => setShowSkillForget(true)}
               />
             </main>
           </div>
@@ -497,10 +519,24 @@ function AppContent({ variant = 'desktop' }: Props) {
             carePulseKeyRef.current += 1
             setCarePulse({ type, key: carePulseKeyRef.current })
           }}
+          onSkillForget={() => {
+            setShowInventory(false)
+            setShowSkillForget(true)
+          }}
+        />
+      )}
+      {showSkillForget && (
+        <SkillForgetModal
+          save={save}
+          onClose={() => setShowSkillForget(false)}
+          onUpdated={refresh}
         />
       )}
       {showMarket && (
         <Market save={save} onClose={() => setShowMarket(false)} onUpdated={refresh} />
+      )}
+      {showAdmin && isAdmin && session?.user?.id && (
+        <AdminPanel currentUserId={session.user.id} onClose={() => setShowAdmin(false)} />
       )}
       {showCollection && (
         <PetCollection
@@ -529,6 +565,7 @@ function AppContent({ variant = 'desktop' }: Props) {
       {showSettings && (
         <AuthPanel
           save={save}
+          isAdmin={isAdmin}
           onSynced={refresh}
           cloudReady={cloudReady}
           onLogout={handleLogout}

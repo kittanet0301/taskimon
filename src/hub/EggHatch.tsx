@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PetData } from '../shared/types'
-import { DEV_POINTS_HATCH, petPreviewColor } from '../shared/constants'
+import { getDevPointsHatch, petPreviewColor } from '../shared/constants'
 import { waitForHatchAnimation } from '../shared/petSprites'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
@@ -84,11 +84,11 @@ export function EggHatch({ pet, onHatched }: Props) {
       <StatBar
         label={t('home.evolution')}
         value={pet.stats.evolution}
-        max={DEV_POINTS_HATCH}
+        max={Math.max(1, getDevPointsHatch())}
         color="var(--pixel-accent)"
       />
       <p className="dash-activity-hint dash-hint-spaced">
-        {ready ? t('pet.hatchReadyHint') : t('pet.hatchEvolutionHint', { points: DEV_POINTS_HATCH })}
+        {ready ? t('pet.hatchReadyHint') : t('pet.hatchEvolutionHint', { points: getDevPointsHatch() })}
       </p>
       <div className="form-row dash-form-spaced">
         <label>{t('pet.setHatchName')}</label>
@@ -103,7 +103,7 @@ export function EggHatch({ pet, onHatched }: Props) {
           ? t('pet.hatching')
           : ready
             ? t('pet.hatch')
-            : t('pet.hatchLocked', { points: DEV_POINTS_HATCH })}
+            : t('pet.hatchLocked', { points: getDevPointsHatch() })}
       </button>
     </div>
   )

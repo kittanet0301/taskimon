@@ -8,6 +8,7 @@ import { ChangeUsernameForm } from './ChangeUsernameForm'
 
 interface Props {
   save: GameSave
+  isAdmin?: boolean
   onSynced: () => void
   cloudReady: boolean
   onLogout?: () => void
@@ -15,14 +16,24 @@ interface Props {
   onClose: () => void
 }
 
-export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, onClose }: Props) {
+export function AuthPanel({
+  save,
+  isAdmin = false,
+  onSynced,
+  cloudReady,
+  onLogout,
+  onDataReset,
+  onClose
+}: Props) {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [username, setUsername] = useState('')
   const [session, setSession] = useState<{ user: { id: string; email?: string } } | null>(null)
-  const [profile, setProfile] = useState<{ username: string; friend_code: string } | null>(null)
+  const [profile, setProfile] = useState<{ username: string; friend_code: string; role?: string } | null>(
+    null
+  )
   const [message, setMessage] = useState('')
   const [dbMode, setDbMode] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
@@ -33,7 +44,11 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
     setSession(s)
     setDbMode(await window.electronAPI.isDbMode())
     if (s?.user?.id) {
-      const p = (await window.electronAPI.getProfile(s.user.id)) as { username: string; friend_code: string }
+      const p = (await window.electronAPI.getProfile(s.user.id)) as {
+        username: string
+        friend_code: string
+        role?: string
+      }
       setProfile(p)
       await window.electronAPI.reloadFromCloud()
       onSynced()
@@ -150,6 +165,11 @@ export function AuthPanel({ save, onSynced, cloudReady, onLogout, onDataReset, o
           {profile && (
             <p>
               {t('auth.profileSummary', { username: profile.username, friendCode: profile.friend_code })}
+              {(isAdmin || profile.role === 'admin') && (
+                <span className="admin-badge" style={{ marginLeft: 8 }}>
+                  {t('admin.badge')}
+                </span>
+              )}
             </p>
           )}
           <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>

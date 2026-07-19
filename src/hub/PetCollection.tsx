@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave, PetData, Stage } from '../shared/types'
-import { petPreviewColor, PET_SLOTS_PER_PAGE, BREED_COOLDOWN_MS } from '../shared/constants'
+import { petPreviewColor, PET_SLOTS_PER_PAGE, getBreedCooldownMs } from '../shared/constants'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
 import { displaySizeForPet } from '../shared/petSprites'
@@ -97,7 +97,7 @@ export function PetCollection({ save, onUpdated, onSelect, onClose }: Props) {
     if (!pet.lastBredAt) return 0
     const t = new Date(pet.lastBredAt).getTime()
     if (!Number.isFinite(t)) return 0
-    return Math.max(0, BREED_COOLDOWN_MS - (now - t))
+    return Math.max(0, getBreedCooldownMs() - (now - t))
   }
 
   const formatCooldown = (ms: number): string => {

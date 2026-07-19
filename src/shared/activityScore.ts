@@ -1,5 +1,5 @@
 import type { ActivityCounters, Stage } from './types'
-import { DEV_POINTS_HATCH } from './constants'
+import { getDevPointsHatch } from './constants'
 import { tStage } from '../i18n/labels'
 
 export function getActivityScore(activity: ActivityCounters): number {
@@ -14,7 +14,7 @@ export function getStageLabel(stage: Stage): string {
 
 /** Faster curve: baby /80, adult /40 (was /200 and /100). */
 export function getPetLevel(stage: Stage, evolution: number): number {
-  if (stage === 'egg') return 1 + Math.floor(evolution / Math.max(1, DEV_POINTS_HATCH))
+  if (stage === 'egg') return 1 + Math.floor(evolution / Math.max(1, getDevPointsHatch() || 1))
   if (stage === 'baby') return 2 + Math.floor(evolution / 80)
   return 5 + Math.floor(evolution / 40)
 }

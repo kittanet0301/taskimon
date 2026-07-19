@@ -29,6 +29,7 @@
     "settings": "Settings",
     "collection": "Collection",
     "market": "Market",
+    "admin": "Admin",
     "minigame": "Mini Games",
     "ranking": "Ranking"
   },
@@ -442,6 +443,24 @@
     "done": "Your data has been cleared. Starting fresh.",
     "loading": "Clearing..."
   },
+  "admin": {
+    "title": "Admin tools",
+    "badge": "Admin",
+    "description": "Manage players: grant gems/items or clear game data.",
+    "searchPlaceholder": "Search username or friend code",
+    "gemAmount": "Gems",
+    "itemType": "Item",
+    "itemQty": "Qty",
+    "grantGems": "+Gems",
+    "grantItem": "+Item",
+    "clearData": "Clear data",
+    "clearConfirm": "Clear all game data for {{name}}?",
+    "clearSelfBlocked": "Use Clear My Data for your own account",
+    "grantGemsDone": "Granted gems to {{name}} (now {{gems}})",
+    "grantItemDone": "Granted {{item}} to {{name}} (now ×{{qty}})",
+    "clearDone": "Cleared game data for {{name}}",
+    "empty": "No players found"
+  },
   "tray": {
     "title": "Taskino",
     "loginToSeePetStatus": "Log in to view pet status",
@@ -595,6 +614,12 @@
       "ultimate": "Ultimate"
     },
     "eggNoSkills": "Skills appear after hatch (3 skills + 1 Ultimate).",
+    "forgetPickTitle": "Forget a skill",
+    "forgetPickBody": "Choose a skill to reroll. Uses 1 Skill forget scroll (you have {{count}}).",
+    "forgetNeedPet": "Hatch your active pet first — skills appear after hatch.",
+    "forgetNoScroll": "You need a Skill forget scroll.",
+    "forgetPureUltimateBlocked": "Pure-element Ultimate cannot be rerolled.",
+    "forgetResult": "Got {{to}} (was {{from}})",
     "forgetConfirmTitle": "Forget this skill?",
     "forgetConfirmBody": "Reroll {{skill}} using 1 Skill forget scroll. This cannot be undone.",
     "fire_spark_bite": "Spark Bite",

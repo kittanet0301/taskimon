@@ -130,11 +130,14 @@ export interface GameSave {
   minigame: MinigameSaveState
 }
 
+export type UserRole = 'user' | 'admin'
+
 export interface Profile {
   id: string
   username: string
   friendCode: string
   createdAt: string
+  role: UserRole
 }
 
 export interface FriendRequest {

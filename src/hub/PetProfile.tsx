@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameSave } from '../shared/types'
-import { petPreviewColor, DEV_POINTS_ADULT, ADULT_MIN_HOURS } from '../shared/constants'
+import { petPreviewColor, getDevPointsAdult, getAdultMinHours } from '../shared/constants'
 import { displaySizeForPet } from '../shared/petSprites'
 import { DinoSprite } from '../components/DinoSprite'
 import { GenderTag } from '../components/GenderTag'
@@ -118,7 +118,7 @@ export function PetProfile({ save, onUpdated }: ProfileProps) {
       </div>
       {!canEvolveToAdult(pet) && pet.stage === 'baby' && (
         <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-          {t('pet.evolveRequirementHint', { points: DEV_POINTS_ADULT, hours: ADULT_MIN_HOURS })}
+          {t('pet.evolveRequirementHint', { points: getDevPointsAdult(), hours: getAdultMinHours() })}
         </p>
       )}
     </div>

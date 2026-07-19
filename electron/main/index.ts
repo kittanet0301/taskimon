@@ -26,7 +26,8 @@ import {
   updateSave
 } from './gameState'
 import type { GameSave, MinigameId, PetData } from '../../src/shared/types'
-import { applyGamePatch } from '../../src/shared/gameMutators'
+import { applyGamePatch, setSessionIsAdmin } from '../../src/shared/gameMutators'
+import { isAdminRole } from '../../src/shared/userRole'
 import { applyFinishMinigame } from '../../src/shared/minigame'
 import {
   getSession,
@@ -37,6 +38,10 @@ import {
   updatePassword,
   getProfile,
   updateProfile,
+  adminListPlayers,
+  adminGrantGems,
+  adminGrantItem,
+  adminClearUserData,
   syncPetToCloud,
   getActivePet,
   isSupabaseConfigured,
@@ -167,6 +172,7 @@ function setupIpc(): void {
   })
   ipcMain.handle('auth:signout', async () => {
     await signOut()
+    setSessionIsAdmin(false)
     await setCurrentUser(null)
   })
   ipcMain.handle('auth:updatePassword', async (_e, password: string) => {
@@ -176,10 +182,22 @@ function setupIpc(): void {
     await resetPasswordByBirthdate(email)
   })
   ipcMain.handle('auth:session', async () => getSession())
-  ipcMain.handle('auth:profile', async (_e, userId: string) => getProfile(userId))
+  ipcMain.handle('auth:profile', async (_e, userId: string) => {
+    const profile = await getProfile(userId)
+    setSessionIsAdmin(isAdminRole((profile as { role?: string } | null)?.role))
+    return profile
+  })
   ipcMain.handle('auth:updateProfile', async (_e, userId: string, fields: { username?: string }) =>
     updateProfile(userId, fields)
   )
+  ipcMain.handle('admin:listPlayers', async () => adminListPlayers())
+  ipcMain.handle('admin:grantGems', async (_e, targetId: string, amount: number) =>
+    adminGrantGems(targetId, amount)
+  )
+  ipcMain.handle('admin:grantItem', async (_e, targetId: string, itemType: string, qty: number) =>
+    adminGrantItem(targetId, itemType, qty)
+  )
+  ipcMain.handle('admin:clearUserData', async (_e, targetId: string) => adminClearUserData(targetId))
   ipcMain.handle('locale:set', (_e, locale: 'en' | 'th') => {
     setMainLocale(locale)
     refreshTray(getGameSave)
