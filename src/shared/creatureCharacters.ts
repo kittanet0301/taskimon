@@ -1,6 +1,6 @@
 import type { Stage } from './types'
 
-export const CREATURE_SPECIES = ['ember-sail', 'garden'] as const
+export const CREATURE_SPECIES = ['ember-sail', 'garden', 'crag-shell'] as const
 
 export type CreatureSpecies = (typeof CREATURE_SPECIES)[number]
 
@@ -27,7 +27,8 @@ export type CreatureStageFolder = 'egg' | 'baby' | 'adult'
 
 export const CREATURE_PREVIEW_COLORS: Record<CreatureSpecies, string> = {
   'ember-sail': '#c0392b',
-  garden: '#27ae60'
+  garden: '#27ae60',
+  'crag-shell': '#a0714f'
 }
 
 export function isCreatureSpecies(value: string): value is CreatureSpecies {

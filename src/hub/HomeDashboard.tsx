@@ -435,7 +435,7 @@ export function HomeDashboard({
                       onClick={() => runDebug('debugSetSpecies', [species])}
                       title={tCharacter(species)}
                     >
-                      {species === 'ember-sail' ? 'ember' : species}
+                      {species === 'ember-sail' ? 'ember' : species === 'crag-shell' ? 'crag' : species}
                     </button>
                   ))}
                 </div>
@@ -507,6 +507,13 @@ export function HomeDashboard({
                     onClick={() => runDebug('newEgg', ['ember-sail'])}
                   >
                     +ember egg
+                  </button>
+                  <button
+                    type="button"
+                    className="dash-hud-debug-btn"
+                    onClick={() => runDebug('newEgg', ['crag-shell'])}
+                  >
+                    +crag egg
                   </button>
                   <button
                     type="button"

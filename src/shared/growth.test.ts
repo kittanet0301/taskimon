@@ -15,7 +15,7 @@ describe('growth helpers', () => {
 
     expect(save.version).toBe(SAVE_VERSION)
     expect(save.pet?.stage).toBe('egg')
-    expect(['ember-sail', 'garden']).toContain(save.pet?.character)
+    expect(['ember-sail', 'garden', 'crag-shell']).toContain(save.pet?.character)
     expect(save.collection).toEqual([])
     expect(save.petSlotLimit).toBe(PET_SLOT_BASE)
     expect(save.inventory.length).toBeGreaterThan(0)
