@@ -30,6 +30,8 @@ export function isHubWindowOpen(): boolean {
 
 export function createHubWindow(): BrowserWindow {
   if (hubWindow && !hubWindow.isDestroyed()) {
+    if (hubWindow.isMinimized()) hubWindow.restore()
+    hubWindow.maximize()
     hubWindow.show()
     hubWindow.focus()
     setDesktopPetVisible(false)
