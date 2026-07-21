@@ -1,0 +1,4 @@
+interface:
+  display_name: "Taskido Project"
+  short_description: "Build and maintain the Taskido desktop pet game"
+  default_prompt: "Use $taskido to implement and verify a change in the Taskido project."

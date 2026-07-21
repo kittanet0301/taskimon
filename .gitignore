@@ -10,6 +10,7 @@ ws.tgz
 _ws_extract
 .tools
 .tmp-agent-skills
+.sprite-runs
 
 # Creature pipeline intermediates (regen from scripts + AI)
 assets/raw-creatures/
