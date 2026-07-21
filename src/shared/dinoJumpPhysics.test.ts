@@ -3,16 +3,16 @@ import {
   SCORE_RATE,
   START_SPEED,
   MAX_SPEED,
+  ACCELERATION,
   MIN_SAFE_GAP,
   GRAVITY,
   INITIAL_JUMP_VELOCITY,
   MIN_JUMP_HEIGHT,
   createJumpState,
   getScore,
-  getScrollSpeed,
+  getNextSpeed,
   getObstacleGap,
   getSpawnInterval,
-  distanceForScore,
   tickJumpState
 } from '../hub/minigame/dino-jump/dinoJumpPhysics'
 
@@ -24,11 +24,15 @@ describe('chrome-style dino physics', () => {
     expect(SCORE_RATE).toBe(0.025)
   })
 
-  it('increases speed every 100 score', () => {
-    expect(getScrollSpeed(0)).toBe(START_SPEED)
-    expect(getScrollSpeed(distanceForScore(99))).toBe(START_SPEED)
-    expect(getScrollSpeed(distanceForScore(100))).toBe(START_SPEED + 1)
-    expect(getScrollSpeed(distanceForScore(700))).toBe(MAX_SPEED)
+  it('accelerates continuously up to the Chrome maximum', () => {
+    expect(START_SPEED).toBe(6)
+    expect(ACCELERATION).toBe(0.001)
+    expect(getNextSpeed(START_SPEED)).toBeCloseTo(6.001)
+    expect(getNextSpeed(MAX_SPEED)).toBe(MAX_SPEED)
+
+    const next = tickJumpState(createJumpState())
+    expect(next.distanceRan).toBe(START_SPEED)
+    expect(next.currentSpeed).toBeCloseTo(START_SPEED + ACCELERATION)
   })
 
   it('randomizes gap but never below the safe minimum', () => {

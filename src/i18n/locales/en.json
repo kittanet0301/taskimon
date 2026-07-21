@@ -18,6 +18,21 @@
     "placeholderFriendCode": "ABC123",
     "placeholderEmail": "you@email.com"
   },
+  "desktopPet": {
+    "missionReady": "Mission reward ready",
+    "evolutionReady": "Evolution ready",
+    "giftsWaiting_one": "{{count}} gift waiting",
+    "giftsWaiting_other": "{{count}} gifts waiting",
+    "activityCounters": "Pet activity counters",
+    "clicks": "Clicks",
+    "typing": "Typing",
+    "openMenu": "Open pet menu",
+    "closeMenu": "Close pet menu",
+    "settings": "Pet settings",
+    "scale": "Scale",
+    "scaleHint": "Adjust character size",
+    "fontSize": "Text size"
+  },
   "tabs": {
     "home": "Home",
     "inventory": "Items",

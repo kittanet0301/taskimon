@@ -3,6 +3,7 @@ import { join } from 'path'
 import { getGameSave } from './gameState'
 import { endPetDrag, getPetWindow } from './petWindow'
 import { getRendererAppUrl, getRendererPageUrl, isDevMode } from './rendererUrl'
+import { getAppIconPath } from './appIcon'
 
 let hubWindow: BrowserWindow | null = null
 
@@ -43,6 +44,7 @@ export function createHubWindow(): BrowserWindow {
     minHeight: 600,
     show: false,
     title: 'Taskino',
+    icon: getAppIconPath(),
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -59,6 +61,7 @@ export function createHubWindow(): BrowserWindow {
   }
 
   hubWindow.once('ready-to-show', () => {
+    hubWindow?.maximize()
     hubWindow?.show()
     setDesktopPetVisible(false)
     hubWindow?.webContents.send('game:updated', JSON.stringify(getGameSave()))
@@ -66,6 +69,17 @@ export function createHubWindow(): BrowserWindow {
   })
 
   hubWindow.on('show', () => {
+    setDesktopPetVisible(false)
+  })
+
+  // Alt+Tab (and other app switches) blurs the hub. Reveal the always-on-top
+  // desktop pet while the user works elsewhere, then hide it when Taskino is
+  // focused again.
+  hubWindow.on('blur', () => {
+    if (!hubWindow?.isMinimized()) setDesktopPetVisible(true)
+  })
+
+  hubWindow.on('focus', () => {
     setDesktopPetVisible(false)
   })
 

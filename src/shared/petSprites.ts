@@ -159,16 +159,18 @@ export function displaySizeForPet(pet: Pick<PetData, 'character' | 'stage'>): nu
 }
 
 /** On-screen sprite size in the chat lobby — adult is 2× baby/egg. */
-export const LOBBY_SPRITE_BABY = 80
+export const LOBBY_SPRITE_BABY = 96
 export const LOBBY_SPRITE_ADULT = LOBBY_SPRITE_BABY * 2
 
 export function lobbyDisplaySizeForPet(pet: Pick<PetData, 'character' | 'stage'>): number {
   return pet.stage === 'adult' ? LOBBY_SPRITE_ADULT : LOBBY_SPRITE_BABY
 }
 
-/** Dino Jump minigame — baby/egg height matches hitbox; adult is 2×. */
-export const MINIGAME_JUMP_SPRITE_BABY = 48
+/** Minigame display size; collision continues to use the smaller physics hitbox. */
+export const MINIGAME_JUMP_SPRITE_BABY = 60
 export const MINIGAME_JUMP_SPRITE_ADULT = MINIGAME_JUMP_SPRITE_BABY * 2
+/** Transparent padding below the creature's feet inside each square sprite frame. */
+export const MINIGAME_SPRITE_GROUND_OFFSET_RATIO = 1 / 8
 
 export function minigameJumpDisplaySizeForPet(pet: Pick<PetData, 'character' | 'stage'>): number {
   return pet.stage === 'adult' ? MINIGAME_JUMP_SPRITE_ADULT : MINIGAME_JUMP_SPRITE_BABY

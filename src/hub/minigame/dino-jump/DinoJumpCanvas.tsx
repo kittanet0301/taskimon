@@ -8,6 +8,7 @@ import {
   drawPetSpriteFrame,
   loadPetSprite,
   minigameJumpDisplaySizeForPet,
+  MINIGAME_SPRITE_GROUND_OFFSET_RATIO,
   petSpriteUrl,
   preloadPetSprites,
   setupCrispCanvas,
@@ -171,7 +172,8 @@ export function DinoJumpCanvas({ save, running, onDistanceChange, onGameOver }: 
       if (pet) {
         const drawSize = minigameJumpDisplaySizeForPet(pet)
         const spriteX = DINO_X + DINO_W / 2
-        const spriteY = state.dinoY + DINO_H - drawSize / 2
+        const spriteY =
+          state.dinoY + DINO_H - drawSize / 2 + drawSize * MINIGAME_SPRITE_GROUND_OFFSET_RATIO
         const useJump = !state.grounded && pet.stage !== 'egg'
         const folder: PetSpriteFolder = pet.stage === 'egg' ? 'egg' : 'base'
         const clip = useJump ? 'jump' : 'move'

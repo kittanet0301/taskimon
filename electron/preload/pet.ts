@@ -12,7 +12,8 @@ contextBridge.exposeInMainWorld('petAPI', {
     return () => ipcRenderer.removeListener('game:updated', handler)
   },
   setIgnoreMouse: (ignore: boolean) => ipcRenderer.invoke('pet:setIgnoreMouse', ignore),
-  resize: (size: number) => ipcRenderer.invoke('pet:resize', size),
+  resize: (width: number, height: number, preserveLeft?: boolean) =>
+    ipcRenderer.invoke('pet:resize', width, height, preserveLeft),
   move: (x: number, y: number) =>
     ipcRenderer.invoke('pet:move', x, y) as Promise<{ x: number; y: number } | null>,
   startDrag: () => ipcRenderer.invoke('pet:startDrag') as Promise<boolean>,
@@ -30,5 +31,6 @@ contextBridge.exposeInMainWorld('petAPI', {
     ipcRenderer.on('pet:dragEnded', handler)
     return () => ipcRenderer.removeListener('pet:dragEnded', handler)
   },
+  listPendingGifts: () => ipcRenderer.invoke('gift:listPending') as Promise<unknown[]>,
   openHub: () => ipcRenderer.invoke('hub:open')
 })

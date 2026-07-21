@@ -1,11 +1,15 @@
 import { BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { getRendererAppUrl, getRendererPageUrl, isDevMode } from './rendererUrl'
+import { getAppIconPath } from './appIcon'
 
 const DEFAULT_PET_SIZE = 96
+const DEFAULT_STATS_HEIGHT = 32
+const DEFAULT_OVERLAY_WIDTH = 180
 
 let petWindow: BrowserWindow | null = null
-let currentPetSize = DEFAULT_PET_SIZE
+let currentPetWidth = DEFAULT_OVERLAY_WIDTH
+let currentPetHeight = DEFAULT_PET_SIZE + DEFAULT_STATS_HEIGHT
 let dragTimer: ReturnType<typeof setInterval> | null = null
 let dragOffsetX = 0
 let dragOffsetY = 0
@@ -14,13 +18,14 @@ let dragMouseUpHandler: ((event: { button: number }) => void) | null = null
 export function createPetWindow(): BrowserWindow {
   const display = screen.getPrimaryDisplay()
   const { x, y, width, height } = display.workArea
-  const size = currentPetSize
+  const windowWidth = currentPetWidth
+  const windowHeight = currentPetHeight
 
   petWindow = new BrowserWindow({
-    width: size,
-    height: size,
-    x: Math.floor(x + width / 2 - size / 2),
-    y: y + height - size,
+    width: windowWidth,
+    height: windowHeight,
+    x: Math.floor(x + width / 2 - windowWidth / 2),
+    y: y + height - windowHeight,
     transparent: true,
     backgroundColor: '#00000000',
     frame: false,
@@ -31,6 +36,7 @@ export function createPetWindow(): BrowserWindow {
     focusable: true,
     thickFrame: false,
     show: false,
+    icon: getAppIconPath(),
     webPreferences: {
       preload: join(__dirname, '../preload/pet.js'),
       contextIsolation: true,
@@ -71,21 +77,32 @@ export function setPetIgnoreMouse(ignore: boolean, forward = true): void {
   petWindow?.setIgnoreMouseEvents(ignore, { forward })
 }
 
-export function resizePetWindow(size: number): void {
-  const next = Math.max(32, Math.round(size))
+export function resizePetWindow(width: number, height: number, preserveLeft = false): void {
+  const nextWidth = Math.max(32, Math.round(width))
+  const nextHeight = Math.max(32, Math.round(height))
   if (!petWindow || petWindow.isDestroyed()) {
-    currentPetSize = next
+    currentPetWidth = nextWidth
+    currentPetHeight = nextHeight
     return
   }
-  if (next === currentPetSize) return
+  const bounds = petWindow.getBounds()
+  if (nextWidth === bounds.width && nextHeight === bounds.height) {
+    currentPetWidth = nextWidth
+    currentPetHeight = nextHeight
+    return
+  }
 
-  const [x, y] = petWindow.getPosition()
-  const [, prevH] = petWindow.getSize()
-  // Keep the pet's feet roughly anchored when growing/shrinking.
-  const bottom = y + prevH
-  petWindow.setSize(next, next)
-  petWindow.setPosition(x, bottom - next)
-  currentPetSize = next
+  // Update size and position atomically so Windows cannot drift the pet between
+  // a resize and a follow-up move. Clamp against the display the pet is on.
+  const area = screen.getDisplayMatching(bounds).workArea
+  const centerX = bounds.x + bounds.width / 2
+  const bottom = bounds.y + bounds.height
+  const desiredX = preserveLeft ? bounds.x : Math.round(centerX - nextWidth / 2)
+  const nextX = Math.min(Math.max(desiredX, area.x), area.x + area.width - nextWidth)
+  const nextY = Math.min(Math.max(bottom - nextHeight, area.y), area.y + area.height - nextHeight)
+  petWindow.setBounds({ x: nextX, y: nextY, width: nextWidth, height: nextHeight })
+  currentPetWidth = nextWidth
+  currentPetHeight = nextHeight
 }
 
 function applyPetPosition(x: number, y: number): { x: number; y: number } | null {

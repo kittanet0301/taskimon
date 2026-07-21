@@ -37,6 +37,141 @@ body {
   margin: 0;
 }
 
+/* Desktop pet overlay controls — shared pixel palette with the main hub. */
+.pet-activity-bar {
+  border-color: var(--pixel-border) !important;
+  border-radius: 4px !important;
+  background: var(--pixel-card-bg) !important;
+  color: var(--pixel-text) !important;
+  box-shadow: 3px 3px 0 var(--pixel-shadow), inset 0 0 0 1px #fff8ef;
+}
+
+.pet-menu-toggle {
+  position: relative;
+  border-color: var(--pixel-border) !important;
+  border-radius: 2px !important;
+  background: var(--pixel-accent) !important;
+  color: var(--pixel-text) !important;
+  box-shadow: inset -2px -2px 0 var(--pixel-accent-dark);
+}
+
+.pet-menu-toggle:hover,
+.pet-menu-toggle--active {
+  background: var(--pixel-accent-hover) !important;
+}
+
+.pet-menu-toggle:active {
+  transform: translate(1px, 1px);
+  box-shadow: inset 1px 1px 0 var(--pixel-accent-dark);
+}
+
+.pet-status-bubble {
+  position: absolute;
+  width: max-content;
+  max-width: 146px;
+  padding: 7px 8px 6px;
+  box-sizing: border-box;
+  border: 2px solid var(--pixel-border);
+  border-radius: 6px;
+  background: #fff8da;
+  color: var(--pixel-text);
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: anywhere;
+  box-shadow: 2px 2px 0 var(--pixel-shadow);
+  transform: translateX(-50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pet-setting-divider {
+  height: 2px;
+  flex: 0 0 auto;
+  background: var(--pixel-accent-dark);
+}
+
+.pet-setting-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 8px;
+}
+
+.pet-status-bubble::before,
+.pet-status-bubble::after {
+  content: '';
+  position: absolute;
+  left: 58%;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  transform: translateX(-50%);
+}
+
+.pet-status-bubble::before {
+  bottom: -9px;
+  border-width: 8px 6px 0;
+  border-color: var(--pixel-border) transparent transparent;
+}
+
+.pet-status-bubble::after {
+  bottom: -5px;
+  border-width: 6px 4px 0;
+  border-color: #fff8da transparent transparent;
+}
+
+.pet-settings-panel {
+  border-color: var(--pixel-border) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(180deg, var(--pixel-content-bg), var(--pixel-content-bg-bottom)) !important;
+  color: var(--pixel-text) !important;
+  box-shadow: 4px 4px 0 var(--pixel-shadow), inset 0 0 0 2px var(--pixel-card-bg);
+}
+
+.pet-settings-heading {
+  padding-bottom: 7px;
+  border-bottom: 2px solid var(--pixel-accent-dark);
+}
+
+.pet-scale-slider {
+  height: 20px;
+  accent-color: var(--pixel-accent-dark) !important;
+}
+
+.pet-settings-hint {
+  color: var(--pixel-muted);
+  font-family: 'Mali', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pet-overlay-root--th .pet-status-bubble {
+  color: #3e2228;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.pet-overlay-root--th .pet-activity-bar {
+  font-size: 10px !important;
+  font-weight: 600;
+}
+
+.pet-overlay-root--th .pet-settings-panel {
+  font-weight: 600;
+}
+
+.pet-overlay-root--th .pet-settings-heading {
+  font-size: 12px !important;
+}
+
+.pet-overlay-root--th .pet-setting-label,
+.pet-overlay-root--th .pet-settings-hint {
+  color: #4b2b2a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 /* Pixel-theme scrollbars (Chromium / Electron / Firefox) */
 .hub-shell,
 .hub-sidebar,

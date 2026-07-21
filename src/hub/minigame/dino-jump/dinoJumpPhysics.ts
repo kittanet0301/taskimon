@@ -1,8 +1,8 @@
 /**
- * Dino Jump pacing (easier than Chrome defaults):
+ * Dino Jump pacing based on Chrome Dino normal mode:
  * - distanceRan accumulates by currentSpeed each frame
  * - score = floor(distanceRan * 0.025)
- * - speed starts at 3, +1 every 100 score, max 8
+ * - speed starts at 6, accelerates by 0.001 each frame, max 13
  */
 
 export const CANVAS_W = 720
@@ -19,11 +19,11 @@ export const DROP_VELOCITY = -5
 export const MIN_JUMP_HEIGHT = 35
 export const SPEED_DROP_COEFFICIENT = 3
 
-/** Slower scroll than Chrome for a more forgiving run */
-export const START_SPEED = 3
-export const MAX_SPEED = 8
-export const SPEED_STEP_SCORE = 100
+export const START_SPEED = 6
+export const MAX_SPEED = 13
+export const ACCELERATION = 0.001
 export const SCORE_RATE = 0.025
+const OBSTACLE_STEP_SCORE = 100
 
 export const OBSTACLE_W = 34
 export const BASE_OBSTACLE_H = 36
@@ -42,6 +42,7 @@ export interface Obstacle {
 export interface JumpState {
   /** Internal distance accumulator (Chrome distanceRan) */
   distanceRan: number
+  currentSpeed: number
   dinoY: number
   velocityY: number
   grounded: boolean
@@ -119,6 +120,7 @@ function updateJumpArc(state: JumpState): void {
 export function createJumpState(): JumpState {
   return {
     distanceRan: 0,
+    currentSpeed: START_SPEED,
     dinoY: floorY(),
     velocityY: 0,
     grounded: true,
@@ -136,10 +138,8 @@ export function getScore(distanceRan: number): number {
   return Math.floor(distanceRan * SCORE_RATE)
 }
 
-export function getScrollSpeed(distanceRan: number): number {
-  const score = getScore(distanceRan)
-  const tier = Math.floor(score / SPEED_STEP_SCORE)
-  return Math.min(MAX_SPEED, START_SPEED + tier)
+export function getNextSpeed(currentSpeed: number): number {
+  return Math.min(MAX_SPEED, currentSpeed + ACCELERATION)
 }
 
 export type Rng = () => number
@@ -166,7 +166,7 @@ export function getSpawnInterval(speed: number, rng: Rng = Math.random): number 
 
 export function getObstacleHeight(distanceRan: number, rng: Rng = Math.random): number {
   const score = getScore(distanceRan)
-  const tier = Math.floor(score / SPEED_STEP_SCORE)
+  const tier = Math.floor(score / OBSTACLE_STEP_SCORE)
   const max = Math.min(56, BASE_OBSTACLE_H + tier)
   const min = Math.max(24, BASE_OBSTACLE_H - 10)
   return Math.round(min + rng() * (max - min))
@@ -202,7 +202,7 @@ export function tickJumpState(
   if (state.dead) return state
 
   const next = { ...state, obstacles: [...state.obstacles] }
-  const scrollSpeed = getScrollSpeed(next.distanceRan)
+  const scrollSpeed = next.currentSpeed
 
   if (input.jumpPressed && !next.jumping && next.grounded) {
     startJump(next, scrollSpeed)
@@ -221,6 +221,7 @@ export function tickJumpState(
   }
 
   next.distanceRan += scrollSpeed
+  next.currentSpeed = getNextSpeed(scrollSpeed)
   next.obstacles = next.obstacles
     .map((o) => ({ ...o, x: o.x - scrollSpeed }))
     .filter((o) => o.x + o.w > -40)

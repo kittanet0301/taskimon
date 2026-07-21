@@ -15,6 +15,7 @@ import { createHubWindow, getHubWindow, isHubWindowOpen } from './hubWindow'
 import { createTray, destroyTray, refreshTray } from './tray'
 import { setMainLocale } from './locale'
 import { registerAppProtocolHandler, registerAppProtocolScheme } from './rendererUrl'
+import { getAppIconPath } from './appIcon'
 import {
   broadcastToWindows,
   forceCloudSave,
@@ -161,8 +162,8 @@ function setupIpc(): void {
   ipcMain.handle('pet:setIgnoreMouse', (_event, ignore: boolean) => {
     setPetIgnoreMouse(ignore, true)
   })
-  ipcMain.handle('pet:resize', (_event, size: number) => {
-    resizePetWindow(size)
+  ipcMain.handle('pet:resize', (_event, width: number, height: number, preserveLeft?: boolean) => {
+    resizePetWindow(width, height, preserveLeft)
   })
   ipcMain.handle('pet:move', (_event, x: number, y: number) => movePetWindow(x, y))
   ipcMain.handle('pet:startDrag', () => startPetDrag())
@@ -170,7 +171,9 @@ function setupIpc(): void {
   ipcMain.handle('pet:getBounds', () => getPetBounds())
   ipcMain.handle('pet:getWorkArea', () => getWorkArea())
 
-  ipcMain.handle('hub:open', () => createHubWindow())
+  ipcMain.handle('hub:open', () => {
+    createHubWindow()
+  })
 
   ipcMain.handle('supabase:configured', () => isSupabaseConfigured())
   ipcMain.handle('cloud:isDbMode', () => isDbMode())
@@ -364,6 +367,8 @@ function setupIpc(): void {
 }
 
 app.whenReady().then(async () => {
+  app.setAppUserModelId('com.taskino.app')
+  app.dock?.setIcon(getAppIconPath())
   registerAppProtocolHandler()
   setupIpc()
   await startActivityTracker()

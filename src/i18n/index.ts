@@ -37,6 +37,14 @@ if (typeof window !== 'undefined' && window.electronAPI?.setLocale) {
   void window.electronAPI.setLocale(getStoredLocale())
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== LOCALE_STORAGE_KEY || (event.newValue !== 'en' && event.newValue !== 'th')) return
+    document.documentElement.lang = event.newValue
+    void i18n.changeLanguage(event.newValue)
+  })
+}
+
 export function setAppLocale(locale: AppLocale): void {
   localStorage.setItem(LOCALE_STORAGE_KEY, locale)
   document.documentElement.lang = locale

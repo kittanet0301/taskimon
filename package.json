@@ -66,6 +66,10 @@
       {
         "from": ".env.production",
         "to": ".env"
+      },
+      {
+        "from": "assets/ui/hud-icon-dino.png",
+        "to": "hud-icon-dino.png"
       }
     ],
     "mac": {
@@ -74,7 +78,11 @@
     },
     "win": {
       "target": "nsis",
+      "icon": "assets/ui/hud-icon-dino.png",
       "signAndEditExecutable": false
+    },
+    "linux": {
+      "icon": "assets/ui/hud-icon-dino.png"
     }
   }
 }

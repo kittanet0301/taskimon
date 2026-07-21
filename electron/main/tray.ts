@@ -1,4 +1,5 @@
 import { Menu, Tray, nativeImage } from 'electron'
+import { getAppIconPath } from './appIcon'
 import { createHubWindow } from './hubWindow'
 import { getPetWindow } from './petWindow'
 import { isUserLoggedIn } from './gameState'
@@ -87,9 +88,7 @@ function rebuildTrayMenu(getSave: () => GameSave): void {
 export function createTray(callbacks: TrayCallbacks): Tray {
   trayCallbacks = callbacks
 
-  const icon = nativeImage.createFromDataURL(
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-  )
+  const icon = nativeImage.createFromPath(getAppIconPath()).resize({ width: 16, height: 16 })
 
   tray = new Tray(icon)
   rebuildTrayMenu(callbacks.getSave)

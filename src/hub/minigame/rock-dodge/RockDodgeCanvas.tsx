@@ -7,6 +7,7 @@ import {
   drawPetSpriteFrame,
   loadPetSprite,
   minigameJumpDisplaySizeForPet,
+  MINIGAME_SPRITE_GROUND_OFFSET_RATIO,
   petSpriteUrl,
   preloadPetSprites,
   setupCrispCanvas,
@@ -211,7 +212,8 @@ export function RockDodgeCanvas({ save, running, onScoreChange, onGameOver }: Pr
         const moving = input.move !== 0
         const drawSize = minigameJumpDisplaySizeForPet(pet)
         const spriteX = state.playerX + PLAYER_W / 2
-        const spriteY = PLAYER_Y + PLAYER_H - drawSize / 2
+        const spriteY =
+          PLAYER_Y + PLAYER_H - drawSize / 2 + drawSize * MINIGAME_SPRITE_GROUND_OFFSET_RATIO
         const folder: PetSpriteFolder = pet.stage === 'egg' ? 'egg' : 'base'
         const clip = moving || pet.stage === 'egg' ? 'move' : 'idle'
         const url = petSpriteUrl(pet, folder, clip)

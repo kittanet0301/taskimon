@@ -18,6 +18,21 @@
     "placeholderFriendCode": "ABC123",
     "placeholderEmail": "you@email.com"
   },
+  "desktopPet": {
+    "missionReady": "รับรางวัลภารกิจได้แล้ว",
+    "evolutionReady": "พัฒนาร่างได้แล้ว",
+    "giftsWaiting_one": "มีของขวัญรอรับ {{count}} ชิ้น",
+    "giftsWaiting_other": "มีของขวัญรอรับ {{count}} ชิ้น",
+    "activityCounters": "ตัวนับกิจกรรมสัตว์เลี้ยง",
+    "clicks": "คลิก",
+    "typing": "พิมพ์",
+    "openMenu": "เปิดเมนูสัตว์เลี้ยง",
+    "closeMenu": "ปิดเมนูสัตว์เลี้ยง",
+    "settings": "ตั้งค่าสัตว์เลี้ยง",
+    "scale": "ขนาด",
+    "scaleHint": "ปรับขนาดตัวละคร",
+    "fontSize": "ขนาดข้อความ"
+  },
   "tabs": {
     "home": "หน้าแรก",
     "inventory": "ไอเทม",
