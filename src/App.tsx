@@ -112,11 +112,14 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const syncOnTabChange = useCallback(async () => {
     if (!window.electronAPI) return
-    // Push local changes (e.g. used items) before pull, or a stale cloud inventory comes back.
+    // Push local changes (e.g. used items / TEST species) before pull.
+    // If push fails, skip pull so a stale cloud pet cannot wipe local state.
     try {
       await window.electronAPI.forceCloudSave()
     } catch (e) {
-      console.warn('[sync] force save skipped:', e)
+      console.warn('[sync] force save failed; keeping local state:', e)
+      await refresh()
+      return
     }
     await window.electronAPI.reloadFromCloud()
     await refresh()
@@ -124,7 +127,13 @@ function AppContent({ variant = 'desktop' }: Props) {
 
   const pushThenPull = useCallback(async () => {
     if (!window.electronAPI) return
-    await window.electronAPI.forceCloudSave()
+    try {
+      await window.electronAPI.forceCloudSave()
+    } catch (e) {
+      console.warn('[sync] force save failed; keeping local state:', e)
+      await refresh()
+      return
+    }
     await window.electronAPI.reloadFromCloud()
     await refresh()
   }, [refresh])
@@ -267,14 +276,14 @@ function AppContent({ variant = 'desktop' }: Props) {
   }, [session, showCover, refresh, refreshPendingGifts, refreshPendingFriends])
 
   useEffect(() => {
-    if (!window.electronAPI) return
+    if (!window.electronAPI || !session?.user?.id) return
     const onFocus = () => {
       void refreshPendingGifts()
       void refreshPendingFriends()
     }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
-  }, [refreshPendingGifts, refreshPendingFriends])
+  }, [session?.user?.id, refreshPendingGifts, refreshPendingFriends])
 
   const handleGetStarted = () => {
     localStorage.setItem(ONBOARDING_KEY, '1')

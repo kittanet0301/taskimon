@@ -1,11 +1,11 @@
 import type { Stage } from './types'
 
-export const CREATURE_SPECIES = ['ember-sail', 'garden', 'crag-shell'] as const
+export const CREATURE_SPECIES = ['garden', 'blaze-crest', 'crag-shell', 'tide-fin', 'volt-wing'] as const
 
 export type CreatureSpecies = (typeof CREATURE_SPECIES)[number]
 
 /** Default species for new eggs and saves while creature art is the POC focus. */
-export const DEFAULT_CREATURE_SPECIES: CreatureSpecies = 'ember-sail'
+export const DEFAULT_CREATURE_SPECIES: CreatureSpecies = 'garden'
 
 export const CREATURE_FRAME_SIZE = 128
 
@@ -26,9 +26,11 @@ export function creatureDisplaySize(stage: Stage): number {
 export type CreatureStageFolder = 'egg' | 'baby' | 'adult'
 
 export const CREATURE_PREVIEW_COLORS: Record<CreatureSpecies, string> = {
-  'ember-sail': '#c0392b',
   garden: '#27ae60',
-  'crag-shell': '#a0714f'
+  'blaze-crest': '#e67e22',
+  'crag-shell': '#a0714f',
+  'tide-fin': '#3498db',
+  'volt-wing': '#f1c40f'
 }
 
 export function isCreatureSpecies(value: string): value is CreatureSpecies {

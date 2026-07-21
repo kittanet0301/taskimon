@@ -10,7 +10,7 @@ import {
 } from './creature-manifest.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const species = process.argv[2] ?? 'ember-sail'
+const species = process.argv[2] ?? 'garden'
 
 const board = speciesBoardPath(species)
 const masterBaby = masterReferencePath(species, 'baby')

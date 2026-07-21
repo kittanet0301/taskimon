@@ -80,7 +80,13 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
 
   async function signIn(email: string, password: string) {
     const supabase = requireSupabase()
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) throw new Error('Email required')
+    if (!password) throw new Error('Password required')
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: trimmedEmail,
+      password
+    })
     if (error) rpcError(error)
     return data
   }
@@ -604,8 +610,15 @@ export function createSupabaseService({ getSupabase, formatError = defaultFormat
     }>
   > {
     const supabase = requireSupabase()
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (!sessionData.session) return []
+
     const { data, error } = await supabase.rpc('list_pending_gifts')
-    if (error) rpcError(error)
+    if (error) {
+      const msg = formatError(error)
+      if (/not authenticated/i.test(msg)) return []
+      rpcError(error)
+    }
     return (data ?? []).map((row: Record<string, unknown>) => ({
       id: String(row.id),
       senderId: String(row.sender_id),

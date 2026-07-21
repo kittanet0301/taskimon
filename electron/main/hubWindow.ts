@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import { join } from 'path'
 import { getGameSave } from './gameState'
+import { endPetDrag, getPetWindow } from './petWindow'
 import { getRendererAppUrl, getRendererPageUrl, isDevMode } from './rendererUrl'
 
 let hubWindow: BrowserWindow | null = null
@@ -11,9 +12,26 @@ function notifyHubOpened(win: BrowserWindow) {
   }
 }
 
+function setDesktopPetVisible(visible: boolean) {
+  const pet = getPetWindow()
+  if (!pet || pet.isDestroyed()) return
+  if (visible) {
+    if (!pet.isVisible()) pet.show()
+  } else {
+    endPetDrag(false)
+    if (pet.isVisible()) pet.hide()
+  }
+}
+
+export function isHubWindowOpen(): boolean {
+  return Boolean(hubWindow && !hubWindow.isDestroyed() && hubWindow.isVisible() && !hubWindow.isMinimized())
+}
+
 export function createHubWindow(): BrowserWindow {
   if (hubWindow && !hubWindow.isDestroyed()) {
+    hubWindow.show()
     hubWindow.focus()
+    setDesktopPetVisible(false)
     notifyHubOpened(hubWindow)
     return hubWindow
   }
@@ -42,12 +60,26 @@ export function createHubWindow(): BrowserWindow {
 
   hubWindow.once('ready-to-show', () => {
     hubWindow?.show()
+    setDesktopPetVisible(false)
     hubWindow?.webContents.send('game:updated', JSON.stringify(getGameSave()))
     if (hubWindow) notifyHubOpened(hubWindow)
   })
 
+  hubWindow.on('show', () => {
+    setDesktopPetVisible(false)
+  })
+
+  hubWindow.on('minimize', () => {
+    setDesktopPetVisible(true)
+  })
+
+  hubWindow.on('restore', () => {
+    setDesktopPetVisible(false)
+  })
+
   hubWindow.on('closed', () => {
     hubWindow = null
+    setDesktopPetVisible(true)
   })
 
   return hubWindow

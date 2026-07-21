@@ -29,6 +29,9 @@ export function formatAuthError(error: unknown): string {
   if (text.includes('Email required') || text === 'Email required') {
     return i18n.t('auth.needEmail')
   }
+  if (text.includes('Password required') || text === 'Password required') {
+    return i18n.t('errors.invalidLoginCredentials')
+  }
   if (text.includes('Username required')) {
     return i18n.t('auth.needUsername')
   }

@@ -15,21 +15,21 @@ describe('growth helpers', () => {
 
     expect(save.version).toBe(SAVE_VERSION)
     expect(save.pet?.stage).toBe('egg')
-    expect(['ember-sail', 'garden', 'crag-shell']).toContain(save.pet?.character)
+    expect(['garden', 'blaze-crest', 'crag-shell', 'tide-fin', 'volt-wing']).toContain(save.pet?.character)
     expect(save.collection).toEqual([])
     expect(save.petSlotLimit).toBe(PET_SLOT_BASE)
     expect(save.inventory.length).toBeGreaterThan(0)
     expect(save.missions.length).toBeGreaterThan(0)
   })
 
-  it('migrates legacy dino species to ember-sail', () => {
+  it('migrates legacy dino species to garden', () => {
     const save = createDefaultSave()
     if (!save.pet) throw new Error('expected pet')
     save.pet.character = 'cole'
 
     const migrated = migrateSave(save)
 
-    expect(migrated.pet?.character).toBe('ember-sail')
+    expect(migrated.pet?.character).toBe('garden')
   })
 
   it('moves pets through hatch, reset, and evolve stages', () => {

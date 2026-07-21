@@ -1,7 +1,17 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { loadEnvFile } from './env'
-import { createPetWindow, getPetWindow, setPetIgnoreMouse } from './petWindow'
-import { createHubWindow, getHubWindow } from './hubWindow'
+import {
+  createPetWindow,
+  endPetDrag,
+  getPetWindow,
+  getPetBounds,
+  getWorkArea,
+  movePetWindow,
+  resizePetWindow,
+  setPetIgnoreMouse,
+  startPetDrag
+} from './petWindow'
+import { createHubWindow, getHubWindow, isHubWindowOpen } from './hubWindow'
 import { createTray, destroyTray, refreshTray } from './tray'
 import { setMainLocale } from './locale'
 import { registerAppProtocolHandler, registerAppProtocolScheme } from './rendererUrl'
@@ -151,6 +161,14 @@ function setupIpc(): void {
   ipcMain.handle('pet:setIgnoreMouse', (_event, ignore: boolean) => {
     setPetIgnoreMouse(ignore, true)
   })
+  ipcMain.handle('pet:resize', (_event, size: number) => {
+    resizePetWindow(size)
+  })
+  ipcMain.handle('pet:move', (_event, x: number, y: number) => movePetWindow(x, y))
+  ipcMain.handle('pet:startDrag', () => startPetDrag())
+  ipcMain.handle('pet:endDrag', () => endPetDrag(false))
+  ipcMain.handle('pet:getBounds', () => getPetBounds())
+  ipcMain.handle('pet:getWorkArea', () => getWorkArea())
 
   ipcMain.handle('hub:open', () => createHubWindow())
 
@@ -357,8 +375,13 @@ app.whenReady().then(async () => {
     onTogglePet: () => {
       const win = getPetWindow()
       if (!win) return
-      if (win.isVisible()) win.hide()
-      else win.show()
+      if (win.isVisible()) {
+        win.hide()
+        return
+      }
+      // Desktop pet stays hidden while the hub window is open.
+      if (isHubWindowOpen()) return
+      win.show()
     },
     onQuit: () => app.quit()
   })

@@ -8,7 +8,7 @@ Tamagotchi-style desktop pet game with dino characters — desktop (Electron) + 
 
 - Transparent always-on-top pet window on desktop
 - **ก่อน login:** สัตว์แสดงเป็นไข่, tray ไม่โชว์สถิติ — **หลัง login** โหลดสัตว์จริงจาก cloud
-- Random egg hatch → dino character (รวมสายพิเศษ เช่น ember-sail / garden), male/female
+- Random egg hatch → dino character (garden / crag-shell / tide-fin / volt-wing), male/female
 - Growth: Egg → Baby → Adult
 - **Care stats:** Health, Emotion, Evolution (เดิม HP / mood / development)
 - **RPG combat stats:** STR / DEX / INT / CON + ธาตุ (pure / dual) → Battle HP / MP / EVA

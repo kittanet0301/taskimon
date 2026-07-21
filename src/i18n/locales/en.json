@@ -486,9 +486,11 @@
     "sena": "Sena",
     "tard": "Tard",
     "vita": "Vita",
-    "ember-sail": "Ember Sail",
     "garden": "Garden",
-    "crag-shell": "Crag Shell"
+    "blaze-crest": "Blaze Crest",
+    "crag-shell": "Crag Shell",
+    "tide-fin": "Tide Fin",
+    "volt-wing": "Volt Wing"
   },
   "defaultPetNames": {
     "cole": "Cole",
@@ -503,9 +505,11 @@
     "sena": "Sena",
     "tard": "Tard",
     "vita": "Vita",
-    "ember-sail": "Ember Sail",
     "garden": "Garden",
-    "crag-shell": "Crag Shell"
+    "blaze-crest": "Blaze Crest",
+    "crag-shell": "Crag Shell",
+    "tide-fin": "Tide Fin",
+    "volt-wing": "Volt Wing"
   },
   "stages": {
     "egg": "Egg",

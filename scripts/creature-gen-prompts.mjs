@@ -71,6 +71,29 @@ export const SPECIES_STAGE_RULES = {
       'CRITICAL: entire body, long neck, pointed tail tip, and leaf plates must fit FULLY inside each cell with thick magenta margin on ALL sides (especially RIGHT and TOP) — never touch or cross cell edges.',
       'Subject occupies only ~40–48% of cell width and ~45–55% of cell height; leave ≥12% magenta padding on the right for the tail tip; feet on shared ground line.'
     ]
+  }  ,
+  'blaze-crest': {
+    displayName: 'Blaze Crest',
+    egg: [
+      'Volcanic fire egg for Blaze Crest species.',
+      'Warm grey-brown rocky shell with bright orange-yellow magma cracks.',
+      'Egg sits in dark ash-stone nest with ember glow.',
+      'Subject must occupy ~75–85% of each cell height, centered on nest baseline.'
+    ],
+    baby: [
+      'Baby Blaze Crest — chibi quadruped, large head, short limbs.',
+      'Warm terracotta-red rocky body, cream-orange glowing underbelly.',
+      'Translucent orange-yellow flame-shaped crest plates along the back; small flame tuft on head.',
+      'Match the BABY design from the species board reference.',
+      'Subject must occupy ~50–55% of each cell height; feet on shared ground line.'
+    ],
+    adult: [
+      'Adult Blaze Crest — evolved form clearly larger than baby (~35-45% taller silhouette).',
+      'Taller flame crest plates, more magma veins, heavier limbs, same terracotta/flame palette.',
+      'Match the ADULT design from the species board reference.',
+      'CRITICAL: entire body and flame crest must fit FULLY inside each cell with generous magenta margin — never touch or cross cell edges.',
+      'Subject occupies ~50–60% of cell width and ~55–65% of cell height only; feet on shared ground line.'
+    ]
   }
 }
 

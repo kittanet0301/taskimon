@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Finalize ember-sail egg hatch: egg frames match move, dino frames keep full silhouette."""
+"""Finalize creature egg hatch: egg frames match move, dino frames keep full silhouette."""
 
 from __future__ import annotations
 

@@ -41,7 +41,7 @@ supabase db push
 | `019`–`025` | chat rooms, collection slots, spawn |
 | `026` | ปิด RPC รีเซ็ตรหัสเป็นวันเกิด |
 | `027` | quick item slots |
-| `028`–`030` | minigame scores / state; creature ember-sail / garden |
+| `028`–`030` | minigame scores / state; creature species (garden etc.) |
 | `032`–`036` | gems, gifts, battle actions expanded, claim gifts |
 | `037`–`038` | active pet id + cloud save |
 | `039`–`043` | drop/clear reset helpers, signup availability, battle shield |

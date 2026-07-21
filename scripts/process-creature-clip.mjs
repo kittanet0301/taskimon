@@ -19,7 +19,7 @@ const CLIP_MODES = {
 function parseArgs(argv) {
   const options = {
     input: '',
-    species: 'ember-sail',
+    species: 'garden',
     stage: 'baby',
     clip: 'idle',
     outputDir: '',
@@ -95,7 +95,7 @@ function parseArgs(argv) {
 function main() {
   const argv = process.argv.slice(2)
   if (argv.includes('--help') || argv.includes('-h')) {
-    console.log(`Usage: node scripts/process-creature-clip.mjs --input <raw.png> --species ember-sail --stage baby --clip idle [--no-post] [--no-stitch]`)
+    console.log(`Usage: node scripts/process-creature-clip.mjs --input <raw.png> --species garden --stage baby --clip idle [--no-post] [--no-stitch]`)
     process.exit(0)
   }
 

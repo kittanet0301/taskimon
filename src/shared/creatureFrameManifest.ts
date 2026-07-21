@@ -5,7 +5,7 @@ import { CREATURE_FRAME_SIZE } from './creatureCharacters'
 export type CreatureClipEntry = { frameSize: number; frames: number }
 
 export const CREATURE_FRAME_MANIFEST = {
-  "ember-sail": {
+  "garden": {
     "egg": {
       "move": {
         "frameSize": 184,
@@ -22,19 +22,19 @@ export const CREATURE_FRAME_MANIFEST = {
         "frames": 4
       },
       "move": {
-        "frameSize": 160,
+        "frameSize": 184,
         "frames": 4
       },
       "hurt": {
-        "frameSize": 168,
+        "frameSize": 184,
         "frames": 4
       },
       "bite": {
-        "frameSize": 176,
+        "frameSize": 184,
         "frames": 4
       },
       "jump": {
-        "frameSize": 152,
+        "frameSize": 184,
         "frames": 4
       }
     },
@@ -48,7 +48,7 @@ export const CREATURE_FRAME_MANIFEST = {
         "frames": 4
       },
       "hurt": {
-        "frameSize": 192,
+        "frameSize": 200,
         "frames": 4
       },
       "bite": {
@@ -61,10 +61,10 @@ export const CREATURE_FRAME_MANIFEST = {
       }
     }
   },
-  "garden": {
+  "blaze-crest": {
     "egg": {
       "move": {
-        "frameSize": 192,
+        "frameSize": 184,
         "frames": 6
       },
       "hatch": {
@@ -78,25 +78,25 @@ export const CREATURE_FRAME_MANIFEST = {
         "frames": 4
       },
       "move": {
-        "frameSize": 152,
+        "frameSize": 184,
         "frames": 4
       },
       "hurt": {
-        "frameSize": 192,
+        "frameSize": 184,
         "frames": 4
       },
       "bite": {
-        "frameSize": 192,
+        "frameSize": 184,
         "frames": 4
       },
       "jump": {
-        "frameSize": 192,
+        "frameSize": 184,
         "frames": 4
       }
     },
     "adult": {
       "idle": {
-        "frameSize": 192,
+        "frameSize": 200,
         "frames": 4
       },
       "move": {
@@ -118,6 +118,118 @@ export const CREATURE_FRAME_MANIFEST = {
     }
   },
   "crag-shell": {
+    "egg": {
+      "move": {
+        "frameSize": 184,
+        "frames": 6
+      },
+      "hatch": {
+        "frameSize": 184,
+        "frames": 6
+      }
+    },
+    "baby": {
+      "idle": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "move": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "hurt": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "bite": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "jump": {
+        "frameSize": 184,
+        "frames": 4
+      }
+    },
+    "adult": {
+      "idle": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "move": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "hurt": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "bite": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "jump": {
+        "frameSize": 200,
+        "frames": 4
+      }
+    }
+  },
+  "tide-fin": {
+    "egg": {
+      "move": {
+        "frameSize": 184,
+        "frames": 6
+      },
+      "hatch": {
+        "frameSize": 184,
+        "frames": 6
+      }
+    },
+    "baby": {
+      "idle": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "move": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "hurt": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "bite": {
+        "frameSize": 184,
+        "frames": 4
+      },
+      "jump": {
+        "frameSize": 184,
+        "frames": 4
+      }
+    },
+    "adult": {
+      "idle": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "move": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "hurt": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "bite": {
+        "frameSize": 200,
+        "frames": 4
+      },
+      "jump": {
+        "frameSize": 200,
+        "frames": 4
+      }
+    }
+  },
+  "volt-wing": {
     "egg": {
       "move": {
         "frameSize": 184,

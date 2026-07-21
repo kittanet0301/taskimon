@@ -485,9 +485,11 @@
     "sena": "เซนา",
     "tard": "ทาร์ด",
     "vita": "วิตา",
-    "ember-sail": "เอมเบอร์ เซล",
     "garden": "การ์เดน",
-    "crag-shell": "แคร็กเชลล์"
+    "blaze-crest": "เบลซเครสต์",
+    "crag-shell": "แคร็กเชลล์",
+    "tide-fin": "ไทด์ฟิน",
+    "volt-wing": "โวลต์วิง"
   },
   "defaultPetNames": {
     "cole": "โคล",
@@ -502,9 +504,11 @@
     "sena": "เซนา",
     "tard": "ทาร์ด",
     "vita": "วิตา",
-    "ember-sail": "เอมเบอร์ เซล",
     "garden": "การ์เดน",
-    "crag-shell": "แคร็กเชลล์"
+    "blaze-crest": "เบลซเครสต์",
+    "crag-shell": "แคร็กเชลล์",
+    "tide-fin": "ไทด์ฟิน",
+    "volt-wing": "โวลต์วิง"
   },
   "stages": {
     "egg": "Egg",

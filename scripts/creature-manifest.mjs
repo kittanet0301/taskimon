@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export const repoRoot = join(__dirname, '..')
 
 /** POC species using the creature sprite pipeline. */
-export const CREATURE_SPECIES = ['ember-sail', 'garden', 'crag-shell']
+export const CREATURE_SPECIES = ['garden', 'blaze-crest', 'crag-shell', 'tide-fin', 'volt-wing']
 
 /** Clips per stage. Keys match folder names under assets/creatures/{species}/ */
 export const STAGE_CLIPS = {
@@ -81,9 +81,11 @@ export function cropSettingsForStage(stage) {
 
 /** Per-species chroma override (green creatures cannot use green key). */
 export const SPECIES_CHROMA_KEY = {
-  'ember-sail': 'green',
   garden: 'magenta',
-  'crag-shell': 'magenta'
+  'blaze-crest': 'magenta',
+  'crag-shell': 'magenta',
+  'tide-fin': 'magenta',
+  'volt-wing': 'magenta'
 }
 
 export function chromaKeyForSpecies(species) {
@@ -91,7 +93,6 @@ export function chromaKeyForSpecies(species) {
 }
 
 const SPECIES_BOARD_FILES = {
-  'ember-sail': 'ember-sail-species-board.png',
   garden: 'garden-species-board.png'
 }
 
@@ -107,15 +108,15 @@ export function masterReferencePath(species, stage = 'baby') {
   return join(repoRoot, 'sprite-output', species, `master-${stage}.png`)
 }
 
-export function masterAdultRawPath(species = 'ember-sail') {
+export function masterAdultRawPath(species = 'garden') {
   return join(repoRoot, 'assets', 'raw-creatures', species, 'master-adult.png')
 }
 
-export function masterAdultPlanPath(species = 'ember-sail') {
+export function masterAdultPlanPath(species = 'garden') {
   return join(repoRoot, 'sprite-output', species, 'master-adult-plan.json')
 }
 
-export function speciesBoardPath(species = 'ember-sail') {
+export function speciesBoardPath(species = 'garden') {
   const file = SPECIES_BOARD_FILES[species] ?? `${species}-species-board.png`
   return join(repoRoot, 'assets', 'new', file)
 }
