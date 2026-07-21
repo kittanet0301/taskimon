@@ -13,14 +13,14 @@ let dragMouseUpHandler: ((event: { button: number }) => void) | null = null
 
 export function createPetWindow(): BrowserWindow {
   const display = screen.getPrimaryDisplay()
-  const { width, height } = display.workAreaSize
+  const { x, y, width, height } = display.workArea
   const size = currentPetSize
 
   petWindow = new BrowserWindow({
     width: size,
     height: size,
-    x: Math.floor(width / 2 - size / 2),
-    y: height - size - 48,
+    x: Math.floor(x + width / 2 - size / 2),
+    y: y + height - size,
     transparent: true,
     backgroundColor: '#00000000',
     frame: false,
