@@ -1,4 +1,5 @@
 import type { Stage } from './types'
+import type { ElementId } from './elements'
 
 export const CREATURE_SPECIES = ['garden', 'blaze-crest', 'crag-shell', 'tide-fin', 'volt-wing'] as const
 
@@ -6,6 +7,19 @@ export type CreatureSpecies = (typeof CREATURE_SPECIES)[number]
 
 /** Default species for new eggs and saves while creature art is the POC focus. */
 export const DEFAULT_CREATURE_SPECIES: CreatureSpecies = 'garden'
+
+/** Each creature species has one fixed, pure element. */
+export const CREATURE_SPECIES_ELEMENTS: Record<CreatureSpecies, ElementId> = {
+  garden: 'grass',
+  'blaze-crest': 'fire',
+  'crag-shell': 'ground',
+  'tide-fin': 'water',
+  'volt-wing': 'electric'
+}
+
+export function elementForCreatureSpecies(species: CreatureSpecies): ElementId {
+  return CREATURE_SPECIES_ELEMENTS[species]
+}
 
 export const CREATURE_FRAME_SIZE = 128
 

@@ -15,10 +15,9 @@ export { setSessionIsAdmin, getSessionIsAdmin } from './sessionFlags'
 function debugMutatorsEnabled(): boolean {
   return getSessionIsAdmin()
 }
-import { CREATURE_SPECIES, isCreatureSpecies } from './creatureCharacters'
+import { CREATURE_SPECIES, elementForCreatureSpecies, isCreatureSpecies } from './creatureCharacters'
 import { defaultPetName } from './dinoCharacters'
 import { getPetLevel } from './activityScore'
-import { rollElementSlots } from './elements'
 import {
   GROWTH_CARDS,
   applyGrowthCard as applyGrowthCardToStats,
@@ -190,7 +189,8 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
   if (debugMutatorsEnabled() && mutatorName === 'debugSetSpecies' && typeof args[0] === 'string') {
     if (!save.pet || !isCreatureSpecies(args[0])) return save
     const species = args[0] as PetSpecies
-    const { elementPrimary, elementSecondary } = rollElementSlots()
+    const elementPrimary = elementForCreatureSpecies(args[0])
+    const elementSecondary = null
     const primaries = primariesForElements(elementPrimary, elementSecondary)
     const skillLoadout =
       save.pet.stage === 'egg'
@@ -234,12 +234,21 @@ export function applyGamePatch(save: GameSave, mutatorName: string, args: unknow
     if (!save.pet) return save
     const idx = CREATURE_SPECIES.indexOf(save.pet.character as (typeof CREATURE_SPECIES)[number])
     const next = CREATURE_SPECIES[(idx + 1) % CREATURE_SPECIES.length]
+    const elementPrimary = elementForCreatureSpecies(next)
+    const elementSecondary = null
     return {
       ...save,
       pet: {
         ...save.pet,
         character: next,
-        name: defaultPetName(next)
+        name: defaultPetName(next),
+        elementPrimary,
+        elementSecondary,
+        primaries: primariesForElements(elementPrimary, elementSecondary),
+        skillLoadout:
+          save.pet.stage === 'egg'
+            ? null
+            : rollSkillLoadout(elementPrimary, elementSecondary)
       }
     }
   }

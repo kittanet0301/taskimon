@@ -22,6 +22,19 @@ describe('growth helpers', () => {
     expect(save.missions.length).toBeGreaterThan(0)
   })
 
+  it.each([
+    ['garden', 'grass'],
+    ['blaze-crest', 'fire'],
+    ['crag-shell', 'ground'],
+    ['tide-fin', 'water'],
+    ['volt-wing', 'electric']
+  ] as const)('assigns %s the fixed %s element', (species, element) => {
+    const egg = createEggPet(species)
+
+    expect(egg.elementPrimary).toBe(element)
+    expect(egg.elementSecondary).toBeNull()
+  })
+
   it('migrates legacy dino species to garden', () => {
     const save = createDefaultSave()
     if (!save.pet) throw new Error('expected pet')
@@ -30,6 +43,7 @@ describe('growth helpers', () => {
     const migrated = migrateSave(save)
 
     expect(migrated.pet?.character).toBe('garden')
+    expect(migrated.pet?.elementPrimary).toBe('grass')
   })
 
   it('moves pets through hatch, reset, and evolve stages', () => {

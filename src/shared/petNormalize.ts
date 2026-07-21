@@ -1,8 +1,8 @@
 import type { PetData, PetStats } from './types'
-import { normalizeElementId, rollElementSlots } from './elements'
+import { normalizeElementId } from './elements'
 import { primariesForElements, GROWTH_CARDS, type PrimaryStats, type GrowthCardId } from './combatStats'
 import { rollSkillLoadout, type SkillLoadout } from './battle/skillTrees'
-import { DEFAULT_CREATURE_SPECIES } from './creatureCharacters'
+import { DEFAULT_CREATURE_SPECIES, elementForCreatureSpecies } from './creatureCharacters'
 import { defaultPetName, normalizePetSpecies } from './dinoCharacters'
 
 export function normalizeCareStats(raw: Partial<PetStats> & Record<string, unknown>): PetStats {
@@ -60,17 +60,8 @@ export function normalizePetData(pet: PetData & Record<string, unknown>): PetDat
       ? normalizePetSpecies(String(pet.species))
       : DEFAULT_CREATURE_SPECIES
 
-  let elementPrimary = pet.elementPrimary ? normalizeElementId(String(pet.elementPrimary)) : null
-  let elementSecondary =
-    pet.elementSecondary != null && pet.elementSecondary !== ''
-      ? normalizeElementId(String(pet.elementSecondary))
-      : null
-
-  if (!elementPrimary) {
-    const rolled = rollElementSlots()
-    elementPrimary = rolled.elementPrimary
-    elementSecondary = rolled.elementSecondary
-  }
+  const elementPrimary = elementForCreatureSpecies(character)
+  const elementSecondary = null
 
   const stats = normalizeCareStats(pet.stats as PetStats & Record<string, unknown>)
   const primaries = normalizePrimaries(pet.primaries ?? {

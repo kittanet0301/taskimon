@@ -23,6 +23,19 @@ Work from the repository root. Treat `taskido` as the repository/skill name and 
 - Edit database history only through a new file under `supabase/migrations/`. Invoke the project `supabase` skill for every Supabase task and `supabase-postgres-best-practices` for SQL, schema, RLS, indexing, or performance work.
 - Treat `assets/creatures/`, `assets/raw-creatures/`, `sprite-output/`, and generated frame manifests as a pipeline. Invoke `generate2dsprite` for AI-generated creature animation sheets and follow the existing processor scripts instead of manually slicing or resizing images.
 
+## Select project-local skills
+
+| Work | Required skill |
+| --- | --- |
+| Creatures, animation sheets, combat FX, projectiles, or transparent sprite exports | `generate2dsprite` |
+| Battle arenas, map backgrounds, layered maps, reusable map props, collision, or zones | `generate2dmap` |
+| Supabase clients, auth, storage, realtime, migrations, RLS, RPCs, or database work | `supabase` |
+| PostgreSQL schema, SQL, indexing, RLS, configuration, or performance | `supabase-postgres-best-practices` in addition to `supabase` |
+
+The Taskino repository contract takes precedence over generic asset-skill defaults. For creature work, use `scripts/creature-manifest.mjs` as the source of truth for species, stages, clips, frame counts, chroma key, and output paths. Use the project `scripts/` pipeline to produce final runtime assets even when `generate2dsprite` offers a different default layout or export bundle.
+
+Before running project-local Python asset processors, verify that their imported dependencies are available in the active Python environment. The current Agent Sprite Forge processors require Pillow and NumPy. Do not install or upgrade dependencies without user authorization.
+
 ## Implement safely
 
 - Keep game rules and reusable types in `src/shared/`; avoid duplicating rules inside UI components.

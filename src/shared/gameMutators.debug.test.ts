@@ -15,15 +15,15 @@ describe('TEST debug buttons', () => {
     expect(TEST_FAST_EVO).toBe(true)
   })
 
-  it('debugSetSpecies switches species and re-rolls elements/primaries', () => {
+  it('debugSetSpecies switches species and assigns its fixed element', () => {
     const save = createDefaultSave()
     const before = save.pet!
     const next = applyGamePatch(save, 'debugSetSpecies', ['garden'])
     expect(next.pet?.character).toBe('garden')
     expect(next.pet?.name.toLowerCase()).toContain('garden')
-    expect(next.pet?.elementPrimary).toBeTruthy()
+    expect(next.pet?.elementPrimary).toBe('grass')
+    expect(next.pet?.elementSecondary).toBeNull()
     expect(next.pet?.primaries.str).toBeGreaterThan(0)
-    // Species change always assigns a fresh element roll (may equal by chance).
     expect(next.pet).not.toBe(before)
   })
 
@@ -82,7 +82,7 @@ describe('TEST debug buttons', () => {
     const egg = next.collection[next.collection.length - 1]!
     expect(egg.stage).toBe('egg')
     expect(egg.character).toBe('garden')
-    expect(egg.elementPrimary).toBeTruthy()
+    expect(egg.elementPrimary).toBe('grass')
     expect(used + 1).toBe(1 + next.collection.length)
   })
 

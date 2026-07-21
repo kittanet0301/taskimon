@@ -3,7 +3,6 @@ import {
   SAVE_VERSION,
   TEST_FAST_EVO,
   PET_SLOT_BASE,
-  BREED_PURE_BONUS,
   getBreedCooldownMs
 } from './constants'
 import { createDefaultMissions, ensureAllMissions } from './missions'
@@ -11,15 +10,10 @@ import { clampSlotLimit } from './petCollection'
 import { getDefaultInventory, getDefaultQuickItemSlots, normalizeQuickItemSlots } from './items'
 import { createDefaultMinigameState } from './minigame'
 import { hatchEgg, defaultPetName } from './dinoCharacters'
-import {
-  PURE_CHANCE,
-  isPureElements,
-  rollElementSlots,
-  type ElementId
-} from './elements'
 import { primariesForElements } from './combatStats'
 import { rollSkillLoadout } from './battle/skillTrees'
 import { normalizePetData } from './petNormalize'
+import { elementForCreatureSpecies } from './creatureCharacters'
 
 function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -31,7 +25,8 @@ function uuid(): string {
 
 export function createEggPet(species?: PetData['character']): PetData {
   const hatch = hatchEgg(species)
-  const { elementPrimary, elementSecondary } = rollElementSlots()
+  const elementPrimary = elementForCreatureSpecies(hatch.character)
+  const elementSecondary = null
   const primaries = primariesForElements(elementPrimary, elementSecondary)
   return {
     id: uuid(),
@@ -95,8 +90,8 @@ export function canBreed(a: PetData, b: PetData, now: number = Date.now()): bool
 
 /**
  * Locally breed two adult pets: produces an egg (species inherited 50/50 from
- * parents, elements re-rolled with a small pure bonus if both parents are pure
- * of the same element) and stamps `lastBredAt` on both parents.
+ * parents, with the inherited species' fixed element, and stamps `lastBredAt`
+ * on both parents.
  */
 export function breedPetsLocal(
   a: PetData,
@@ -107,22 +102,8 @@ export function breedPetsLocal(
   const inheritSpecies = rng() < 0.5 ? a.character : b.character
   const egg = createEggPet(inheritSpecies)
 
-  const bothPureSame =
-    isPureElements(a.elementPrimary, a.elementSecondary) &&
-    isPureElements(b.elementPrimary, b.elementSecondary) &&
-    a.elementPrimary === b.elementPrimary
-
-  let elementPrimary: ElementId
-  let elementSecondary: ElementId | null
-  // FORCE_PURE_ELEMENTS (via rollElementSlots) keeps dual off for now.
-  if (bothPureSame && rng() < Math.min(1, PURE_CHANCE + BREED_PURE_BONUS)) {
-    elementPrimary = a.elementPrimary
-    elementSecondary = null
-  } else {
-    const rolled = rollElementSlots(rng)
-    elementPrimary = rolled.elementPrimary
-    elementSecondary = rolled.elementSecondary
-  }
+  const elementPrimary = elementForCreatureSpecies(egg.character)
+  const elementSecondary = null
 
   const primaries = primariesForElements(elementPrimary, elementSecondary, rng)
   const nextEgg: PetData = {

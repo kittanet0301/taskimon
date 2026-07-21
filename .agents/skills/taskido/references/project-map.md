@@ -11,6 +11,7 @@
 | `assets/` | Renderer public assets, UI art, creature strips, and raw creature inputs |
 | `supabase/migrations/` | Ordered database schema, RPC, RLS, auth, realtime, and game-feature migrations |
 | `scripts/` | Asset validation and creature sprite generation/post-processing pipeline |
+| `.agents/skills/` | Project-specific Codex workflows, including Taskido rules, sprite/map generation, and Supabase guidance |
 
 The Electron renderer exposes `assets/` as its public directory. Aliases are `@renderer` to `src` and `@shared` to `src/shared`.
 
@@ -29,6 +30,18 @@ The Electron renderer exposes `assets/` as its public directory. Aliases are `@r
 | `npm run creature:batch -- <action>` | Run a creature batch pipeline action |
 
 Discover current `creature:batch` actions from `scripts/batch-creature-species.mjs` or its CLI help before running them.
+
+## Project-local skill routing
+
+| Skill | Use it for |
+| --- | --- |
+| `taskido` | Repository-wide implementation, debugging, review, testing, and release guidance |
+| `generate2dsprite` | Creatures, sprite sheets, animations, combat FX, projectiles, props, transparent frames, and GIF previews |
+| `generate2dmap` | Battle arenas, map backgrounds, layered raster maps, reusable props, collision, and trigger zones |
+| `supabase` | Supabase Auth, Database, Storage, Realtime, clients, migrations, RLS, and RPC workflows |
+| `supabase-postgres-best-practices` | PostgreSQL schema, query, indexing, RLS, configuration, and performance review |
+
+For Taskino creature assets, repository rules override generic asset-skill defaults. Always re-read `scripts/creature-manifest.mjs`, then use the project processing and validation scripts for final runtime output.
 
 ## Creature pipeline invariants
 
